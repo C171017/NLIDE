@@ -96,6 +96,7 @@ See also: [documentation-guide.md](./documentation-guide.md)
 | 2026-06-06 | Flat hackathon layout: `frontend/`, `insforge/functions/`, `migrations/`, `docs/` | Solo speed | Yes |
 | 2026-06-06 | Root `package.json` with InsForge CLI scripts | One place for backend commands | Yes |
 | 2026-06-06 | `spec/` for exported MD (git tracked); not yet populated by export | Hybrid storage plan | Yes |
+| 2026-06-06 | **Full-tree export on commit** — all nine allowlist files rewritten; mdPatches are Postgres deltas only | Phase 6 · Job 1; external agents need complete spec | Yes |
 
 ---
 
