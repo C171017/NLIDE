@@ -36,7 +36,7 @@ export default function ForceGraphViz({ data, compact = false }: ForceGraphVizPr
 
   return (
     <div
-      className={`overflow-hidden rounded-md border border-[#2d3348] bg-[#141824] ${compact ? 'h-36' : 'h-52'}`}
+      className={`glass-surface overflow-hidden rounded-2xl ${compact ? 'h-36' : 'h-52'}`}
     >
       <ForceGraph2D
         graphData={graph}
@@ -50,8 +50,8 @@ export default function ForceGraphViz({ data, compact = false }: ForceGraphVizPr
           ctx.fillStyle = '#e8eaed'
           ctx.fillText(label, (node.x ?? 0) - 20, (node.y ?? 0) + 4)
         }}
-        linkColor={() => '#4b5563'}
-        backgroundColor="#141824"
+        linkColor={() => 'rgba(148, 163, 184, 0.62)'}
+        backgroundColor="rgba(15, 23, 42, 0)"
       />
     </div>
   )

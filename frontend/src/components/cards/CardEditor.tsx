@@ -36,11 +36,11 @@ export default function CardEditor({ card, onChange }: CardEditorProps) {
         <input
           value={card.title}
           onChange={(event) => onChange({ title: event.target.value })}
-          className="w-full rounded-lg border border-[#2d3348] bg-[#141824] px-3 py-2 text-sm font-semibold text-[#f3f4f6] outline-none focus:border-sky-500/60"
+          className="glass-surface w-full rounded-2xl px-3 py-2 text-sm font-semibold text-[#f3f4f6] outline-none focus:border-sky-400/60"
         />
       </div>
 
-      <div className="flex-1 overflow-auto rounded-lg border border-[#2d3348] bg-[#141824] px-3 py-2">
+      <div className="glass-surface flex-1 overflow-auto rounded-2xl px-3 py-2">
         <EditorContent editor={editor} className="text-sm text-[#d1d5db]" />
       </div>
 

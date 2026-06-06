@@ -16,8 +16,8 @@ export default function SidePanel() {
   )
 
   return (
-    <aside className="flex max-h-[30vh] min-h-36 w-full shrink flex-col border-t border-[#2d3348] bg-[#12151d] lg:max-h-none lg:min-h-0 lg:w-80 lg:shrink-0 lg:border-l lg:border-t-0">
-      <div className="border-b border-[#2d3348] px-4 py-3">
+    <aside className="glass-panel flex max-h-[30vh] min-h-36 w-full shrink flex-col overflow-hidden rounded-3xl lg:max-h-none lg:min-h-0 lg:w-80 lg:shrink-0">
+      <div className="border-b border-white/10 px-4 py-3">
         <h2 className="text-sm font-semibold text-[#f3f4f6]">Card editor</h2>
         <p className="text-xs text-[#9aa3b2]">Manual edits sync to underlying spec sections.</p>
       </div>
@@ -29,14 +29,14 @@ export default function SidePanel() {
             onChange={(patch) => updateCard(selectedCard.id, patch)}
           />
         ) : (
-          <div className="rounded-lg border border-dashed border-[#2d3348] px-4 py-8 text-center text-sm text-[#9aa3b2]">
+          <div className="glass-surface rounded-2xl border-dashed px-4 py-8 text-center text-sm text-[#9aa3b2]">
             Select a card on the canvas to edit it.
           </div>
         )}
       </div>
 
       {preview && (
-        <div className="hidden border-t border-[#2d3348] p-4 lg:block">
+        <div className="hidden border-t border-white/10 p-4 lg:block">
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#9aa3b2]">
             Preview summary
           </h3>

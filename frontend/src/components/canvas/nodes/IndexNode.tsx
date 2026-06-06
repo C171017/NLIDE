@@ -22,9 +22,9 @@ export default function IndexNode({ data }: NodeProps) {
       type="button"
       onClick={() => onSelect?.(card.id)}
       className={clsx(
-        'w-[300px] rounded-2xl border border-amber-500/70 bg-amber-500/15 px-4 py-3 text-left',
+        'w-[300px] rounded-3xl border border-amber-300/40 bg-amber-400/14 px-4 py-3 text-left shadow-2xl shadow-black/25 backdrop-blur-xl',
         isPreview && 'border-dashed opacity-80',
-        isSelected && 'ring-2 ring-amber-300/80',
+        isSelected && 'ring-2 ring-amber-200/80',
       )}
     >
       {handlePositions.map((position) => (

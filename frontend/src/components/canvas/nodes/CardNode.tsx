@@ -21,11 +21,11 @@ export default function CardNode({ data }: NodeProps) {
   return (
     <div
       className={clsx(
-        'rounded-xl border px-3 py-2.5 text-left transition-colors',
+        'rounded-2xl border px-3 py-2.5 text-left shadow-xl shadow-black/20 backdrop-blur-xl transition-colors',
         hasInteractiveViz ? 'w-[300px]' : 'w-[260px]',
         cardTypeStyles(card.type),
         isPreview && 'border-dashed opacity-80',
-        isSelected && 'ring-2 ring-sky-400/70',
+        isSelected && 'ring-2 ring-sky-300/70',
       )}
     >
       {handlePositions.map((position) => (
@@ -56,12 +56,12 @@ export default function CardNode({ data }: NodeProps) {
             {cardTypeLabel(card.type)}
           </span>
           {card.status && (
-            <span className="rounded-full bg-[#1a1d27] px-2 py-0.5 text-[10px] text-[#9aa3b2]">
+            <span className="rounded-full bg-slate-950/45 px-2 py-0.5 text-[10px] text-[#b8c0cf]">
               {card.status.replace('_', ' ')}
             </span>
           )}
           {isPreview && (
-            <span className="rounded-full bg-sky-500/20 px-2 py-0.5 text-[10px] text-sky-300">
+            <span className="rounded-full bg-sky-400/20 px-2 py-0.5 text-[10px] text-sky-200">
               preview
             </span>
           )}

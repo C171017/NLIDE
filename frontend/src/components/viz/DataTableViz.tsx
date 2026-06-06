@@ -64,16 +64,16 @@ export default function DataTableViz({ data, compact = false }: DataTableVizProp
 
   return (
     <div
-      className={`overflow-auto rounded-md border border-[#2d3348] bg-[#141824] ${compact ? 'max-h-36' : 'max-h-56'}`}
+      className={`glass-surface overflow-auto rounded-2xl ${compact ? 'max-h-36' : 'max-h-56'}`}
     >
       <table className="w-full text-left text-xs">
-        <thead className="sticky top-0 bg-[#1a1d27]">
+        <thead className="sticky top-0 bg-slate-950/60 backdrop-blur">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
-                  className="cursor-pointer border-b border-[#2d3348] px-2 py-1.5 font-medium text-[#9aa3b2]"
+                  className="cursor-pointer border-b border-white/10 px-2 py-1.5 font-medium text-[#9aa3b2]"
                   onClick={header.column.getToggleSortingHandler()}
                 >
                   {flexRender(header.column.columnDef.header, header.getContext())}
@@ -88,7 +88,7 @@ export default function DataTableViz({ data, compact = false }: DataTableVizProp
         </thead>
         <tbody>
           {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className="border-b border-[#2d3348]/60">
+            <tr key={row.id} className="border-b border-white/8">
               {row.getVisibleCells().map((cell) => (
                 <td key={cell.id} className="px-2 py-1.5 text-[#d1d5db]">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}

@@ -44,7 +44,7 @@ export default function MermaidViz({ source, compact = false }: MermaidVizProps)
 
   if (error) {
     return (
-      <div className="rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
+      <div className="rounded-2xl border border-rose-300/25 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
         {error}
       </div>
     )
@@ -52,7 +52,7 @@ export default function MermaidViz({ source, compact = false }: MermaidVizProps)
 
   return (
     <div
-      className={`overflow-auto rounded-md border border-[#2d3348] bg-[#141824] ${compact ? 'max-h-36 p-2' : 'p-3'}`}
+      className={`glass-surface overflow-auto rounded-2xl ${compact ? 'max-h-36 p-2' : 'p-3'}`}
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   )
