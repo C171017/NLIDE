@@ -1,8 +1,8 @@
 import type { GoldenPassBar, GoldenPrompt } from './types.ts'
 
 /**
- * Golden router prompts — Phase 1 contract job 5.
- * **[AI-INFERRED]** draft from router-intent-types-v0.md — awaiting [USER] review.
+ * Golden router prompts — Phase 1 · Job 5.
+ * **[USER]** approved 2026-06-06 after comparison vs intent types (see docs/architecture/router-intent-types-v0.md).
  */
 export const GOLDEN_PROMPTS: GoldenPrompt[] = [
   {
@@ -158,7 +158,7 @@ export const GOLDEN_PROMPTS: GoldenPrompt[] = [
   },
 ]
 
-/** **[AI-INFERRED]** pass bar for Phase 1 job 6 — tune when router ships. */
+/** **[AI-INFERRED]** Phase 1 · Job 6 — awaiting [USER] lock. */
 export const GOLDEN_PASS_BAR: GoldenPassBar = {
   minPass: 8,
   description: '≥8/10 golden prompts pass via action:"route" + Zod validation',

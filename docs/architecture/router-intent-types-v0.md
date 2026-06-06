@@ -110,28 +110,29 @@ Allowed `target` files (v0): `INDEX.md`, `product.md`, `users.md`, `features.md`
 - [x] **`intent_type` enum locked** ticked (2/6)
 - [x] **Hardcoded schema fields** ticked (3/6)
 - [x] **Spec file allowlist** ticked (4/6)
-- [ ] **Golden prompts (10 cases)** — review table below, then tick (5/6)
+- [x] **Golden prompts (10 cases)** ticked — Phase 1 · Job 5 (5/6)
+- [ ] **Pass bar** — Phase 1 · Job 6 (6/6)
 
 ---
 
-## Golden prompts (10 cases) — **[AI-INFERRED]** draft for your review
+## Golden prompts vs intent types (coverage comparison)
 
-Canonical fixture: `shared/translator/goldenPrompts.ts` (also returned by `get-translator-spec` API).
+| Intent type | Golden prompt(s) | Plain check |
+|-------------|------------------|-------------|
+| `add_feature` | #3 Google login | New capability → features + tasks |
+| `update_feature` | #1 pan/zoom, #2 canvas layout | F-001; not `clarify` |
+| `add_task` | *(via #3)* | tasks.md expected with new feature; no standalone case |
+| `update_task` | #9 Mark T-001 done | tasks.md only |
+| `update_product` | #10 solo builders vision | product.md + users.md |
+| `update_architecture` | *(via #2)* | co-target with F-001; no standalone case |
+| `add_constraint` | #4 no real-time agents | constraints.md |
+| `add_decision` | #5 hybrid storage | decisions.md |
+| `clarify` | #6 SSO domains | open-questions only; no guess |
+| `noop` | #7 InsForge setup, #8 progress bar UI | empty ops; Cursor/build work |
 
-| # | Chat message | Expected type | Targets | Must NOT |
-|---|--------------|---------------|---------|----------|
-| 1 | Users should be able to pan and zoom the canvas. | `update_feature` | `features.md` · **F-001** | `clarify`, `open-questions.md` |
-| 2 | Reorganize canvas: Product center, Frontend left, Backend right, zoom layers | `update_feature` | `features.md` + `architecture.md` · **F-001** | `clarify` |
-| 3 | Add Google login for enterprise users. | `add_feature` | `features.md` + `tasks.md` | `clarify`, `noop` |
-| 4 | Agents must not run in real time — batch translator only. | `add_constraint` | `constraints.md` | `features.md`, `clarify` |
-| 5 | Hybrid storage: Postgres at runtime, export spec on commit. | `add_decision` | `decisions.md` | `clarify`, `noop` |
-| 6 | Which Google Workspace domains for SSO? | `clarify` | `open-questions.md` only | `features.md`, guess content |
-| 7 | Set up InsForge for the backend. | `noop` | *(empty)* | any spec file |
-| 8 | Add a progress bar to the canvas checklist card. | `noop` | *(empty)* | `update_feature`, `clarify` |
-| 9 | Mark T-001 as done. | `update_task` | `tasks.md` · **T-001** | `clarify`, `noop` |
-| 10 | NLIDE is for solo builders… define intent before AI agents. | `update_product` | `product.md` + `users.md` | `clarify`, `add_feature` |
+**Gaps (acceptable for v0):** no dedicated `add_task`-only or `update_architecture`-only message — add in Phase 2 if router confuses those.
 
-**Pass bar (job 6 preview):** ≥8/10 must pass via `action:"route"` + Zod before Phase 2 Agent mode.
+**Pass bar (Job 6):** ≥8/10 in `GOLDEN_PASS_BAR` — router must pass before Phase 2 Agent mode.
 
 ---
 
