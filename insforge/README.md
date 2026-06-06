@@ -207,7 +207,7 @@ insforge deployments create --name nlide-web --dir frontend/dist
 | `route-golden` | Run all 10 golden router prompts; returns pass count vs ≥8/10 bar |
 | `write-features` | Features.md writer — one section from router plan + message |
 | `write-features-golden` | Run 4 features writer golden cases; returns pass count vs ≥3/4 bar |
-| `intent` | Chat → preview (stored in `previews`) — **still stub** until pipeline wired |
+| `intent` | Chat → **router + writers + mapper** preview (stored in `previews`) — requires `OPENROUTER_API_KEY` |
 | `commit` | Apply preview to `cards` / `canvas_edges` + **`exportedSpec`** (9 Flow B files) |
 | `discard` | Delete preview row |
 | `patch-card` | Manual card edit sync (+ spec_sections when body is valid MD) |
@@ -228,5 +228,4 @@ See `shared/translator/exportEndToEndSmoke.ts`.
 
 ## Next steps
 
-- Wire router + writers into `action:intent` preview pipeline
 - Seed default project cards on first load

@@ -49,7 +49,8 @@ User Commit or Discard
 | API routing (`action` field) | ✅ Live |
 | Preview storage | ✅ Live |
 | Commit / discard | ✅ Live |
-| Stub `buildPreview()` on `intent` | ✅ Live — uses `mapCanvasToPreview()` (no LLM on intent yet) |
+| Stub `buildPreview()` on `intent` | ❌ Removed — **`action:intent`** runs router → writers → validator → mapper |
+| Full intent pipeline (`action:intent`) | ✅ Live — `intent/buildIntentPreview.ts`; needs `OPENROUTER_API_KEY`; no stub fallback |
 | Canvas mapper | ✅ **Implemented** — `shared/translator/canvasMapper.ts`; golden via `action:canvas-mapper-golden` |
 | Preview diff (ghost styling) | ✅ **Implemented** — `shared/translator/diffPreview.ts` + `IntentCanvas.tsx` |
 | Router LLM (`action:route`) | ✅ Implemented — `router/routeIntent.ts`; needs `OPENROUTER_API_KEY` |
@@ -87,8 +88,8 @@ User Commit or Discard
 3. One writer (`features.md`) (done)  
 4. All writers + validator (done)  
 5. Canvas mapper + preview diff (done) — `mapCanvasToPreview()`  
-6. Commit + `/spec/*.md` export (next)  
-7. Wire router + writers → `action:intent` end-to-end
+6. Commit + `/spec/*.md` export — ✅ shipped  
+7. Wire router + writers → `action:intent` end-to-end — ✅ shipped
 
 When each step ships, update [current-state.md](../implementation/current-state.md).
 

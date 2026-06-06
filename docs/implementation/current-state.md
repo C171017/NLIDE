@@ -81,7 +81,7 @@ Run: `npm run dev` (from repo root)
 | **Canvas mapper (Phase 5)** | `shared/translator/canvasMapper.ts` — wired into stub `buildPreview()` on `action:intent` |
 | **Spec export (Phase 6)** | `shared/translator/specExport.ts`, `export/specStore.ts`, `export/exportSmoke.ts` — commit returns `exportedSpec` |
 | **Spec validator (Phase 4)** | `validator/validateSpec.ts` — `action:validate-spec`; wired into commit export |
-| Translator preview | Stub plan via `buildStubPreviewPlan()` → `mapCanvasToPreview()` — router+writers not wired to `action:intent` yet |
+| Translator preview | **`action:intent`** — router → writers → validator → canvas mapper (requires `OPENROUTER_API_KEY`) |
 | DB access | `@insforge/sdk` in edge function |
 
 ### API actions (live)
@@ -99,7 +99,7 @@ Run: `npm run dev` (from repo root)
 | `validate-spec` | ✅ **Implemented** — ID/link/content validation |
 | `phase4-smoke` | ✅ **Implemented** — gp-03 writers + validator smoke |
 | `canvas-mapper-golden` | ✅ **Implemented** — 5 mapper cases, ≥4/5 pass bar |
-| `intent` | ✅ Stub preview via canvas mapper → saves to `previews` table |
+| `intent` | ✅ Router + writers + mapper → preview (needs `OPENROUTER_API_KEY`; no stub fallback) |
 | `commit` | ✅ Applies preview to `cards` / `canvas_edges` + **`exportedSpec`** (9 files) |
 | `export-smoke` | ✅ **Implemented** — headless assemble + validation (no DB) |
 | `discard` | ✅ Deletes preview row |
@@ -118,8 +118,7 @@ Deploy: `npm run insforge:deploy:api`
 | Real LLM translator (router + writers + Claude) | flow-b-v0, tech-stack |
 | **Router LLM** | ✅ Phase 2 shipped — `action:route`; tune with `route-golden` |
 | **Features writer LLM** | ✅ Phase 3 shipped — `action:write-features`; tune with `write-features-golden` |
-| **Full intent pipeline** | Router + writer not wired to `action:intent` yet |
-| **Full intent pipeline on canvas chat** | `action:run-writers` exists; `action:intent` still uses stub |
+| **Full intent pipeline on canvas chat** | ✅ `action:intent` wired — router + writers + validator + mapper |
 | `/spec/*.md` export on commit | ✅ **Phase 6 shipped** — `exportedSpec` on `action:commit`; `npm run write:spec` |
 | InsForge Sites / Cloudflare deploy | **[USER]** hosting choice |
 | Auth | Out of v0 scope |

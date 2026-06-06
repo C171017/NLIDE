@@ -21,9 +21,9 @@ import {
 } from './export/specStore.ts'
 import { buildSectionRowsForCommit } from './_shared/translator/specExport.ts'
 import {
-  buildStubPreviewPlan,
-  mapCanvasToPreview,
-} from './_shared/translator/canvasMapper.ts'
+  buildIntentPreview,
+  isIntentPipelineConfigured,
+} from './intent/buildIntentPreview.ts'
 
 const DEFAULT_PROJECT_ID = '00000000-0000-4000-8000-000000000001'
 
@@ -58,6 +58,7 @@ interface MdPatch {
   action: 'add' | 'update' | 'remove'
   anchor?: string
   summary: string
+  section?: string
 }
 
 interface PreviewPayload {
@@ -346,52 +347,6 @@ async function patchCard(
   return card
 }
 
-function finalizeStubMdPatches(
-  preview: PreviewPayload,
-  committedCardIds: Set<string>,
-): PreviewPayload {
-  const newOq = preview.cards.find(
-    (card) => card.type === 'open-question' && !committedCardIds.has(card.id),
-  )
-  const featuresPatch = preview.mdPatches.find((patch) => patch.file === 'features.md')
-
-  return {
-    ...preview,
-    mdPatches: [
-      {
-        file: 'open-questions.md',
-        action: 'add',
-        anchor: newOq?.specRef.anchor ?? newOq?.id ?? 'OQ-preview',
-        summary: 'Add open question about allowed Google domains',
-      },
-      {
-        file: 'features.md',
-        action: 'add',
-        anchor: featuresPatch?.anchor ?? 'F-004',
-        summary: featuresPatch?.summary ?? 'Propose F-004 Google login feature',
-      },
-    ],
-  }
-}
-
-function buildPreview(
-  message: string,
-  cards: Card[],
-  edges: CanvasEdge[],
-  centerCardId = 'product',
-): PreviewPayload {
-  const committedCardIds = new Set(cards.map((card) => card.id))
-  const preview = mapCanvasToPreview({
-    committedCards: cards as import('./_shared/translator/canvasTypes.ts').CanvasCard[],
-    committedEdges: edges,
-    centerCardId,
-    routerPlan: buildStubPreviewPlan(message),
-    userMessage: message,
-  })
-
-  return finalizeStubMdPatches(preview, committedCardIds) as PreviewPayload
-}
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -469,6 +424,19 @@ function defaultRouterContext(): RouterContext {
   }
 }
 
+function intentFailureStatus(code: string): number {
+  if (code === 'intent_pipeline_unconfigured' || code === 'router_unconfigured' || code === 'writer_unconfigured') {
+    return 503
+  }
+  if (code === 'router_validation_failed' || code === 'validation_failed' || code === 'writer_validation_failed') {
+    return 422
+  }
+  if (code === 'router_invalid_json' || code === 'router_upstream_error' || code === 'writer_upstream_error') {
+    return 502
+  }
+  return 500
+}
+
 export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders })
@@ -505,6 +473,7 @@ export default async function handler(req: Request): Promise<Response> {
         featuresWriterConfigured: isFeaturesWriterConfigured(),
         taskWriterConfigured: isTaskWriterConfigured(),
         phase4PipelineConfigured: isFeaturesWriterConfigured() && isTaskWriterConfigured(),
+        intentPipelineConfigured: isIntentPipelineConfigured(),
         mode: hasSecrets ? 'insforge' : 'stub-secrets-missing',
       })
     }
@@ -779,19 +748,48 @@ export default async function handler(req: Request): Promise<Response> {
         const context = body.context
         let cards = context?.cards ?? []
         let edges = context?.edges ?? []
+        let centerCardId = context?.centerCardId ?? 'product'
 
-        if (cards.length === 0) {
-          const existing = await getProject(client, projectId)
-          if (existing && existing.cards.length > 0) {
-            cards = existing.cards
-            edges = existing.edges
-          }
+        const project = await getProject(client, projectId)
+        const projectName = project?.projectName ?? 'NLIDE Demo Project'
+
+        if (cards.length === 0 && project && project.cards.length > 0) {
+          cards = project.cards
+          edges = project.edges
+          centerCardId = project.centerCardId
         }
 
-        const preview = buildPreview(body.message.trim(), cards, edges)
+        const specRows = await loadSpecSections(client, projectId)
+
+        const result = await buildIntentPreview({
+          message: body.message.trim(),
+          cards,
+          edges,
+          centerCardId,
+          projectName,
+          specRows,
+        })
+
+        if (!result.ok) {
+          return json(
+            {
+              ok: false,
+              stage: result.stage,
+              error: result.error,
+            },
+            intentFailureStatus(result.error.code),
+          )
+        }
+
+        const preview = result.preview as PreviewPayload
         await savePreview(client, projectId, preview)
 
-        return json({ preview })
+        return json({
+          preview,
+          routerModel: result.routerModel,
+          writerModels: result.writerModels,
+          warnings: result.warnings,
+        })
       }
 
       case 'commit': {

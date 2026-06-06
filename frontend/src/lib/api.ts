@@ -21,10 +21,15 @@ async function post<T>(payload: Record<string, unknown>, signal?: AbortSignal): 
     signal,
   })
 
-  const data = (await response.json()) as T & { error?: string }
+  const data = (await response.json()) as T & { error?: string | { code?: string; message?: string } }
 
   if (!response.ok) {
-    throw new Error(data.error ?? `API error ${response.status}`)
+    const err = data.error
+    const message =
+      typeof err === 'string'
+        ? err
+        : err?.message ?? `API error ${response.status}`
+    throw new Error(message)
   }
 
   return data

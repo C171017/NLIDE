@@ -1,6 +1,6 @@
 {
   "committed": true,
-  "previewId": "preview-1780783280569",
+  "previewId": "preview-1780783839735",
   "cards": [
     {
       "id": "frontend",
@@ -114,6 +114,12 @@
           ],
           [
             "F-006",
+            "Preview adds F-004 Google login and an open question card linked from Features",
+            "proposed",
+            "high"
+          ],
+          [
+            "F-007",
             "Preview adds F-004 Google login and an open question card linked from Features",
             "proposed",
             "high"
@@ -236,7 +242,7 @@
       "id": "oq-1780783280569",
       "body": "From chat: \"Add Google login\" — which enterprise domains should be allowed for Google login?",
       "type": "open-question",
-      "layer": 1,
+      "layer": 0,
       "title": "Open question (preview)",
       "status": "proposed",
       "specRef": {
@@ -246,6 +252,22 @@
       "position": {
         "x": 175.80111981482418,
         "y": 845.1820829628132
+      }
+    },
+    {
+      "id": "oq-1780783839735",
+      "body": "From chat: \"Add Google login for enterprise users\" — which enterprise domains should be allowed for Google login?",
+      "type": "open-question",
+      "layer": 1,
+      "title": "Open question (preview)",
+      "status": "proposed",
+      "specRef": {
+        "file": "open-questions.md",
+        "anchor": "oq-1780783839735"
+      },
+      "position": {
+        "x": 175.80111981482418,
+        "y": 1085.1820829628132
       },
       "parentCardId": "product"
     }
@@ -322,6 +344,12 @@
       "label": "raises",
       "source": "features",
       "target": "oq-1780783280569"
+    },
+    {
+      "id": "e-features-oq-1780783839735",
+      "label": "raises",
+      "source": "features",
+      "target": "oq-1780783839735"
     }
   ],
   "exportedSpec": {
@@ -332,9 +360,9 @@
     "tasks.md": "# Tasks\n\n_(No tasks yet — add via chat when features are defined.)_\n",
     "constraints.md": "# Constraints\n\n## Stack\n\n## Patterns\n\n## Non-goals\n",
     "decisions.md": "# Decisions\n\n_(No recorded decisions yet.)_\n",
-    "open-questions.md": "### oq-1780783280569: Domain allowlist\n\n- **Status:** open\n- **Question:** which enterprise domains should be allowed for Google login?\n- **Context:** From translator preview\n",
+    "open-questions.md": "### oq-1780783280569: Domain allowlist\n\n- **Status:** open\n- **Question:** which enterprise domains should be allowed for Google login?\n- **Context:** From translator preview\n\n### oq-1780783839735: Domain allowlist\n\n- **Status:** open\n- **Question:** which enterprise domains should be allowed for Google login?\n- **Context:** From translator preview\n",
     "INDEX.md": "# NLIDE Demo Project — Spec Index\n\nAdd entry in features.md\n\n## Spec files\n\n| File | Scope |\n|------|-------|\n| `product.md` | What we are building and why — vision, goals, scope |\n| `users.md` | Target users, personas, pain points, use cases |\n| `features.md` | Feature list with acceptance criteria (F-001, …) |\n| `architecture.md` | High-level system design — no source file paths |\n| `tasks.md` | Agent-executable work items (T-001, …) |\n| `constraints.md` | Stack, patterns, non-goals, limits |\n| `decisions.md` | Resolved choices — ADR-style (D-001, …) |\n| `open-questions.md` | Unresolved decisions needing user input (OQ-001, …) |\n\n## Agent routing rules\n\n1. **Start here.** Read `constraints.md` before `architecture.md`.\n2. Tasks in `tasks.md` reference feature IDs in `features.md` — follow **Feature:** links.\n3. Unresolved items live in `open-questions.md` — do not guess; ask the user.\n4. Locked choices are in `decisions.md` — respect **Status: locked**.\n5. Intent-level spec only — no source file paths as primary requirements.\n\n_Exported 2026-06-06 — NLIDE Flow B v0_"
   },
   "exportWarnings": [],
-  "sectionCount": 5
+  "sectionCount": 6
 }

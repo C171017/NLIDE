@@ -75,6 +75,7 @@ export interface MdPatch {
   action: 'add' | 'update' | 'remove'
   anchor?: string
   summary: string
+  section?: string
 }
 
 export interface PreviewPayload {

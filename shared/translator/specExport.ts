@@ -104,6 +104,10 @@ export function patchToSectionContent(
   patch: MdPatch,
   cards: CardForExport[],
 ): string {
+  if (patch.section?.trim()) {
+    return patch.section.trim()
+  }
+
   const card = findCardForPatch(cards, patch)
   const anchor = patch.anchor ?? patch.file
   const entityId = patch.anchor ?? 'section'

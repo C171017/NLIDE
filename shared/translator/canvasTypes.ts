@@ -46,6 +46,8 @@ export interface MdPatch {
   action: 'add' | 'update' | 'remove'
   anchor?: string
   summary: string
+  /** Full markdown section from writers — used on commit when present. */
+  section?: string
 }
 
 export interface PreviewPayload {

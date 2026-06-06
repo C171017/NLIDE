@@ -62,7 +62,7 @@ See also: [documentation-guide.md](./documentation-guide.md)
 
 | Date | Decision | Rationale | Revisable? |
 |------|----------|-----------|------------|
-| 2026-06-06 | **Stub `buildPreview()`** mirrors frontend mock | Prove preview → commit loop before real LLM router/writers | Partially — now calls `mapCanvasToPreview()`; full router+writers on `intent` still pending |
+| 2026-06-06 | **Full intent pipeline on `action:intent`** — router → writers → validator → mapper; stub removed | OpenRouter required; local frontend stub when env unset | Yes |
 | 2026-06-06 | **Canvas mapper in `shared/translator/canvasMapper.ts`** | Applies `canvas_ops[]` or derives from router plan; auto-places preview cards | No — Phase 5 shipped |
 | 2026-06-06 | Stub adds open-question card + F-004 row on any chat message | Demo-friendly predictable preview | Yes |
 | 2026-06-06 | Router → writer → validator pipeline (designed, not fully implemented) | Documented architecture; stub skips LLM | Yes |
