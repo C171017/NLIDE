@@ -1,4 +1,5 @@
 import { BUILD_PHASES } from './buildPhases.ts'
+import { GOLDEN_PASS_BAR, GOLDEN_PROMPTS } from './goldenPrompts.ts'
 import {
   ROUTER_INTENT_TYPES,
   ROUTER_SCHEMA_FIELDS,
@@ -17,9 +18,12 @@ export function getTranslatorSpec(): TranslatorSpec {
     specFileAllowlist: SPEC_FILE_ALLOWLIST,
     schemaFields: ROUTER_SCHEMA_FIELDS,
     buildPhases: BUILD_PHASES,
+    goldenPrompts: GOLDEN_PROMPTS,
+    goldenPassBar: GOLDEN_PASS_BAR,
   }
 }
 
 export * from './types.ts'
 export * from './intentTypes.ts'
 export * from './buildPhases.ts'
+export * from './goldenPrompts.ts'

@@ -48,4 +48,37 @@ export interface TranslatorSpec {
   specFileAllowlist: string[]
   schemaFields: string[]
   buildPhases: BuildPhase[]
+  goldenPrompts: GoldenPrompt[]
+  goldenPassBar: GoldenPassBar
+}
+
+/** Expected router output for one golden test case (Phase 1 contract). */
+export interface GoldenPromptExpectation {
+  intentType: RouterIntentType
+  /** Spec files that must appear in operations[].target */
+  operationTargets: string[]
+  /** Entity IDs that must appear when set (e.g. F-001, T-001) */
+  entityIds?: string[]
+  /** open_questions[] must be empty unless intent is clarify */
+  openQuestionsEmpty?: boolean
+  mustNot?: {
+    intentTypes?: RouterIntentType[]
+    operationTargets?: string[]
+  }
+  notes?: string
+}
+
+export interface GoldenPrompt {
+  id: string
+  /** Simulated NLIDE canvas chat message */
+  message: string
+  /** Where this example came from */
+  source: string
+  expectation: GoldenPromptExpectation
+}
+
+export interface GoldenPassBar {
+  /** Minimum passing cases out of goldenPrompts.length */
+  minPass: number
+  description: string
 }

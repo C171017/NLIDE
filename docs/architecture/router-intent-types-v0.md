@@ -110,6 +110,28 @@ Allowed `target` files (v0): `INDEX.md`, `product.md`, `users.md`, `features.md`
 - [x] **`intent_type` enum locked** ticked (2/6)
 - [x] **Hardcoded schema fields** ticked (3/6)
 - [x] **Spec file allowlist** ticked (4/6)
+- [ ] **Golden prompts (10 cases)** — review table below, then tick (5/6)
+
+---
+
+## Golden prompts (10 cases) — **[AI-INFERRED]** draft for your review
+
+Canonical fixture: `shared/translator/goldenPrompts.ts` (also returned by `get-translator-spec` API).
+
+| # | Chat message | Expected type | Targets | Must NOT |
+|---|--------------|---------------|---------|----------|
+| 1 | Users should be able to pan and zoom the canvas. | `update_feature` | `features.md` · **F-001** | `clarify`, `open-questions.md` |
+| 2 | Reorganize canvas: Product center, Frontend left, Backend right, zoom layers | `update_feature` | `features.md` + `architecture.md` · **F-001** | `clarify` |
+| 3 | Add Google login for enterprise users. | `add_feature` | `features.md` + `tasks.md` | `clarify`, `noop` |
+| 4 | Agents must not run in real time — batch translator only. | `add_constraint` | `constraints.md` | `features.md`, `clarify` |
+| 5 | Hybrid storage: Postgres at runtime, export spec on commit. | `add_decision` | `decisions.md` | `clarify`, `noop` |
+| 6 | Which Google Workspace domains for SSO? | `clarify` | `open-questions.md` only | `features.md`, guess content |
+| 7 | Set up InsForge for the backend. | `noop` | *(empty)* | any spec file |
+| 8 | Add a progress bar to the canvas checklist card. | `noop` | *(empty)* | `update_feature`, `clarify` |
+| 9 | Mark T-001 as done. | `update_task` | `tasks.md` · **T-001** | `clarify`, `noop` |
+| 10 | NLIDE is for solo builders… define intent before AI agents. | `update_product` | `product.md` + `users.md` | `clarify`, `add_feature` |
+
+**Pass bar (job 6 preview):** ≥8/10 must pass via `action:"route"` + Zod before Phase 2 Agent mode.
 
 ---
 
@@ -118,3 +140,4 @@ Allowed `target` files (v0): `INDEX.md`, `product.md`, `users.md`, `features.md`
 | Date | Change |
 |------|--------|
 | 2026-06-06 | **[AI-INFERRED]** Initial draft from past chat mining — **awaiting [USER] review** |
+| 2026-06-06 | **[AI-INFERRED]** Ten golden prompts in `shared/translator/goldenPrompts.ts` — **awaiting [USER] review** |
