@@ -20,9 +20,6 @@ export default function ChatBar() {
     <footer className="glass-panel shrink-0 rounded-3xl px-4 py-3">
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <label className="min-w-0 flex-1">
-          <span className="mb-1 block text-xs text-[#9aa3b2]">
-            Describe what you want — translator runs once and returns a preview.
-          </span>
           <textarea
             value={chatDraft}
             onChange={(event) => setChatDraft(event.target.value)}

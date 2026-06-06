@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Background,
-  MiniMap,
   Position,
   ReactFlow,
   useReactFlow,
@@ -24,6 +23,7 @@ import { useCanvasStore } from '../../store/canvasStore'
 import CardNode from './nodes/CardNode'
 import IndexNode from './nodes/IndexNode'
 import LabeledEdge from './edges/LabeledEdge'
+import CanvasNavPanel from './CanvasNavPanel'
 
 const nodeTypes = {
   index: IndexNode,
@@ -307,6 +307,7 @@ export default function IntentCanvas() {
   const centerCardId = useCanvasStore((state) => state.centerCardId)
   const preview = useCanvasStore((state) => state.preview)
   const drillFocusId = useCanvasStore((state) => state.drillFocusId)
+  const drillOut = useCanvasStore((state) => state.drillOut)
   const selectCard = useCanvasStore((state) => state.selectCard)
   const moveCard = useCanvasStore((state) => state.moveCard)
 
@@ -357,6 +358,11 @@ export default function IntentCanvas() {
 
   const viewMode = displayedLayer.mode
   const focusId = displayedLayer.focusId
+
+  const focusTitle = useMemo(() => {
+    if (!focusId) return null
+    return activeCards.find((card) => card.id === focusId)?.title ?? null
+  }, [activeCards, focusId])
 
   const visibleCards = useMemo(
     () => filterVisibleCards(activeCards, viewMode, focusId),
@@ -457,10 +463,11 @@ export default function IntentCanvas() {
           layerKeyValue={layerKey(displayedLayer)}
           transitionPhase={transitionPhase}
         />
-        <MiniMap
-          className="hidden 2xl:block"
-          nodeColor={(node) => (node.type === 'index' ? '#f59e0b' : '#374151')}
-          maskColor="rgba(15, 17, 23, 0.75)"
+        <CanvasNavPanel
+          mode={viewMode}
+          focusTitle={focusTitle}
+          transitionPhase={transitionPhase}
+          onNavigateOverview={drillOut}
         />
       </ReactFlow>
     </div>
