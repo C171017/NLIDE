@@ -281,7 +281,6 @@ function deriveCanvasOps(
         featuresOp?.entity_id ??
         hintForFile(hints, 'features.md')?.entityId ??
         allocateNextFeatureId(featureIds)
-      const aggregateTable = hasAggregateFeaturesTable(cards)
       const featureCardExists = Boolean(findCard(cards, featureId))
 
       if (!featureCardExists) {
