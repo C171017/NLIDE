@@ -9,7 +9,7 @@ export function isInsForgeConfigured(): boolean {
   return Boolean(functionUrl?.trim())
 }
 
-async function post<T>(payload: Record<string, unknown>): Promise<T> {
+async function post<T>(payload: Record<string, unknown>, signal?: AbortSignal): Promise<T> {
   if (!functionUrl) {
     throw new Error('VITE_INSFORGE_FUNCTION_URL is not set')
   }
@@ -18,6 +18,7 @@ async function post<T>(payload: Record<string, unknown>): Promise<T> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
+    signal,
   })
 
   const data = (await response.json()) as T & { error?: string }
@@ -54,18 +55,32 @@ export async function submitIntent(
   message: string,
   context: { cards: Card[]; edges: CanvasEdge[]; centerCardId: string },
   projectId = DEFAULT_PROJECT_ID,
+  signal?: AbortSignal,
 ): Promise<PreviewPayload> {
   if (!functionUrl) {
-    await new Promise((resolve) => setTimeout(resolve, 400))
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(resolve, 400)
+      signal?.addEventListener(
+        'abort',
+        () => {
+          clearTimeout(timeout)
+          reject(new DOMException('Aborted', 'AbortError'))
+        },
+        { once: true },
+      )
+    })
     return buildPreviewLocal(message, context.cards, context.edges)
   }
 
-  const data = await post<{ preview: PreviewPayload }>({
-    action: 'intent',
-    projectId,
-    message,
-    context,
-  })
+  const data = await post<{ preview: PreviewPayload }>(
+    {
+      action: 'intent',
+      projectId,
+      message,
+      context,
+    },
+    signal,
+  )
 
   return data.preview
 }

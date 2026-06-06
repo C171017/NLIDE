@@ -24,6 +24,7 @@ import CardNode from './nodes/CardNode'
 import IndexNode from './nodes/IndexNode'
 import LabeledEdge from './edges/LabeledEdge'
 import CanvasNavPanel from './CanvasNavPanel'
+import ChatBar from '../chat/ChatBar'
 
 const nodeTypes = {
   index: IndexNode,
@@ -432,7 +433,7 @@ export default function IntentCanvas() {
   )
 
   return (
-    <div className={`intent-canvas canvas-layer-${transitionPhase} h-full w-full`}>
+    <div className={`intent-canvas canvas-layer-${transitionPhase} relative h-full w-full`}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -464,6 +465,7 @@ export default function IntentCanvas() {
           onNavigateOverview={drillOut}
         />
       </ReactFlow>
+      <ChatBar />
     </div>
   )
 }

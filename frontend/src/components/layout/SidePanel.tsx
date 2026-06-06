@@ -4,6 +4,7 @@ import { useResizableSize } from '../../hooks/useResizableSize'
 import { useCanvasStore } from '../../store/canvasStore'
 import CardEditor from '../cards/CardEditor'
 import BuildPhasesPanel from '../build/BuildPhasesPanel'
+import PreviewActions from '../chat/PreviewActions'
 import ResizeHandle from './ResizeHandle'
 
 type SideTab = 'build' | 'card'
@@ -106,6 +107,12 @@ export default function SidePanel({ style }: SidePanelProps) {
             </>
           )}
         </>
+      )}
+
+      {preview && (
+        <div className="shrink-0 border-t border-white/10 p-3">
+          <PreviewActions />
+        </div>
       )}
     </aside>
   )

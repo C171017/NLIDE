@@ -3,6 +3,7 @@ import type { Card, CanvasEdge, PreviewPayload } from '../types/canvas'
 import { isTopLayerCard } from '../lib/canvasLayers'
 import {
   commitPreviewRemote,
+  DEFAULT_PROJECT_ID,
   discardPreviewRemote,
   patchCardRemote,
   submitIntent,
@@ -29,6 +30,7 @@ interface CanvasStore {
   updateCard: (cardId: string, patch: Partial<Pick<Card, 'title' | 'body'>>) => void
   moveCard: (cardId: string, position: { x: number; y: number }) => void
   submitChat: (message: string) => Promise<void>
+  cancelChat: () => void
   commitPreview: () => Promise<void>
   discardPreview: () => Promise<void>
 }
@@ -40,6 +42,12 @@ function cloneCards(cards: Card[]): Card[] {
 function cloneEdges(edges: CanvasEdge[]): CanvasEdge[] {
   return edges.map((edge) => ({ ...edge }))
 }
+
+function isAbortError(error: unknown) {
+  return error instanceof DOMException && error.name === 'AbortError'
+}
+
+let chatAbortController: AbortController | null = null
 
 export const useCanvasStore = create<CanvasStore>((set, get) => ({
   projectName: SAMPLE_PROJECT_NAME,
@@ -99,22 +107,45 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 
   submitChat: async (message) => {
     const trimmed = message.trim()
-    if (!trimmed) return
+    if (!trimmed || get().isTranslating) return
+
+    chatAbortController?.abort()
+    const controller = new AbortController()
+    chatAbortController = controller
 
     set({ isTranslating: true, chatDraft: '' })
 
     try {
       const { committedCards, committedEdges, centerCardId } = get()
-      const preview = await submitIntent(trimmed, {
-        cards: committedCards,
-        edges: committedEdges,
-        centerCardId,
-      })
+      const preview = await submitIntent(
+        trimmed,
+        {
+          cards: committedCards,
+          edges: committedEdges,
+          centerCardId,
+        },
+        DEFAULT_PROJECT_ID,
+        controller.signal,
+      )
+      if (chatAbortController !== controller) return
       set({ preview, isTranslating: false })
     } catch (error) {
+      if (chatAbortController !== controller) return
+      if (isAbortError(error)) {
+        set({ isTranslating: false, chatDraft: trimmed })
+        return
+      }
       console.error('submitChat failed:', error)
       set({ isTranslating: false, chatDraft: trimmed })
+    } finally {
+      if (chatAbortController === controller) {
+        chatAbortController = null
+      }
     }
+  },
+
+  cancelChat: () => {
+    chatAbortController?.abort()
   },
 
   commitPreview: async () => {
