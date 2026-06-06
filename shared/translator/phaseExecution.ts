@@ -65,12 +65,17 @@ export const PHASE_EXECUTION: Record<string, PhaseExecutionConfig> = {
     ],
   },
   'phase-3-features-writer': {
-    agentShipped: false,
+    agentShipped: true,
     humanTasks: [
+      {
+        id: 'deploy-writer',
+        label: 'Deploy nlide-api with features writer',
+        detail: 'npm run insforge:deploy:api',
+      },
       {
         id: 'writer-golden',
         label: 'Run features writer golden tests',
-        detail: 'After Agent ships writer — not wired yet',
+        detail: 'npm run insforge:invoke:write-features-golden — ≥3/4 pass',
       },
     ],
   },

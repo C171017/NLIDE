@@ -3,6 +3,9 @@ import { handleGetTranslatorSpec } from './translator/index.ts'
 import { runGoldenRouterTests } from './router/goldenRunner.ts'
 import { isRouterConfigured, routeIntent } from './router/routeIntent.ts'
 import type { RouterContext } from './router/types.ts'
+import type { RouterPlan } from './_shared/translator/types.ts'
+import { writeFeaturesSection, isFeaturesWriterConfigured } from './writers/featuresWriter.ts'
+import { runGoldenFeaturesWriterTests } from './writers/goldenRunner.ts'
 
 const DEFAULT_PROJECT_ID = '00000000-0000-4000-8000-000000000001'
 
@@ -54,6 +57,8 @@ interface ApiRequest {
     | 'get-translator-spec'
     | 'route'
     | 'route-golden'
+    | 'write-features'
+    | 'write-features-golden'
     | 'intent'
     | 'commit'
     | 'discard'
@@ -64,6 +69,9 @@ interface ApiRequest {
   cardId?: string
   patch?: { title?: string; body?: string }
   context?: RouterContext
+  routerPlan?: RouterPlan
+  existingFeatureIds?: string[]
+  existingSection?: string
 }
 
 interface ProjectPayload {
@@ -378,6 +386,31 @@ function routerFailureStatus(code: string): number {
   }
 }
 
+function writerFailureStatus(code: string): number {
+  switch (code) {
+    case 'writer_validation_failed':
+    case 'writer_invalid_output':
+      return 422
+    case 'writer_unconfigured':
+      return 503
+    case 'writer_no_features_op':
+      return 400
+    case 'writer_upstream_error':
+      return 502
+    default:
+      return 500
+  }
+}
+
+function writerErrorResponse(
+  code: string,
+  message: string,
+  status: number,
+  validationIssues?: string[],
+): Response {
+  return json({ ok: false, error: { code, message, validationIssues } }, status)
+}
+
 function defaultRouterContext(): RouterContext {
   return {
     projectName: 'NLIDE Demo',
@@ -420,6 +453,7 @@ export default async function handler(req: Request): Promise<Response> {
         service: 'nlide-api',
         hasSecrets,
         routerConfigured: isRouterConfigured(),
+        featuresWriterConfigured: isFeaturesWriterConfigured(),
         mode: hasSecrets ? 'insforge' : 'stub-secrets-missing',
       })
     }
@@ -469,6 +503,44 @@ export default async function handler(req: Request): Promise<Response> {
 
       case 'route-golden': {
         const report = await runGoldenRouterTests(body.context)
+        return json({ ok: true, ...report })
+      }
+
+      case 'write-features': {
+        if (!body.message?.trim()) {
+          return errorResponse('message is required')
+        }
+        if (!body.routerPlan) {
+          return errorResponse('routerPlan is required')
+        }
+
+        const result = await writeFeaturesSection({
+          userMessage: body.message.trim(),
+          routerPlan: body.routerPlan,
+          existingFeatureIds: body.existingFeatureIds,
+          existingSection: body.existingSection,
+        })
+
+        if (!result.ok) {
+          return writerErrorResponse(
+            result.error.code,
+            result.error.message,
+            writerFailureStatus(result.error.code),
+            result.error.validationIssues,
+          )
+        }
+
+        return json({
+          ok: true,
+          section: result.section,
+          entityId: result.entityId,
+          action: result.action,
+          model: result.model,
+        })
+      }
+
+      case 'write-features-golden': {
+        const report = await runGoldenFeaturesWriterTests()
         return json({ ok: true, ...report })
       }
 

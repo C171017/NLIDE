@@ -126,6 +126,36 @@ Golden batch: run all 10 fixture messages; need ≥8/10 pass before replacing st
 npm run insforge:invoke:route-golden
 ```
 
+### Features writer (`action:write-features`) — Phase 3 shipped
+
+Writes one `features.md` section from a router plan. Implementation: `insforge/functions/nlide-api/writers/`.
+
+**Requires** `OPENROUTER_API_KEY` (same as router).
+
+Golden batch (4 cases; ≥3/4 pass bar):
+
+```bash
+npm run insforge:invoke:write-features-golden
+```
+
+Single write (after you have a router plan):
+
+```bash
+insforge functions invoke nlide-api --data '{
+  "action": "write-features",
+  "message": "Users should be able to pan and zoom the canvas.",
+  "routerPlan": {
+    "intent_type": "update_feature",
+    "summary": "Users should be able to pan and zoom the canvas.",
+    "operations": [{ "target": "features.md", "action": "update", "entity_id": "F-001" }],
+    "canvas_ops": [],
+    "open_questions": []
+  },
+  "existingFeatureIds": ["F-001"],
+  "existingSection": "### F-001: Canvas interaction\n\n- **Status:** approved\n..."
+}'
+```
+
 ## 7. Wire frontend
 
 `frontend/.env.local` is already configured for this project:
@@ -159,13 +189,15 @@ insforge deployments create --name nlide-web --dir frontend/dist
 | `get-project` | Load cards/edges from Postgres |
 | `route` | Router-only classify → `RouterPlan` JSON (Claude via OpenRouter) |
 | `route-golden` | Run all 10 golden router prompts; returns pass count vs ≥8/10 bar |
-| `intent` | Chat → preview (stored in `previews`) — **still stub** until writers ship |
+| `write-features` | Features.md writer — one section from router plan + message |
+| `write-features-golden` | Run 4 features writer golden cases; returns pass count vs ≥3/4 bar |
+| `intent` | Chat → preview (stored in `previews`) — **still stub** until pipeline wired |
 | `commit` | Apply preview to `cards` / `canvas_edges` |
 | `discard` | Delete preview row |
 | `patch-card` | Manual card edit sync |
 
 ## Next steps
 
-- Replace stub `buildPreview()` in `nlide-api/index.ts` with router + writers using Model Gateway (Claude Sonnet)
+- Wire router + features writer into `action:intent` preview pipeline
 - Seed default project cards on first load
 - Export `/spec/*.md` on commit
