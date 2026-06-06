@@ -32,7 +32,8 @@ See also: [documentation-guide.md](./documentation-guide.md)
 | Date | Decision | Rationale | Revisable? |
 |------|----------|-----------|------------|
 | 2026-06-06 | P0: Mermaid (7), TanStack Table (20), markdown table (2), force graph (13) | Balance demo value vs build time | Yes |
-| 2026-06-06 | P0: **progress-checklist** viz on canvas | Step 1 router contract approval tracker (6 sub-tasks, localStorage) | Yes |
+| 2026-06-06 | **shared/translator/** module | Single source for intent types + build phases; API + UI | Yes |
+| 2026-06-06 | Build plan side panel | Phases 0–6 with per-job checklists; end of phase = Agent mode | Yes |
 | 2026-06-06 | Lazy-load viz libraries per `vizType` | Keep bundle smaller | Yes |
 | 2026-06-06 | Other 17 viz types → post-v0 | User listed full catalog; not all v0 | Yes |
 

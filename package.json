@@ -11,7 +11,8 @@
     "insforge:current": "insforge current",
     "insforge:migrate": "insforge db migrations up --all -y",
     "insforge:migrate:new": "insforge db migrations new",
-    "insforge:deploy:api": "insforge functions deploy nlide-api",
+    "insforge:deploy:api": "node scripts/sync-translator-spec.mjs && insforge functions deploy nlide-api",
+    "sync:translator": "node scripts/sync-translator-spec.mjs",
     "insforge:invoke:health": "insforge functions invoke nlide-api --data '{\"action\":\"health\"}'",
     "insforge:secrets:setup": "node scripts/print-insforge-secrets-help.js"
   },

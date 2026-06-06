@@ -35,6 +35,21 @@ export async function checkHealth(): Promise<{ ok: boolean; mode?: string }> {
   return post<{ ok: boolean; mode?: string }>({ action: 'health' })
 }
 
+export async function fetchTranslatorSpec(): Promise<
+  import('@nlide/shared').TranslatorSpec
+> {
+  if (!functionUrl) {
+    const { getTranslatorSpec } = await import('@nlide/shared')
+    return getTranslatorSpec()
+  }
+
+  const data = await post<{ spec: import('@nlide/shared').TranslatorSpec }>({
+    action: 'get-translator-spec',
+  })
+
+  return data.spec
+}
+
 export async function submitIntent(
   message: string,
   context: { cards: Card[]; edges: CanvasEdge[]; centerCardId: string },

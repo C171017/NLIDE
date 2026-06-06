@@ -10,8 +10,9 @@ NLIDE docs are the **source of truth** for humans and coding agents. Code can dr
 
 | Path | Purpose | Update when |
 |------|---------|-------------|
-| [user-decisions.md](./user-decisions.md) | **User-defined** — explicit choices | User states a preference, scope change, or “we want X” |
-| [ai-inferred-decisions.md](./ai-inferred-decisions.md) | **AI-inferred** — agent-chosen defaults | You pick stack, schema, UX detail user did not specify |
+| [meta/user-decisions.md](./user-decisions.md) | **User-defined** — explicit choices | User states a preference, scope change, or “we want X” |
+| [meta/communication-style.md](./communication-style.md) | **User-defined** — explanation style | User asks how to explain next steps / phased work |
+| [meta/ai-inferred-decisions.md](./ai-inferred-decisions.md) | **AI-inferred** — agent-chosen defaults | You pick stack, schema, UX detail user did not specify |
 | [../implementation/current-state.md](../implementation/current-state.md) | What is **built and deployed now** | Code, infra, or wiring changes |
 | [../vision/original.md](../vision/original.md) | User's original words | Rarely — only if user revises vision narrative |
 | [../vision/structured.md](../vision/structured.md) | Structured vision breakdown | Vision-level scope shifts |
@@ -19,6 +20,7 @@ NLIDE docs are the **source of truth** for humans and coding agents. Code can dr
 | [../product/canvas-ui-vision.md](../product/canvas-ui-vision.md) | Canvas UI, cards, viz catalog | User changes UI/UX intent |
 | [../product/tech-stack.md](../product/tech-stack.md) | Locked stack + InsForge | User locks/overrides stack; infra deployed |
 | [../architecture/flow-b-v0.md](../architecture/flow-b-v0.md) | Flow B translator spec | Intent MD schema or pipeline changes |
+| [../architecture/router-intent-types-v0.md](../architecture/router-intent-types-v0.md) | Router intent taxonomy (draft) | User approves/edits intent types or routing rules |
 | [../architecture/translator-internals.md](../architecture/translator-internals.md) | Translator pipeline (router/writers/stub) | LLM or preview pipeline changes |
 | [../architecture/translator-platform.md](../architecture/translator-platform.md) | Platform overview | Cross-cutting architecture changes |
 | [../README.md](../README.md) | Doc index | New top-level doc sections |

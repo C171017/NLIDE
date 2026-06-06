@@ -1,4 +1,5 @@
 import { createClient, type InsForgeClient } from 'npm:@insforge/sdk@latest'
+import { handleGetTranslatorSpec } from './translator/index.ts'
 
 const DEFAULT_PROJECT_ID = '00000000-0000-4000-8000-000000000001'
 
@@ -44,7 +45,14 @@ interface PreviewPayload {
 }
 
 interface ApiRequest {
-  action: 'health' | 'get-project' | 'intent' | 'commit' | 'discard' | 'patch-card'
+  action:
+    | 'health'
+    | 'get-project'
+    | 'get-translator-spec'
+    | 'intent'
+    | 'commit'
+    | 'discard'
+    | 'patch-card'
   projectId?: string
   message?: string
   previewId?: string
@@ -399,6 +407,10 @@ export default async function handler(req: Request): Promise<Response> {
           })
         }
         return json(project)
+      }
+
+      case 'get-translator-spec': {
+        return json({ spec: handleGetTranslatorSpec() })
       }
 
       case 'intent': {

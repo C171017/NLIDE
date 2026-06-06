@@ -19,7 +19,11 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@nlide/shared": ["../shared/translator/index.ts"],
+      "@nlide/shared/*": ["../shared/translator/*"]
+    }
   },
-  "include": ["src"]
+  "include": ["src", "../shared/translator"]
 }

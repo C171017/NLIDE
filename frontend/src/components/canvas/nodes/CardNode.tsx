@@ -75,7 +75,10 @@ export default function CardNode({ data }: NodeProps) {
         <p className="mb-2 line-clamp-2 text-xs leading-relaxed text-[#b6bcc8]">{card.body}</p>
       )}
       {card.vizType && card.vizPayload !== undefined && (
-        <div className={clsx('mt-2', hasInteractiveViz && '-mx-1')}>
+        <div
+          className={clsx('nodrag nopan nowheel mt-2', hasInteractiveViz && '-mx-1')}
+          onPointerDown={(event) => event.stopPropagation()}
+        >
           <VizEmbed vizType={card.vizType} payload={card.vizPayload} compact={hasInteractiveViz} />
         </div>
       )}

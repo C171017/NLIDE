@@ -51,7 +51,7 @@ insforge secrets list
 npm run insforge:deploy:api
 ```
 
-Function source: `insforge/functions/nlide-api/index.ts` (single-file bundle for deploy)
+Function source: `insforge/functions/nlide-api/` (imports `shared/translator/`). Run `npm run sync:translator` before deploy.
 
 Public URL pattern: `https://{appkey}.{region}.insforge.app/functions/nlide-api`
 
@@ -62,6 +62,14 @@ npm run insforge:invoke:health
 ```
 
 Expected: `{ "ok": true, "service": "nlide-api", "hasSecrets": true }`
+
+Test translator spec:
+
+```bash
+insforge functions invoke nlide-api --data '{"action":"get-translator-spec"}'
+```
+
+Returns intent types, routing rules, and build phases from `shared/translator/`.
 
 Test intent (after migrate):
 

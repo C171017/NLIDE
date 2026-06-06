@@ -1,5 +1,8 @@
 import type { CanvasState } from '../types/canvas'
-import { ROUTER_CONTRACT_CHECKLIST } from './routerContractProgress'
+import { BUILD_PHASES } from '@nlide/shared'
+import { phaseToChecklistPayload } from '../lib/buildPhaseUtils'
+
+const PHASE_1 = BUILD_PHASES.find((phase) => phase.id === 'phase-1-router-contract')!
 
 export const SAMPLE_PROJECT_NAME = 'NLIDE'
 
@@ -113,14 +116,14 @@ export const sampleCanvas: CanvasState = {
       id: 'translator-step1',
       specRef: { file: 'tasks.md', anchor: 'T-002' },
       type: 'task',
-      title: 'Step 1: Router contract',
-      body: 'Approve schema, routing policy, and golden prompts before Agent implements routeIntent().',
+      title: 'Phase 1: Router contract',
+      body: 'Approve instruction jobs in Build plan (side panel), then Agent mode implements the router.',
       position: { x: 720, y: 280 },
       layer: 1,
       parentCardId: 'backend',
       status: 'in_progress',
       vizType: 'progress-checklist',
-      vizPayload: ROUTER_CONTRACT_CHECKLIST,
+      vizPayload: phaseToChecklistPayload(PHASE_1),
     },
   ],
   edges: [

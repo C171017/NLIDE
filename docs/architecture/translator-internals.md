@@ -3,7 +3,7 @@
 How the **AI translator** works inside `nlide-api`.  
 **[AI-INFERRED]** architecture — replace stub when implementing Claude router/writers.
 
-See: [flow-b-v0.md](./flow-b-v0.md) · [current-state.md](../implementation/current-state.md) · [workflow.md](../product/workflow.md)
+See: [flow-b-v0.md](./flow-b-v0.md) · [router-intent-types-v0.md](./router-intent-types-v0.md) · [current-state.md](../implementation/current-state.md) · [workflow.md](../product/workflow.md)
 
 ---
 

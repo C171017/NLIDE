@@ -32,7 +32,10 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Card nodes + Product hub | `CardNode.tsx`, `IndexNode.tsx` (center pillar styling) |
 | Chat bar + preview actions | `ChatBar.tsx`, `PreviewActions.tsx` |
 | TipTap card editor | `CardEditor.tsx` |
-| Side panel | `SidePanel.tsx` |
+| Side panel | `SidePanel.tsx` — **Build plan** tab (phases + jobs) + Card editor tab |
+| Translator spec (shared) | `shared/translator/` — intent types, routing rules, build phases |
+| Backend translator module | `insforge/functions/nlide-api/translator/` |
+| Build phases UI | `BuildPhasesPanel.tsx`, `PhaseJobList.tsx` |
 | P0 viz embeds | Mermaid, markdown table, force graph, data table, **progress-checklist** |
 | Step 1 progress card | `translator-step1` task card — interactive 6/6 checklist (`ProgressChecklistViz`) |
 | Implementation progress store | `implementationProgressStore.ts` — persists checklist ticks in localStorage |
@@ -61,6 +64,7 @@ Run: `npm run dev` (from repo root)
 | `commit` | ✅ Applies preview to `cards` / `canvas_edges` |
 | `discard` | ✅ Deletes preview row |
 | `patch-card` | ✅ Updates card in Postgres |
+| `get-translator-spec` | ✅ Intent types, routing rules, build phases |
 | `get-project` | ✅ Loads from DB (empty until commit seeds data) |
 
 Deploy: `npm run insforge:deploy:api`
