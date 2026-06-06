@@ -38,8 +38,8 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Backend translator module | `insforge/functions/nlide-api/translator/` |
 | Build phases UI | `BuildPhasesPanel.tsx`, `PhaseJobList.tsx` |
 | P0 viz embeds | Mermaid, markdown table, force graph, data table, **progress-checklist** |
-| Step 1 progress card | `translator-step1` task card — **Phase 1 complete (6/6)**; Phase 2 active |
-| Router prompt outline | `shared/translator/routerPromptOutline.ts` — Phase 2 · Job 1 draft |
+| Step 1 progress card | `translator-step1` task card — **Phase 1 complete (6/6)**; Phase 2 active (1/4) |
+| Router prompt outline | `shared/translator/routerPromptOutline.ts` — Phase 2 · Job 1 **approved** |
 | Implementation progress store | `implementationProgressStore.ts` — persists checklist ticks in localStorage |
 | Canvas state (Zustand) | `frontend/src/store/canvasStore.ts` |
 | API client + local stub | `frontend/src/lib/api.ts`, `translatorStub.ts` |

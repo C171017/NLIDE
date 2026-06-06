@@ -1,6 +1,6 @@
 /**
  * Router LLM system prompt outline — Phase 2 · Job 1.
- * **[AI-INFERRED]** draft for [USER] review before routeIntent() implementation.
+ * **[USER]** approved 2026-06-06 before routeIntent() implementation.
  *
  * Sections become the Claude system prompt in Phase 2 Agent mode.
  */

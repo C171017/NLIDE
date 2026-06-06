@@ -14,6 +14,9 @@ export const DEFAULT_COMPLETED_JOBS: Record<string, Record<string, boolean>> = {
     'golden-prompts': true,
     'pass-bar': true,
   },
+  'phase-2-router-build': {
+    'router-system-prompt': true,
+  },
 }
 
 export function isItemDone(
