@@ -18,6 +18,7 @@
     "insforge:invoke:route-smoke": "insforge functions invoke nlide-api --data '{\"action\":\"route\",\"message\":\"Users should be able to pan and zoom the canvas.\",\"context\":{\"projectName\":\"NLIDE Demo\",\"centerCardId\":\"product\",\"cards\":[{\"id\":\"F-001\",\"type\":\"feature\",\"title\":\"Canvas interaction\",\"body\":\"Pan, zoom, and navigate the intent canvas.\",\"specRef\":{\"file\":\"features.md\",\"anchor\":\"F-001\"},\"status\":\"approved\"}],\"edges\":[]}}'",
     "insforge:invoke:route-golden": "insforge functions invoke nlide-api --data '{\"action\":\"route-golden\"}'",
     "insforge:invoke:write-features-golden": "insforge functions invoke nlide-api --data '{\"action\":\"write-features-golden\"}'",
+    "insforge:invoke:phase4-smoke": "insforge functions invoke nlide-api --data '{\"action\":\"phase4-smoke\"}'",
     "insforge:secrets:setup": "node scripts/print-insforge-secrets-help.js"
   },
   "devDependencies": {

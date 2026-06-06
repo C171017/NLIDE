@@ -80,8 +80,19 @@ export const PHASE_EXECUTION: Record<string, PhaseExecutionConfig> = {
     ],
   },
   'phase-4-writers-validator': {
-    agentShipped: false,
-    humanTasks: [],
+    agentShipped: true,
+    humanTasks: [
+      {
+        id: 'deploy-phase4',
+        label: 'Deploy nlide-api with Phase 4 writers + validator',
+        detail: 'npm run insforge:deploy:api',
+      },
+      {
+        id: 'phase4-smoke',
+        label: 'Run Phase 4 smoke (writers + validator)',
+        detail: 'npm run insforge:invoke:phase4-smoke',
+      },
+    ],
   },
   'phase-5-canvas-mapper': {
     agentShipped: false,

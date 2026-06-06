@@ -68,7 +68,9 @@ Run: `npm run dev` (from repo root)
 | Edge function (bundled) | `insforge/functions/nlide-api/index.ts` — deploy uses `bundle:api` → `dist/index.ts` (vendors `_shared/translator/`) |
 | **Router (Phase 2)** | `insforge/functions/nlide-api/router/` — `routeIntent()`, Zod, `action:route`, `action:route-golden` |
 | **Features writer (Phase 3)** | `insforge/functions/nlide-api/writers/` — `writeFeaturesSection()`, `action:write-features`, `action:write-features-golden` |
-| Translator preview | **Stub** `buildPreview()` on `action:intent` — router + writer not wired to canvas chat yet |
+| **Task + remaining writers (Phase 4)** | `taskWriter.ts`, `remainingWriter.ts`, `pipeline.ts` — `action:write-tasks`, `action:write-remaining`, `action:run-writers` |
+| **Spec validator (Phase 4)** | `validator/validateSpec.ts` — `action:validate-spec`; wired into `action:run-writers` |
+| Translator preview | **Stub** `buildPreview()` on `action:intent` — full pipeline not wired to canvas chat yet |
 | DB access | `@insforge/sdk` in edge function |
 
 ### API actions (live)
@@ -80,6 +82,11 @@ Run: `npm run dev` (from repo root)
 | `route-golden` | ✅ **Implemented** — batch golden router tests |
 | `write-features` | ✅ **Implemented** — needs `OPENROUTER_API_KEY` secret |
 | `write-features-golden` | ✅ **Implemented** — batch features writer golden (≥3/4 bar) |
+| `write-tasks` | ✅ **Implemented** — tasks.md writer |
+| `write-remaining` | ✅ **Implemented** — product/users/architecture/constraints/decisions/open-questions |
+| `run-writers` | ✅ **Implemented** — all writers + validator for one router plan |
+| `validate-spec` | ✅ **Implemented** — ID/link/content validation |
+| `phase4-smoke` | ✅ **Implemented** — gp-03 writers + validator smoke |
 | `intent` | ✅ Stub preview → saves to `previews` table |
 | `commit` | ✅ Applies preview to `cards` / `canvas_edges` |
 | `discard` | ✅ Deletes preview row |
@@ -99,7 +106,7 @@ Deploy: `npm run insforge:deploy:api`
 | **Router LLM** | ✅ Phase 2 shipped — `action:route`; tune with `route-golden` |
 | **Features writer LLM** | ✅ Phase 3 shipped — `action:write-features`; tune with `write-features-golden` |
 | **Full intent pipeline** | Router + writer not wired to `action:intent` yet |
-| **Other writer LLMs** | Phase 4+ — tasks/product/etc. writers not wired yet |
+| **Full intent pipeline on canvas chat** | `action:run-writers` exists; `action:intent` still uses stub |
 | `/spec/*.md` export on commit | **[USER]** hybrid storage |
 | InsForge Sites / Cloudflare deploy | **[USER]** hosting choice |
 | Auth | Out of v0 scope |

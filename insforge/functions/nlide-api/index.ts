@@ -6,6 +6,11 @@ import type { RouterContext } from './router/types.ts'
 import type { RouterPlan } from './_shared/translator/types.ts'
 import { writeFeaturesSection, isFeaturesWriterConfigured } from './writers/featuresWriter.ts'
 import { runGoldenFeaturesWriterTests } from './writers/goldenRunner.ts'
+import { applyPatchesToSpec, runWritersFromPlan } from './writers/pipeline.ts'
+import { runPhase4Smoke } from './writers/phase4Smoke.ts'
+import { writeRemainingSection } from './writers/remainingWriter.ts'
+import { writeTaskSection, isTaskWriterConfigured } from './writers/taskWriter.ts'
+import { validateSpec } from './validator/validateSpec.ts'
 
 const DEFAULT_PROJECT_ID = '00000000-0000-4000-8000-000000000001'
 
@@ -59,6 +64,11 @@ interface ApiRequest {
     | 'route-golden'
     | 'write-features'
     | 'write-features-golden'
+    | 'write-tasks'
+    | 'write-remaining'
+    | 'run-writers'
+    | 'validate-spec'
+    | 'phase4-smoke'
     | 'intent'
     | 'commit'
     | 'discard'
@@ -72,6 +82,16 @@ interface ApiRequest {
   routerPlan?: RouterPlan
   existingFeatureIds?: string[]
   existingSection?: string
+  existingTaskIds?: string[]
+  linkedFeatureId?: string
+  targetFile?: string
+  existingContent?: string
+  existingEntityIds?: string[]
+  existingDecisionIds?: string[]
+  existingOpenQuestionIds?: string[]
+  existingSpec?: Record<string, string>
+  spec?: Record<string, string>
+  validationMode?: 'preview' | 'commit'
 }
 
 interface ProjectPayload {
@@ -394,6 +414,9 @@ function writerFailureStatus(code: string): number {
     case 'writer_unconfigured':
       return 503
     case 'writer_no_features_op':
+    case 'writer_no_tasks_op':
+    case 'writer_no_file_op':
+    case 'writer_invalid_target':
       return 400
     case 'writer_upstream_error':
       return 502
@@ -454,6 +477,8 @@ export default async function handler(req: Request): Promise<Response> {
         hasSecrets,
         routerConfigured: isRouterConfigured(),
         featuresWriterConfigured: isFeaturesWriterConfigured(),
+        taskWriterConfigured: isTaskWriterConfigured(),
+        phase4PipelineConfigured: isFeaturesWriterConfigured() && isTaskWriterConfigured(),
         mode: hasSecrets ? 'insforge' : 'stub-secrets-missing',
       })
     }
@@ -541,6 +566,166 @@ export default async function handler(req: Request): Promise<Response> {
 
       case 'write-features-golden': {
         const report = await runGoldenFeaturesWriterTests()
+        return json({ ok: true, ...report })
+      }
+
+      case 'write-tasks': {
+        if (!body.message?.trim()) {
+          return errorResponse('message is required')
+        }
+        if (!body.routerPlan) {
+          return errorResponse('routerPlan is required')
+        }
+
+        const result = await writeTaskSection({
+          userMessage: body.message.trim(),
+          routerPlan: body.routerPlan,
+          existingTaskIds: body.existingTaskIds,
+          existingSection: body.existingSection,
+          linkedFeatureId: body.linkedFeatureId,
+        })
+
+        if (!result.ok) {
+          return writerErrorResponse(
+            result.error.code,
+            result.error.message,
+            writerFailureStatus(result.error.code),
+            result.error.validationIssues,
+          )
+        }
+
+        return json({
+          ok: true,
+          section: result.section,
+          entityId: result.entityId,
+          featureId: result.featureId,
+          action: result.action,
+          model: result.model,
+        })
+      }
+
+      case 'write-remaining': {
+        if (!body.message?.trim()) {
+          return errorResponse('message is required')
+        }
+        if (!body.routerPlan) {
+          return errorResponse('routerPlan is required')
+        }
+        if (!body.targetFile) {
+          return errorResponse('targetFile is required')
+        }
+
+        const result = await writeRemainingSection({
+          userMessage: body.message.trim(),
+          routerPlan: body.routerPlan,
+          targetFile: body.targetFile,
+          existingContent: body.existingContent,
+          existingEntityIds: body.existingEntityIds,
+        })
+
+        if (!result.ok) {
+          return writerErrorResponse(
+            result.error.code,
+            result.error.message,
+            writerFailureStatus(result.error.code),
+            result.error.validationIssues,
+          )
+        }
+
+        return json({
+          ok: true,
+          section: result.section,
+          targetFile: result.targetFile,
+          entityId: result.entityId,
+          action: result.action,
+          model: result.model,
+        })
+      }
+
+      case 'run-writers': {
+        if (!body.message?.trim()) {
+          return errorResponse('message is required')
+        }
+        if (!body.routerPlan) {
+          return errorResponse('routerPlan is required')
+        }
+
+        const writers = await runWritersFromPlan({
+          userMessage: body.message.trim(),
+          routerPlan: body.routerPlan,
+          existingSpec: body.existingSpec,
+          existingFeatureIds: body.existingFeatureIds,
+          existingTaskIds: body.existingTaskIds,
+          existingDecisionIds: body.existingDecisionIds,
+          existingOpenQuestionIds: body.existingOpenQuestionIds,
+        })
+
+        if (!writers.ok) {
+          return writerErrorResponse(
+            writers.error.code,
+            writers.error.message,
+            writerFailureStatus(writers.error.code),
+            writers.error.validationIssues,
+          )
+        }
+
+        const spec = applyPatchesToSpec(body.existingSpec ?? {}, writers.patches)
+        const validation = validateSpec({
+          spec,
+          routerPlan: body.routerPlan,
+          mode: body.validationMode ?? 'preview',
+        })
+
+        if (!validation.ok) {
+          return json(
+            {
+              ok: false,
+              error: {
+                code: 'validation_failed',
+                message: 'Spec failed validation after writers',
+                issues: [...validation.issues, ...validation.warnings],
+              },
+              patches: writers.patches,
+              spec,
+            },
+            422,
+          )
+        }
+
+        return json({
+          ok: true,
+          patches: writers.patches,
+          spec,
+          warnings: validation.warnings,
+          models: writers.models,
+        })
+      }
+
+      case 'validate-spec': {
+        if (!body.spec) {
+          return errorResponse('spec is required')
+        }
+
+        const validation = validateSpec({
+          spec: body.spec,
+          routerPlan: body.routerPlan,
+          mode: body.validationMode ?? 'preview',
+        })
+
+        return json({
+          ok: validation.ok,
+          issues: validation.issues,
+          warnings: validation.warnings,
+          blocksPreview: validation.blocksPreview,
+          blocksCommit: validation.blocksCommit,
+        })
+      }
+
+      case 'phase4-smoke': {
+        const report = await runPhase4Smoke()
+        if (!report.ok) {
+          return json(report, report.stage === 'writers' ? 502 : 422)
+        }
         return json({ ok: true, ...report })
       }
 

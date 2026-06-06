@@ -126,6 +126,22 @@ Golden batch: run all 10 fixture messages; need ≥8/10 pass before replacing st
 npm run insforge:invoke:route-golden
 ```
 
+### Phase 4 writers + validator — shipped
+
+| action | Purpose |
+|--------|---------|
+| `write-tasks` | One `tasks.md` section from router plan |
+| `write-remaining` | One remaining spec file (`targetFile` required) |
+| `run-writers` | All writers for a plan + validator |
+| `validate-spec` | Validate spec file map (`spec` required) |
+| `phase4-smoke` | gp-03 add feature → writers → validator |
+
+```bash
+npm run insforge:invoke:phase4-smoke
+```
+
+Deploy after code changes: `npm run insforge:deploy:api`
+
 ### Features writer (`action:write-features`) — Phase 3 shipped
 
 Writes one `features.md` section from a router plan. Implementation: `insforge/functions/nlide-api/writers/`.
