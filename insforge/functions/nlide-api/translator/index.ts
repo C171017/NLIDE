@@ -20,6 +20,7 @@ export {
   ROUTER_SMOKE_EXAMPLES,
   ROUTER_SMOKE_INVOKE_BRIEF,
   TASK_WRITER_RULES,
+  VALIDATOR_STRICTNESS,
   ROUTING_RULES,
   SPEC_FILE_ALLOWLIST,
   ROUTER_SCHEMA_FIELDS,
@@ -31,6 +32,9 @@ export {
   formatFeaturesWriterTemplate,
   formatTaskSection,
   formatTaskWriterRules,
+  formatValidatorStrictness,
+  getCommitBlockingRuleIds,
+  getPreviewBlockingRuleIds,
   formatRouterFailureBehavior,
   formatRouterPromptOutline,
   formatRouterSmokeInvokeBrief,
@@ -70,6 +74,9 @@ export type {
   TaskSectionFields,
   TaskStatus,
   TaskWriterRules,
+  ValidatorRule,
+  ValidatorSeverity,
+  ValidatorStrictness,
   TranslatorSpec,
 } from '../_shared/translator/index.ts'
 

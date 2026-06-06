@@ -48,7 +48,8 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Features writer template | `shared/translator/featuresWriterTemplate.ts` — Phase 3 · Job 1 **approved** |
 | Acceptance criteria bar | `shared/translator/acceptanceCriteriaBar.ts` — Phase 3 · Job 2 **approved** |
 | Features writer golden | `shared/translator/featuresWriterGolden.ts` — Phase 3 · Job 3 **approved** |
-| Task writer rules | `shared/translator/taskWriterRules.ts` — Phase 4 · Job 1 draft |
+| Task writer rules | `shared/translator/taskWriterRules.ts` — Phase 4 · Job 1 **approved** |
+| Validator strictness | `shared/translator/validatorStrictness.ts` — Phase 4 · Job 2 draft |
 | Implementation progress store | `implementationProgressStore.ts` — persists checklist ticks in localStorage |
 | Canvas state (Zustand) | `frontend/src/store/canvasStore.ts` |
 | API client + local stub | `frontend/src/lib/api.ts`, `translatorStub.ts` |

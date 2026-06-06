@@ -25,6 +25,9 @@ export const DEFAULT_COMPLETED_JOBS: Record<string, Record<string, boolean>> = {
     'acceptance-criteria-rules': true,
     'features-golden': true,
   },
+  'phase-4-writers-validator': {
+    'task-writer-rules': true,
+  },
 }
 
 /** Human execution tasks ticked after running deploy/tests (separate from brief approval). */

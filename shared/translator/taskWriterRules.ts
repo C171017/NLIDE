@@ -1,6 +1,6 @@
 /**
  * tasks.md writer rules — Phase 4 · Job 1.
- * **[AI-INFERRED]** draft for [USER] review before task writer LLM ships.
+ * **[USER]** approved 2026-06-06 before task writer LLM ships.
  *
  * Defines markdown shape and rules when router targets tasks.md.
  */
