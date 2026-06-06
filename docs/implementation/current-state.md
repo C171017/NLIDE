@@ -32,7 +32,9 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Chat bar + preview actions | `ChatBar.tsx`, `PreviewActions.tsx` |
 | TipTap card editor | `CardEditor.tsx` |
 | Side panel | `SidePanel.tsx` |
-| P0 viz embeds | Mermaid, markdown table, force graph, data table |
+| P0 viz embeds | Mermaid, markdown table, force graph, data table, **progress-checklist** |
+| Step 1 progress card | `translator-step1` task card — interactive 6/6 checklist (`ProgressChecklistViz`) |
+| Implementation progress store | `implementationProgressStore.ts` — persists checklist ticks in localStorage |
 | Canvas state (Zustand) | `frontend/src/store/canvasStore.ts` |
 | API client + local stub | `frontend/src/lib/api.ts`, `translatorStub.ts` |
 | Sample demo canvas | `frontend/src/data/sampleProject.ts` |

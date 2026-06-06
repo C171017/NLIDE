@@ -11,7 +11,26 @@ export type CardType =
 
 export type CardStatus = 'proposed' | 'approved' | 'in_progress' | 'done'
 
-export type VizType = 'mermaid' | 'markdown-table' | 'force-graph' | 'data-table'
+export type VizType =
+  | 'mermaid'
+  | 'markdown-table'
+  | 'force-graph'
+  | 'data-table'
+  | 'progress-checklist'
+
+export interface ProgressChecklistItem {
+  id: string
+  label: string
+  detail?: string
+}
+
+export interface ProgressChecklistPayload {
+  checklistId: string
+  phaseLabel: string
+  readyLabel: string
+  blockedLabel: string
+  items: ProgressChecklistItem[]
+}
 
 export interface SpecRef {
   file: string

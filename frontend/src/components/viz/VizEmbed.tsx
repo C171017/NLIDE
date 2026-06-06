@@ -1,10 +1,11 @@
 import { lazy, Suspense } from 'react'
-import type { VizType } from '../../types/canvas'
+import type { ProgressChecklistPayload, VizType } from '../../types/canvas'
 
 const MermaidViz = lazy(() => import('./MermaidViz'))
 const MarkdownTableViz = lazy(() => import('./MarkdownTableViz'))
 const ForceGraphViz = lazy(() => import('./ForceGraphViz'))
 const DataTableViz = lazy(() => import('./DataTableViz'))
+const ProgressChecklistViz = lazy(() => import('./ProgressChecklistViz'))
 
 interface VizEmbedProps {
   vizType: VizType
@@ -25,6 +26,9 @@ export default function VizEmbed({ vizType, payload, compact = false }: VizEmbed
       {vizType === 'markdown-table' && <MarkdownTableViz source={String(payload ?? '')} />}
       {vizType === 'force-graph' && <ForceGraphViz data={payload} compact={compact} />}
       {vizType === 'data-table' && <DataTableViz data={payload} compact={compact} />}
+      {vizType === 'progress-checklist' && (
+        <ProgressChecklistViz data={payload as ProgressChecklistPayload} compact={compact} />
+      )}
     </Suspense>
   )
 }

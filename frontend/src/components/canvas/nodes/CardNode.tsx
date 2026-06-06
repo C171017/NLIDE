@@ -16,13 +16,13 @@ const handlePositions = [Position.Top, Position.Right, Position.Bottom, Position
 export default function CardNode({ data }: NodeProps) {
   const nodeData = data as CardNodeData
   const { card, isPreview, isSelected, onSelect } = nodeData
+  const hasInteractiveViz = card.vizType === 'progress-checklist'
 
   return (
-    <button
-      type="button"
-      onClick={() => onSelect?.(card.id)}
+    <div
       className={clsx(
-        'w-[260px] rounded-xl border px-3 py-2.5 text-left transition-colors',
+        'rounded-xl border px-3 py-2.5 text-left transition-colors',
+        hasInteractiveViz ? 'w-[300px]' : 'w-[260px]',
         cardTypeStyles(card.type),
         isPreview && 'border-dashed opacity-80',
         isSelected && 'ring-2 ring-sky-400/70',
@@ -46,28 +46,39 @@ export default function CardNode({ data }: NodeProps) {
           className="!h-1.5 !w-1.5 !bg-[#6b7280]"
         />
       ))}
-      <div className="mb-1 flex flex-wrap items-center gap-2">
-        <span className="text-[10px] font-medium uppercase tracking-wide text-[#9aa3b2]">
-          {cardTypeLabel(card.type)}
-        </span>
-        {card.status && (
-          <span className="rounded-full bg-[#1a1d27] px-2 py-0.5 text-[10px] text-[#9aa3b2]">
-            {card.status.replace('_', ' ')}
+      <button
+        type="button"
+        onClick={() => onSelect?.(card.id)}
+        className="w-full text-left"
+      >
+        <div className="mb-1 flex flex-wrap items-center gap-2">
+          <span className="text-[10px] font-medium uppercase tracking-wide text-[#9aa3b2]">
+            {cardTypeLabel(card.type)}
           </span>
+          {card.status && (
+            <span className="rounded-full bg-[#1a1d27] px-2 py-0.5 text-[10px] text-[#9aa3b2]">
+              {card.status.replace('_', ' ')}
+            </span>
+          )}
+          {isPreview && (
+            <span className="rounded-full bg-sky-500/20 px-2 py-0.5 text-[10px] text-sky-300">
+              preview
+            </span>
+          )}
+        </div>
+        <h3 className="mb-1 text-sm font-semibold text-[#f3f4f6]">{card.title}</h3>
+        {!hasInteractiveViz && (
+          <p className="line-clamp-2 text-xs leading-relaxed text-[#b6bcc8]">{card.body}</p>
         )}
-        {isPreview && (
-          <span className="rounded-full bg-sky-500/20 px-2 py-0.5 text-[10px] text-sky-300">
-            preview
-          </span>
-        )}
-      </div>
-      <h3 className="mb-1 text-sm font-semibold text-[#f3f4f6]">{card.title}</h3>
-      <p className="line-clamp-2 text-xs leading-relaxed text-[#b6bcc8]">{card.body}</p>
+      </button>
+      {hasInteractiveViz && (
+        <p className="mb-2 line-clamp-2 text-xs leading-relaxed text-[#b6bcc8]">{card.body}</p>
+      )}
       {card.vizType && card.vizPayload !== undefined && (
-        <div className="mt-2">
-          <VizEmbed vizType={card.vizType} payload={card.vizPayload} compact />
+        <div className={clsx('mt-2', hasInteractiveViz && '-mx-1')}>
+          <VizEmbed vizType={card.vizType} payload={card.vizPayload} compact={hasInteractiveViz} />
         </div>
       )}
-    </button>
+    </div>
   )
 }

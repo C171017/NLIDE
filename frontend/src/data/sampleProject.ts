@@ -1,4 +1,5 @@
 import type { CanvasState } from '../types/canvas'
+import { ROUTER_CONTRACT_CHECKLIST } from './routerContractProgress'
 
 export const SAMPLE_PROJECT_NAME = 'NLIDE'
 
@@ -21,6 +22,7 @@ export const sampleCanvas: CanvasState = {
           { id: 'features', label: 'Features' },
           { id: 'tasks', label: 'Tasks' },
           { id: 'architecture', label: 'Architecture' },
+          { id: 'translator-step1', label: 'Step 1' },
         ],
         links: [
           { source: 'index', target: 'product' },
@@ -28,6 +30,7 @@ export const sampleCanvas: CanvasState = {
           { source: 'index', target: 'features' },
           { source: 'index', target: 'tasks' },
           { source: 'index', target: 'architecture' },
+          { source: 'index', target: 'translator-step1' },
           { source: 'features', target: 'tasks' },
           { source: 'features', target: 'architecture' },
         ],
@@ -95,6 +98,17 @@ export const sampleCanvas: CanvasState = {
   Preview -->|Commit| SpecMD
   Canvas --> Postgres`,
     },
+    {
+      id: 'translator-step1',
+      specRef: { file: 'tasks.md', anchor: 'T-002' },
+      type: 'task',
+      title: 'Step 1: Router contract',
+      body: 'Approve schema, routing policy, and golden prompts before Agent implements routeIntent().',
+      position: { x: 560, y: 320 },
+      status: 'in_progress',
+      vizType: 'progress-checklist',
+      vizPayload: ROUTER_CONTRACT_CHECKLIST,
+    },
   ],
   edges: [
     { id: 'e-index-product', source: 'index', target: 'product', label: 'defines' },
@@ -104,5 +118,11 @@ export const sampleCanvas: CanvasState = {
     { id: 'e-index-architecture', source: 'index', target: 'architecture', label: 'describes' },
     { id: 'e-features-tasks', source: 'features', target: 'tasks', label: 'implements' },
     { id: 'e-features-architecture', source: 'features', target: 'architecture', label: 'requires' },
+    {
+      id: 'e-architecture-translator-step1',
+      source: 'architecture',
+      target: 'translator-step1',
+      label: 'next build step',
+    },
   ],
 }
