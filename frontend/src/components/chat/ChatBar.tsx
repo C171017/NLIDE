@@ -1,5 +1,4 @@
 import type { CSSProperties, FormEvent } from 'react'
-import { useFullscreen } from '../../hooks/useFullscreen'
 import { useCanvasStore } from '../../store/canvasStore'
 import PreviewActions from './PreviewActions'
 
@@ -13,7 +12,6 @@ export default function ChatBar({ style }: ChatBarProps) {
   const submitChat = useCanvasStore((state) => state.submitChat)
   const isTranslating = useCanvasStore((state) => state.isTranslating)
   const preview = useCanvasStore((state) => state.preview)
-  const { isFullscreen, toggleFullscreen } = useFullscreen()
   const hasPreview = Boolean(preview)
 
   const handleSubmit = (event: FormEvent) => {
@@ -38,19 +36,11 @@ export default function ChatBar({ style }: ChatBarProps) {
             className="glass-surface h-full min-h-11 w-full resize-none rounded-2xl px-3 py-2 text-sm text-[#e8eaed] outline-none focus:border-sky-400/60"
           />
         </label>
-        <div className="grid shrink-0 grid-cols-2 gap-2 self-start sm:w-32 sm:grid-cols-1">
-          <button
-            type="button"
-            onClick={() => void toggleFullscreen()}
-            className="soft-button min-h-11 rounded-2xl px-4 py-2 text-sm text-[#d1d5db]"
-            aria-pressed={isFullscreen}
-          >
-            {isFullscreen ? 'Exit full screen' : 'Full screen'}
-          </button>
+        <div className="shrink-0 self-start sm:w-32">
           <button
             type="submit"
             disabled={isTranslating || !chatDraft.trim()}
-            className="min-h-11 rounded-2xl border border-sky-300/20 bg-sky-500/80 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-sky-950/30 transition-colors hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-50"
+            className="min-h-11 w-full rounded-2xl border border-sky-300/20 bg-sky-500/80 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-sky-950/30 transition-colors hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isTranslating ? 'Translating…' : 'Send'}
           </button>

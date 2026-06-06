@@ -169,27 +169,90 @@ html:-webkit-full-screen {
   pointer-events: auto;
 }
 
-.canvas-nav-panel .react-flow__minimap,
-.canvas-nav-panel__minimap {
-  position: static !important;
-  margin: 0 !important;
-  inset: auto !important;
+.canvas-nav-panel__layer-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  width: 84px;
   flex-shrink: 0;
-  border: none;
+  border-right: 1px solid rgba(148, 163, 184, 0.1);
+  padding-right: 10px;
+}
+
+.canvas-nav-panel__layer-actions {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.canvas-nav-panel__minimap-section {
+  position: relative;
+  flex-shrink: 0;
+  min-width: 0;
   border-radius: 12px;
   box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.1);
   background: rgba(10, 14, 22, 0.55);
   overflow: hidden;
 }
 
+.canvas-nav-panel .react-flow__minimap,
+.canvas-nav-panel__minimap {
+  position: static !important;
+  margin: 0 !important;
+  inset: auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0;
+  min-height: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  overflow: hidden;
+}
+
+.canvas-nav-panel__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(209, 213, 219, 0.78);
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
+}
+
+.canvas-nav-panel__icon-btn:hover {
+  border-color: rgba(148, 163, 184, 0.18);
+  background: rgba(30, 41, 59, 0.55);
+  color: #e8eaed;
+}
+
+.canvas-nav-panel__icon-btn:active {
+  transform: translateY(1px);
+}
+
+.canvas-nav-panel__icon-btn[aria-pressed='true'] {
+  border-color: rgba(125, 211, 252, 0.28);
+  background: rgba(14, 116, 144, 0.22);
+  color: #bae6fd;
+}
+
 .layer-stack {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 84px;
+  width: 100%;
   flex-shrink: 0;
-  border-right: 1px solid rgba(148, 163, 184, 0.1);
-  padding-right: 10px;
 }
 
 .layer-stack__stage {
