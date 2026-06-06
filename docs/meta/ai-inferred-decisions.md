@@ -21,6 +21,7 @@ See also: [documentation-guide.md](./documentation-guide.md)
 | 2026-06-06 | Detail cards use `layer: 1` + `parentCardId` | Scoped detail under Product / Frontend / Backend | Yes |
 | 2026-06-06 | **TipTap** for inline card editing | Rich text on cards without exposing MD | Yes |
 | 2026-06-06 | **Zustand** for client state | Lightweight store for canvas/preview | Yes |
+| 2026-06-06 | **Drag-to-resize panel borders** (canvas / side panel / chat bar) | IDE-style layout; sizes in `localStorage` (`nlide.layout.*`) | Yes |
 | 2026-06-06 | **dagre** for auto-layout | Layout linked cards from graph | Yes |
 | 2026-06-06 | react-markdown + remark-gfm for MD preview panel | Side panel agent MD preview | Yes |
 | 2026-06-06 | tldraw **only** inside card for viz #21 (drawing) | Not main canvas | Yes |

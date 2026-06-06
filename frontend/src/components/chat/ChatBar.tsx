@@ -1,9 +1,13 @@
-import type { FormEvent } from 'react'
+import type { CSSProperties, FormEvent } from 'react'
 import { useFullscreen } from '../../hooks/useFullscreen'
 import { useCanvasStore } from '../../store/canvasStore'
 import PreviewActions from './PreviewActions'
 
-export default function ChatBar() {
+type ChatBarProps = {
+  style?: CSSProperties
+}
+
+export default function ChatBar({ style }: ChatBarProps) {
   const chatDraft = useCanvasStore((state) => state.chatDraft)
   const setChatDraft = useCanvasStore((state) => state.setChatDraft)
   const submitChat = useCanvasStore((state) => state.submitChat)
@@ -17,8 +21,11 @@ export default function ChatBar() {
   }
 
   return (
-    <footer className="glass-panel shrink-0 rounded-3xl px-4 py-3">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+    <footer
+      className="glass-panel flex min-h-0 flex-col overflow-hidden rounded-3xl px-4 py-3"
+      style={style}
+    >
+      <form onSubmit={handleSubmit} className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-end">
         <label className="min-w-0 flex-1">
           <textarea
             value={chatDraft}
@@ -46,7 +53,11 @@ export default function ChatBar() {
           </button>
         </div>
       </form>
-      {preview && <PreviewActions />}
+      {preview && (
+        <div className="min-h-0 flex-1 overflow-auto">
+          <PreviewActions />
+        </div>
+      )}
     </footer>
   )
 }

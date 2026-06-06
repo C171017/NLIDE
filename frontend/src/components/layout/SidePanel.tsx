@@ -1,12 +1,20 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import clsx from 'clsx'
+import { useResizableSize } from '../../hooks/useResizableSize'
 import { useCanvasStore } from '../../store/canvasStore'
 import CardEditor from '../cards/CardEditor'
 import BuildPhasesPanel from '../build/BuildPhasesPanel'
+import ResizeHandle from './ResizeHandle'
 
 type SideTab = 'build' | 'card'
 
-export default function SidePanel() {
+const PREVIEW_SUMMARY_HEIGHT_KEY = 'nlide.layout.previewSummaryHeight'
+
+type SidePanelProps = {
+  style?: CSSProperties
+}
+
+export default function SidePanel({ style }: SidePanelProps) {
   const [tab, setTab] = useState<SideTab>('build')
   const committedCards = useCanvasStore((state) => state.committedCards)
   const preview = useCanvasStore((state) => state.preview)
@@ -20,6 +28,13 @@ export default function SidePanel() {
     [activeCards, selectedCardId],
   )
 
+  const previewSummaryHeight = useResizableSize({
+    storageKey: PREVIEW_SUMMARY_HEIGHT_KEY,
+    defaultSize: 160,
+    min: 96,
+    max: 320,
+  })
+
   useEffect(() => {
     if (selectedCardId) {
       setTab('card')
@@ -27,7 +42,10 @@ export default function SidePanel() {
   }, [selectedCardId])
 
   return (
-    <aside className="glass-panel flex max-h-[40vh] min-h-48 w-full shrink flex-col overflow-hidden rounded-3xl lg:max-h-none lg:min-h-0 lg:w-96 lg:shrink-0">
+    <aside
+      className="glass-panel flex min-h-0 min-w-0 flex-col overflow-hidden rounded-3xl"
+      style={style}
+    >
       <div className="flex border-b border-white/10">
         <SideTabButton active={tab === 'build'} onClick={() => setTab('build')}>
           Build plan
@@ -57,19 +75,30 @@ export default function SidePanel() {
             )}
           </div>
           {preview && (
-            <div className="hidden border-t border-white/10 p-4 lg:block">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#9aa3b2]">
-                Preview summary
-              </h3>
-              <p className="mb-3 text-sm text-[#d1d5db]">{preview.summary}</p>
-              <ul className="space-y-1 text-xs text-[#9aa3b2]">
-                {preview.mdPatches.map((patch) => (
-                  <li key={`${patch.file}-${patch.anchor ?? patch.summary}`}>
-                    {patch.action} · {patch.file} — {patch.summary}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <>
+              <ResizeHandle
+                direction="vertical"
+                label="Resize preview summary height"
+                className="hidden lg:flex"
+                onResize={(delta) => previewSummaryHeight.applyDelta(-delta)}
+              />
+              <div
+                className="hidden min-h-0 shrink-0 overflow-auto border-t border-white/10 p-4 lg:block"
+                style={{ height: previewSummaryHeight.size }}
+              >
+                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#9aa3b2]">
+                  Preview summary
+                </h3>
+                <p className="mb-3 text-sm text-[#d1d5db]">{preview.summary}</p>
+                <ul className="space-y-1 text-xs text-[#9aa3b2]">
+                  {preview.mdPatches.map((patch) => (
+                    <li key={`${patch.file}-${patch.anchor ?? patch.summary}`}>
+                      {patch.action} · {patch.file} — {patch.summary}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </>
           )}
         </>
       )}

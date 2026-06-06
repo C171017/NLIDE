@@ -339,3 +339,71 @@ html:-webkit-full-screen {
 .ProseMirror p:last-child {
   margin-bottom: 0;
 }
+
+.resize-handle {
+  position: relative;
+  z-index: 20;
+  touch-action: none;
+  pointer-events: auto;
+  flex-shrink: 0;
+}
+
+.resize-handle::before {
+  content: '';
+  position: absolute;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.22);
+  opacity: 0;
+  transition:
+    opacity 140ms ease,
+    background-color 140ms ease;
+}
+
+.resize-handle:hover::before,
+.resize-handle:active::before,
+body.is-resizing .resize-handle::before {
+  opacity: 1;
+}
+
+.resize-handle--horizontal {
+  width: 10px;
+  margin: 0 -5px;
+  cursor: col-resize;
+}
+
+.resize-handle--horizontal::before {
+  top: 12px;
+  bottom: 12px;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+}
+
+.resize-handle--vertical {
+  height: 10px;
+  margin: -5px 0;
+  cursor: row-resize;
+}
+
+.resize-handle--vertical::before {
+  left: 12px;
+  right: 12px;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+}
+
+body.is-resizing,
+body.is-resizing * {
+  user-select: none !important;
+}
+
+body.is-resizing-x,
+body.is-resizing-x * {
+  cursor: col-resize !important;
+}
+
+body.is-resizing-y,
+body.is-resizing-y * {
+  cursor: row-resize !important;
+}
