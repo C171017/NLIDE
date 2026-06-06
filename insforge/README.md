@@ -82,6 +82,44 @@ insforge functions invoke nlide-api --data '{
 }'
 ```
 
+### Router smoke (`action:route`) — after Agent mode ships routeIntent()
+
+Router-only classify (no preview write). Canonical brief: `shared/translator/routerSmokeInvoke.ts`.
+
+Quick smoke (golden #1 — pan/zoom → `update_feature`):
+
+```bash
+npm run insforge:invoke:route-smoke
+```
+
+Or full payload:
+
+```bash
+insforge functions invoke nlide-api --data '{
+  "action": "route",
+  "message": "Users should be able to pan and zoom the canvas.",
+  "context": {
+    "projectName": "NLIDE Demo",
+    "centerCardId": "product",
+    "cards": [{
+      "id": "F-001",
+      "type": "feature",
+      "title": "Canvas interaction",
+      "body": "Pan, zoom, and navigate the intent canvas.",
+      "specRef": { "file": "features.md", "anchor": "F-001" },
+      "status": "approved"
+    }],
+    "edges": []
+  }
+}'
+```
+
+**Expected success:** `{ "ok": true, "plan": { "intent_type": "update_feature", ... } }`  
+**Expected failures:** `router_invalid_json` (502), `router_validation_failed` (422) — see `routerFailureBehavior.ts`.
+
+Additional examples (noop, clarify): see `ROUTER_SMOKE_EXAMPLES` in `shared/translator/routerSmokeInvoke.ts`.  
+Golden batch: run all 10 fixture messages; need ≥8/10 pass before replacing stub.
+
 ## 7. Wire frontend
 
 `frontend/.env.local` is already configured for this project:
@@ -111,7 +149,9 @@ insforge deployments create --name nlide-web --dir frontend/dist
 | action | Description |
 |--------|-------------|
 | `health` | Liveness + secrets check |
+| `get-translator-spec` | Intent types, routing rules, build phases, golden prompts |
 | `get-project` | Load cards/edges from Postgres |
+| `route` | Router-only classify → `RouterPlan` JSON (**planned** — Phase 2 Agent mode) |
 | `intent` | Chat → preview (stored in `previews`) |
 | `commit` | Apply preview to `cards` / `canvas_edges` |
 | `discard` | Delete preview row |

@@ -1,6 +1,6 @@
 /**
  * Router failure behavior brief — Phase 2 · Job 3.
- * **[AI-INFERRED]** draft for [USER] review before routeIntent() implementation.
+ * **[USER]** approved 2026-06-06 before routeIntent() implementation.
  *
  * When the LLM returns bad JSON or fails Zod validation: fail loud, never silently
  * fall back to the stub preview.
