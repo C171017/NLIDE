@@ -77,6 +77,7 @@ See also: [documentation-guide.md](./documentation-guide.md) · [ai-inferred-dec
 | 2026-06-06 | **Acceptance criteria bar approved** | `shared/translator/acceptanceCriteriaBar.ts`; Phase 3 · Job 2 complete |
 | 2026-06-06 | **Features writer golden approved (4 cases, ≥3/4 pass bar)** | `shared/translator/featuresWriterGolden.ts`; Phase 3 complete (3/3) |
 | 2026-06-06 | **Task writer rules approved** | `shared/translator/taskWriterRules.ts`; Phase 4 · Job 1 complete |
+| 2026-06-06 | **Validator strictness approved** | `shared/translator/validatorStrictness.ts`; Phase 4 · Job 2 complete |
 
 ---
 

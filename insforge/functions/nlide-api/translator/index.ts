@@ -21,6 +21,7 @@ export {
   ROUTER_SMOKE_INVOKE_BRIEF,
   TASK_WRITER_RULES,
   VALIDATOR_STRICTNESS,
+  REMAINING_WRITERS_ORDER,
   ROUTING_RULES,
   SPEC_FILE_ALLOWLIST,
   ROUTER_SCHEMA_FIELDS,
@@ -35,6 +36,9 @@ export {
   formatValidatorStrictness,
   getCommitBlockingRuleIds,
   getPreviewBlockingRuleIds,
+  formatRemainingWritersOrder,
+  getWriterBriefByFile,
+  getWritersForIntentType,
   formatRouterFailureBehavior,
   formatRouterPromptOutline,
   formatRouterSmokeInvokeBrief,
@@ -77,6 +81,9 @@ export type {
   ValidatorRule,
   ValidatorSeverity,
   ValidatorStrictness,
+  RemainingWriterBrief,
+  RemainingWriterId,
+  RemainingWritersOrder,
   TranslatorSpec,
 } from '../_shared/translator/index.ts'
 

@@ -1,6 +1,6 @@
 /**
  * Validator strictness brief — Phase 4 · Job 2.
- * **[AI-INFERRED]** draft for [USER] review before spec validator ships.
+ * **[USER]** approved 2026-06-06 before spec validator ships.
  *
  * Defines block vs warn rules after writers patch spec files — duplicates, orphans,
  * contradictions, and content quality gates.

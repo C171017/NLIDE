@@ -27,6 +27,7 @@ export const DEFAULT_COMPLETED_JOBS: Record<string, Record<string, boolean>> = {
   },
   'phase-4-writers-validator': {
     'task-writer-rules': true,
+    'validator-strictness': true,
   },
 }
 
