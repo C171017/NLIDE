@@ -40,7 +40,7 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Build phases UI | `BuildPhasesPanel.tsx`, `PhaseJobList.tsx`, `PhaseExecutionPanel.tsx` — Agent / You columns |
 | Phase execution map | `shared/translator/phaseExecution.ts` — shipped status + human task list per phase |
 | P0 viz embeds | Mermaid, markdown table, force graph, data table, **progress-checklist** |
-| Step 1 progress card | `translator-step1` task card — Phase 3 **complete (3/3)**; Phase 4 active |
+| Step 1 progress card | `translator-step1` task card — Phase 4 **complete (3/3)**; Phase 5 active |
 | Router prompt outline | `shared/translator/routerPromptOutline.ts` — Phase 2 · Job 1 **approved** |
 | Golden router fixture | `shared/translator/goldenRouterFixture.ts` — Phase 2 · Job 2 **approved** |
 | Router failure behavior | `shared/translator/routerFailureBehavior.ts` — Phase 2 · Job 3 **approved** |
@@ -50,7 +50,8 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Features writer golden | `shared/translator/featuresWriterGolden.ts` — Phase 3 · Job 3 **approved** |
 | Task writer rules | `shared/translator/taskWriterRules.ts` — Phase 4 · Job 1 **approved** |
 | Validator strictness | `shared/translator/validatorStrictness.ts` — Phase 4 · Job 2 **approved** |
-| Remaining writers order | `shared/translator/remainingWritersOrder.ts` — Phase 4 · Job 3 draft |
+| Remaining writers order | `shared/translator/remainingWritersOrder.ts` — Phase 4 · Job 3 **approved** |
+| Canvas placement rules | `shared/translator/canvasPlacementRules.ts` — Phase 5 · Job 1 draft |
 | Implementation progress store | `implementationProgressStore.ts` — persists checklist ticks in localStorage |
 | Canvas state (Zustand) | `frontend/src/store/canvasStore.ts` |
 | API client + local stub | `frontend/src/lib/api.ts`, `translatorStub.ts` |

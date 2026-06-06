@@ -125,7 +125,7 @@ export const BUILD_PHASES: BuildPhase[] = [
     title: 'Phase 4: All writers + validator',
     plainSummary: 'Remaining spec files and validation strictness.',
     agentModeGoal: 'All writers + ID/link validator',
-    status: 'active',
+    status: 'done',
     checklistId: 'phase-4-writers-validator',
     jobs: [
       {
@@ -151,7 +151,7 @@ export const BUILD_PHASES: BuildPhase[] = [
     title: 'Phase 5: Canvas mapper brief',
     plainSummary: 'How MD patches become preview cards and edges.',
     agentModeGoal: 'Canvas mapper + preview diff on canvas',
-    status: 'upcoming',
+    status: 'active',
     checklistId: 'phase-5-canvas-mapper',
     jobs: [
       {

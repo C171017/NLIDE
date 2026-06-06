@@ -22,6 +22,8 @@ export {
   TASK_WRITER_RULES,
   VALIDATOR_STRICTNESS,
   REMAINING_WRITERS_ORDER,
+  CANVAS_PLACEMENT_RULES,
+  TOP_LAYER_SPREAD,
   ROUTING_RULES,
   SPEC_FILE_ALLOWLIST,
   ROUTER_SCHEMA_FIELDS,
@@ -39,6 +41,8 @@ export {
   formatRemainingWritersOrder,
   getWriterBriefByFile,
   getWritersForIntentType,
+  formatCanvasPlacementRules,
+  getDefaultAnchor,
   formatRouterFailureBehavior,
   formatRouterPromptOutline,
   formatRouterSmokeInvokeBrief,
@@ -84,6 +88,9 @@ export type {
   RemainingWriterBrief,
   RemainingWriterId,
   RemainingWritersOrder,
+  CanvasPlacementRules,
+  CardType,
+  PlacementAnchor,
   TranslatorSpec,
 } from '../_shared/translator/index.ts'
 

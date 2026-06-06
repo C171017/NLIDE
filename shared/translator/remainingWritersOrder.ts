@@ -1,6 +1,6 @@
 /**
  * Remaining spec writers — implementation order & section briefs — Phase 4 · Job 3.
- * **[AI-INFERRED]** draft for [USER] review before remaining writer LLMs ship.
+ * **[USER]** approved 2026-06-06 before remaining writer LLMs ship.
  *
  * features.md and tasks.md writers are defined separately (Phase 3 + Phase 4 Job 1).
  * This brief covers product, users, architecture, constraints, decisions, open-questions.
