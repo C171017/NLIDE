@@ -17,9 +17,9 @@ See also: [documentation-guide.md](./documentation-guide.md)
 | 2026-06-06 | Tailwind CSS v4 | Fast solo styling | Yes |
 | 2026-06-06 | **React Flow** (`@xyflow/react`) for main canvas | Structured graph + layered pillars; not tldraw for main canvas | Yes |
 | 2026-06-06 | ~~**Zoom threshold 0.5** to enter detail layer~~ — **superseded** by click-to-drill (`drillFocusId` in canvas store) | Pillar click toggles overview ↔ detail; zoom is for pan/read only | Yes |
-| 2026-06-06 | **Spec markdown SSOT for overview canvas** | `spec/*.md` → `buildCanvasFromSpec()` on startup; all cards `layer: 0`; radial overview rings from Product hub | Yes |
+| 2026-06-06 | **Spec markdown SSOT for overview canvas** | `spec/*.md` → `buildCanvasFromSpec()` on startup; layer 0 pillars + layer 1 detail cards with `parentCardId`; tasks use optional **Pillar:** field | Yes |
 | 2026-06-06 | ~~Top layer fixed 3-column layout~~ — **superseded for full overview** | Dagre TB layout when overview has >3 cards; pillar 3-column kept for ≤3 nodes | Yes |
-| 2026-06-06 | ~~Detail cards use `layer: 1` + `parentCardId`~~ — **superseded for spec load** | Spec-loaded cards are all overview (`layer: 0`); drill-in optional for focus | Yes |
+| 2026-06-06 | ~~Detail cards use `layer: 1` + `parentCardId`~~ — **superseded for spec load** | ~~Spec-loaded cards are all overview (`layer: 0`)~~ **Restored 2026-06-06:** spec load assigns layer/parent from `canvasPlacementRules`; overview shows pillars only | Yes |
 | 2026-06-06 | **Overview orphan entity cards (temp v0)** | Translator-created feature/task/decision/open-question/constraint cards use `layer: 0`, no parent/edges — visible on overview without drilling into a pillar; `OVERVIEW_ORPHAN_NEW_ENTITIES` in `canvasMapper.ts` | Yes — remove when layered UX is refined |
 | 2026-06-06 | **Layer stack Overview plate click** | Only way back from detail via nav UI; drill into detail remains pillar double-click only | Yes |
 | 2026-06-06 | **TipTap** for inline card editing | Rich text on cards without exposing MD | Yes |

@@ -1,9 +1,10 @@
 /**
  * spec/*.md → canvas cards + edges — overview load from markdown SSOT.
- * **[AI-INFERRED]** 2026-06-06 — parse Flow B entity sections into layer-0 cards.
+ * **[AI-INFERRED]** 2026-06-06 — parse Flow B entity sections; assign layer/parent from canvasPlacementRules.
  */
 
 import type { CanvasCard, CanvasEdge, CardStatus } from './canvasTypes.ts'
+import { getDefaultAnchor } from './canvasPlacementRules.ts'
 
 export interface SpecFileMap {
   [file: string]: string
@@ -23,8 +24,11 @@ const FEATURE_PRIORITY_RE = /-\s+\*\*Priority:\*\*\s*(\S+)/i
 const FEATURE_DESC_RE = /-\s+\*\*Description:\*\*\s*(.+)/i
 
 const TASK_FEATURE_RE = /-\s+\*\*Feature:\*\*\s*(F-\d{3})/i
+const TASK_PILLAR_RE = /-\s+\*\*Pillar:\*\*\s*(frontend|backend|product)/i
 const TASK_STATUS_RE = /-\s+\*\*Status:\*\*\s*(\S+)/i
 const TASK_DONE_RE = /-\s+\*\*Done when:\*\*\s*(.+)/i
+
+type PillarId = 'frontend' | 'backend' | 'product'
 
 const OQ_QUESTION_RE = /-\s+\*\*Question:\*\*\s*(.+)/i
 const OQ_STATUS_RE = /-\s+\*\*Status:\*\*\s*(\S+)/i
@@ -175,6 +179,24 @@ function addEdge(edges: CanvasEdge[], source: string, target: string, label: str
   edges.push({ id, source, target, label })
 }
 
+function parseTaskPillar(body: string): PillarId | undefined {
+  const match = body.match(TASK_PILLAR_RE)
+  if (!match) return undefined
+  return match[1].toLowerCase() as PillarId
+}
+
+function applyCardPlacement(card: CanvasCard, pillarOverride?: PillarId): void {
+  const anchor = getDefaultAnchor(card.type)
+  if (!anchor) return
+
+  card.layer = anchor.layer
+  card.parentCardId = pillarOverride ?? anchor.parentCardId
+
+  if (anchor.layer === 0) {
+    card.position = { ...anchor.defaultOffset }
+  }
+}
+
 export function buildCanvasFromSpec(files: SpecFileMap): SpecCanvasState {
   const cards: CanvasCard[] = []
   const edges: CanvasEdge[] = []
@@ -198,6 +220,7 @@ export function buildCanvasFromSpec(files: SpecFileMap): SpecCanvasState {
     status: 'approved',
   })
   cardIds.add('product')
+  applyCardPlacement(cards[cards.length - 1])
 
   const archMd = files['architecture.md'] ?? ''
   const archSections = parseSections(archMd)
@@ -218,6 +241,7 @@ export function buildCanvasFromSpec(files: SpecFileMap): SpecCanvasState {
     })
     cardIds.add('frontend')
     addEdge(edges, 'product', 'frontend', 'has')
+    applyCardPlacement(cards[cards.length - 1])
   }
 
   if (backendBody) {
@@ -233,6 +257,7 @@ export function buildCanvasFromSpec(files: SpecFileMap): SpecCanvasState {
     })
     cardIds.add('backend')
     addEdge(edges, 'product', 'backend', 'has')
+    applyCardPlacement(cards[cards.length - 1])
   }
 
   if (frontendBody && backendBody) {
@@ -254,6 +279,7 @@ export function buildCanvasFromSpec(files: SpecFileMap): SpecCanvasState {
     if (cardIds.has('backend')) {
       addEdge(edges, 'backend', 'architecture', 'describes')
     }
+    applyCardPlacement(cards[cards.length - 1])
   }
 
   const usersMd = files['users.md'] ?? ''
@@ -273,6 +299,7 @@ export function buildCanvasFromSpec(files: SpecFileMap): SpecCanvasState {
       })
       cardIds.add('users')
       addEdge(edges, 'product', 'users', 'serves')
+      applyCardPlacement(cards[cards.length - 1])
     }
   }
 
@@ -293,6 +320,7 @@ export function buildCanvasFromSpec(files: SpecFileMap): SpecCanvasState {
       })
       cardIds.add('constraints')
       addEdge(edges, 'product', 'constraints', 'limits')
+      applyCardPlacement(cards[cards.length - 1])
     }
   }
 
@@ -311,6 +339,7 @@ export function buildCanvasFromSpec(files: SpecFileMap): SpecCanvasState {
       })
       cardIds.add(entity.id)
       addEdge(edges, 'product', entity.id, 'contains')
+      applyCardPlacement(cards[cards.length - 1])
     }
   }
 
@@ -318,6 +347,7 @@ export function buildCanvasFromSpec(files: SpecFileMap): SpecCanvasState {
   if (hasEntitySections(tasksMd)) {
     for (const entity of parseEntitySections(tasksMd)) {
       const featureId = fieldMatch(entity.body, TASK_FEATURE_RE)
+      const pillar = parseTaskPillar(entity.body)
       cards.push({
         id: entity.id,
         specRef: { file: 'tasks.md', anchor: entity.id },
@@ -329,11 +359,15 @@ export function buildCanvasFromSpec(files: SpecFileMap): SpecCanvasState {
         status: mapTaskStatus(entity.body),
       })
       cardIds.add(entity.id)
+      applyCardPlacement(cards[cards.length - 1], pillar)
+
+      const parentPillar = cards[cards.length - 1].parentCardId
+      if (parentPillar && cardIds.has(parentPillar)) {
+        addEdge(edges, parentPillar, entity.id, 'implements')
+      }
 
       if (featureId && cardIds.has(featureId)) {
         addEdge(edges, featureId, entity.id, 'implements')
-      } else if (cardIds.has('frontend')) {
-        addEdge(edges, 'frontend', entity.id, 'implements')
       }
     }
   }
@@ -352,7 +386,12 @@ export function buildCanvasFromSpec(files: SpecFileMap): SpecCanvasState {
         status: 'approved',
       })
       cardIds.add(entity.id)
-      addEdge(edges, 'product', entity.id, 'decided')
+      if (cardIds.has('backend')) {
+        addEdge(edges, 'backend', entity.id, 'decided')
+      } else {
+        addEdge(edges, 'product', entity.id, 'decided')
+      }
+      applyCardPlacement(cards[cards.length - 1])
     }
   }
 
@@ -371,6 +410,7 @@ export function buildCanvasFromSpec(files: SpecFileMap): SpecCanvasState {
       })
       cardIds.add(entity.id)
       addEdge(edges, 'product', entity.id, 'raises')
+      applyCardPlacement(cards[cards.length - 1])
     }
   }
 

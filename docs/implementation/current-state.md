@@ -63,10 +63,10 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Canvas mapper golden | `shared/translator/canvasMapperGolden.ts` — 5 cases, ≥4/5 pass bar |
 | Implementation progress store | `implementationProgressStore.ts` — persists checklist ticks in localStorage |
 | Canvas state (Zustand) | `frontend/src/store/canvasStore.ts` — **loads from `spec/*.md` on startup** via `loadSpecCanvas.ts` |
-| **Spec → canvas loader** | `shared/translator/specToCanvas.ts` — `buildCanvasFromSpec()` parses Flow B markdown into layer-0 cards + edges |
+| **Spec → canvas loader** | `shared/translator/specToCanvas.ts` — `buildCanvasFromSpec()` parses Flow B markdown into layered cards + edges; tasks link to Frontend/Backend via **Pillar:** |
 | API client + local stub | `frontend/src/lib/api.ts`, `translatorStub.ts` — stub uses `mapCanvasToPreview()` |
 | Sample demo canvas | `frontend/src/data/sampleProject.ts` — **legacy reference only** (superseded by spec load) |
-| **Seeded NLIDE spec** | `spec/` — F-001…F-003, T-001…T-003, D-001…D-003, architecture Frontend/Backend sections |
+| **Seeded NLIDE spec** | `spec/` — F-001…F-006, T-001…T-009 (frontend pillar), D-001…D-003, architecture Frontend component inventory |
 
 Run: `npm run dev` (from repo root)
 
