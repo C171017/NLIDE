@@ -1,7 +1,10 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import clsx from 'clsx'
+import type { CSSProperties } from 'react'
 import type { Card } from '../../../types/canvas'
+import { cardJiggleDelay } from '../../../lib/canDeleteCard'
 import { cardTypeLabel, cardTypeStyles, cardSelectedStyles } from '../../../lib/cardStyles'
+import { useLongPress } from '../../../hooks/useLongPress'
 import { useCanvasStore } from '../../../store/canvasStore'
 import VizEmbed from '../../viz/VizEmbed'
 
@@ -17,33 +20,51 @@ export default function CardNode({ data }: NodeProps) {
   const { card, isPreview } = nodeData
   const hasInteractiveViz = card.vizType === 'progress-checklist'
   const isSelected = useCanvasStore((state) => state.selectedCardId === card.id)
+  const isDeleteMode = useCanvasStore((state) => state.isDeleteMode)
   const toggleSelectCard = useCanvasStore((state) => state.toggleSelectCard)
   const drillTopLayerCard = useCanvasStore((state) => state.drillTopLayerCard)
+  const enterDeleteMode = useCanvasStore((state) => state.enterDeleteMode)
+
+  const longPress = useLongPress(enterDeleteMode, { disabled: isDeleteMode })
 
   return (
     <div
       role="button"
       tabIndex={0}
+      style={
+        isDeleteMode
+          ? ({ '--card-jiggle-delay': `${cardJiggleDelay(card.id)}ms` } as CSSProperties)
+          : undefined
+      }
       onClick={(event) => {
+        if (longPress.consumeClick()) return
+        if (isDeleteMode) return
         if (event.detail === 2) return
         toggleSelectCard(card.id)
       }}
       onDoubleClick={(event) => {
+        if (isDeleteMode) return
         event.stopPropagation()
         drillTopLayerCard(card.id)
       }}
       onKeyDown={(event) => {
+        if (isDeleteMode) return
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault()
           toggleSelectCard(card.id)
         }
       }}
+      onPointerDown={longPress.onPointerDown}
+      onPointerUp={longPress.onPointerUp}
+      onPointerLeave={longPress.onPointerLeave}
+      onPointerCancel={longPress.onPointerCancel}
       className={clsx(
         'canvas-node-card cursor-pointer rounded-2xl border px-3 py-2.5 text-left shadow-md shadow-stone-300/40 transition-[opacity,box-shadow,border-color,filter,transform,ring-color]',
         hasInteractiveViz ? 'w-[300px]' : 'w-[260px]',
         cardTypeStyles(card.type),
         isPreview && 'border-dashed opacity-80',
-        isSelected && cardSelectedStyles(card.type),
+        isSelected && !isDeleteMode && cardSelectedStyles(card.type),
+        isDeleteMode && 'canvas-node-card--jiggle',
       )}
     >
       {handlePositions.map((position) => (

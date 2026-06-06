@@ -1,8 +1,5 @@
 import { Panel } from '@xyflow/react'
-// import { MiniMap } from '@xyflow/react'
-// import { useResizableSize } from '../../hooks/useResizableSize'
 import { useFullscreen } from '../../hooks/useFullscreen'
-// import CornerResizeHandle from '../layout/CornerResizeHandle'
 import type { CanvasViewMode } from '../../lib/canvasLayers'
 import LayerStackIndicator from './LayerStackIndicator'
 
@@ -28,86 +25,51 @@ function FullscreenExitIcon() {
   )
 }
 
-// const MINIMAP_WIDTH_KEY = 'nlide.layout.minimapWidth'
-// const MINIMAP_HEIGHT_KEY = 'nlide.layout.minimapHeight'
-
 type LayerTransitionPhase = 'idle' | 'leaving' | 'entering'
 
 interface CanvasNavPanelProps {
   mode: CanvasViewMode
   transitionPhase: LayerTransitionPhase
+  hidden?: boolean
   onNavigateOverview?: () => void
 }
 
 export default function CanvasNavPanel({
   mode,
   transitionPhase,
+  hidden = false,
   onNavigateOverview,
 }: CanvasNavPanelProps) {
   const { isFullscreen, toggleFullscreen } = useFullscreen()
-  // const minimapWidth = useResizableSize({
-  //   storageKey: MINIMAP_WIDTH_KEY,
-  //   defaultSize: 200,
-  //   min: 120,
-  //   max: 480,
-  // })
-  //
-  // const minimapHeight = useResizableSize({
-  //   storageKey: MINIMAP_HEIGHT_KEY,
-  //   defaultSize: 150,
-  //   min: 90,
-  //   max: 360,
-  // })
+
+  if (hidden) {
+    return null
+  }
 
   return (
-    <>
-      <Panel position="top-left" className="canvas-nav-panel">
-        <div className="canvas-nav-panel__cluster canvas-nav-panel__cluster--layer">
-          <div className="canvas-nav-panel__layer-section">
-            <div className="canvas-nav-panel__layer-header">
-              <span className="canvas-nav-panel__layer-title">View</span>
-              <button
-                type="button"
-                className="canvas-nav-panel__icon-btn"
-                onClick={() => void toggleFullscreen()}
-                aria-pressed={isFullscreen}
-                aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
-                title={isFullscreen ? 'Exit full screen' : 'Full screen'}
-              >
-                {isFullscreen ? <FullscreenExitIcon /> : <FullscreenEnterIcon />}
-              </button>
-            </div>
-            <LayerStackIndicator
-              mode={mode}
-              transitionPhase={transitionPhase}
-              onSelectOverview={onNavigateOverview}
-            />
+    <Panel position="top-left" className="canvas-nav-panel">
+      <div className="canvas-nav-panel__cluster canvas-nav-panel__cluster--layer">
+        <div className="canvas-nav-panel__layer-section">
+          <div className="canvas-nav-panel__layer-header">
+            <span className="canvas-nav-panel__layer-title">View</span>
+            <button
+              type="button"
+              className="canvas-nav-panel__icon-btn"
+              onClick={() => void toggleFullscreen()}
+              aria-pressed={isFullscreen}
+              aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
+              title={isFullscreen ? 'Exit full screen' : 'Full screen'}
+            >
+              {isFullscreen ? <FullscreenExitIcon /> : <FullscreenEnterIcon />}
+            </button>
           </div>
+          <LayerStackIndicator
+            mode={mode}
+            transitionPhase={transitionPhase}
+            onSelectOverview={onNavigateOverview}
+          />
         </div>
-      </Panel>
-      {/* Detached minimap — hidden for now
-      <Panel position="top-left" className="canvas-nav-panel canvas-nav-panel--minimap">
-        <div
-          className="canvas-nav-panel__cluster canvas-nav-panel__cluster--minimap"
-          style={{ width: minimapWidth.size, height: minimapHeight.size }}
-        >
-          <div className="canvas-nav-panel__minimap-section">
-            <MiniMap
-              className="canvas-nav-panel__minimap"
-              nodeColor={(node) => (node.type === 'index' ? '#f59e0b' : '#374151')}
-              maskColor="rgba(15, 17, 23, 0.75)"
-            />
-            <CornerResizeHandle
-              label="Resize minimap"
-              onResize={(deltaX, deltaY) => {
-                minimapWidth.applyDelta(deltaX)
-                minimapHeight.applyDelta(deltaY)
-              }}
-            />
-          </div>
-        </div>
-      </Panel>
-      */}
-    </>
+      </div>
+    </Panel>
   )
 }

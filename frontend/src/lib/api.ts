@@ -112,3 +112,12 @@ export async function patchCardRemote(
 
   await post({ action: 'patch-card', cardId, patch, projectId })
 }
+
+export async function deleteCardRemote(
+  cardId: string,
+  projectId = DEFAULT_PROJECT_ID,
+): Promise<void> {
+  if (!functionUrl) return
+
+  await post({ action: 'delete-card', cardId, projectId })
+}

@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Position,
@@ -12,6 +13,7 @@ import {
 } from '@xyflow/react'
 import type { Card, CanvasEdge } from '../../types/canvas'
 import { diffPreview } from '@nlide/shared/diffPreview'
+import { canDeleteCard } from '../../lib/canDeleteCard'
 import {
   filterVisibleCards,
   filterVisibleEdges,
@@ -24,6 +26,7 @@ import CardNode from './nodes/CardNode'
 import IndexNode from './nodes/IndexNode'
 import LabeledEdge from './edges/LabeledEdge'
 import CanvasNavPanel from './CanvasNavPanel'
+import DeleteModeTrash from './DeleteModeTrash'
 import ChatBar from '../chat/ChatBar'
 
 const nodeTypes = {
@@ -62,8 +65,35 @@ function handleId(type: 'source' | 'target', position: Position) {
   return `${type}-${position}`
 }
 
+const TRASH_HIT_PADDING_PX = 20
+
+function isPointInRect(
+  clientX: number,
+  clientY: number,
+  rect: DOMRect,
+  padding = 0,
+): boolean {
+  return (
+    clientX >= rect.left - padding &&
+    clientX <= rect.right + padding &&
+    clientY >= rect.top - padding &&
+    clientY <= rect.bottom + padding
+  )
+}
+
 function layerKey(layer: DisplayedLayer) {
   return `${layer.mode}:${layer.focusId ?? 'overview'}`
+}
+
+function pointerClientPosition(event: MouseEvent | TouchEvent): { x: number; y: number } | null {
+  if ('clientX' in event) {
+    return { x: event.clientX, y: event.clientY }
+  }
+
+  const touch = event.changedTouches[0] ?? event.touches[0]
+  if (!touch) return null
+
+  return { x: touch.clientX, y: touch.clientY }
 }
 
 function cardsToNodes(
@@ -155,6 +185,7 @@ function clampZoom(value: number) {
 function ExcalidrawStyleGestures() {
   const reactFlow = useReactFlow()
   const liveViewport = useViewport()
+  const isDeleteMode = useCanvasStore((state) => state.isDeleteMode)
   const rafRef = useRef<number | null>(null)
   const targetViewportRef = useRef(reactFlow.getViewport())
 
@@ -165,6 +196,8 @@ function ExcalidrawStyleGestures() {
   }, [liveViewport])
 
   useEffect(() => {
+    if (isDeleteMode) return undefined
+
     const pane = document.querySelector<HTMLElement>('.intent-canvas .react-flow__pane')
 
     if (!pane) return undefined
@@ -245,7 +278,7 @@ function ExcalidrawStyleGestures() {
         window.cancelAnimationFrame(rafRef.current)
       }
     }
-  }, [reactFlow])
+  }, [isDeleteMode, reactFlow])
 
   return null
 }
@@ -292,13 +325,88 @@ export default function IntentCanvas() {
   const selectCard = useCanvasStore((state) => state.selectCard)
   const moveCard = useCanvasStore((state) => state.moveCard)
   const setCardPositions = useCanvasStore((state) => state.setCardPositions)
+  const isDeleteMode = useCanvasStore((state) => state.isDeleteMode)
+  const exitDeleteMode = useCanvasStore((state) => state.exitDeleteMode)
+  const deleteCard = useCanvasStore((state) => state.deleteCard)
+
+  const trashRef = useRef<HTMLDivElement>(null)
+  const trashHoveredRef = useRef(false)
+  const deleteDragStateRef = useRef<{
+    nodeId: string
+    origin: { x: number; y: number }
+    finished: boolean
+  } | null>(null)
+  const deleteDragMoveHandlerRef = useRef<((event: PointerEvent) => void) | null>(null)
+  const deleteDragUpHandlerRef = useRef<((event: PointerEvent) => void) | null>(null)
+  const [isTrashHovered, setIsTrashHovered] = useState(false)
 
   const activeCards = preview?.cards ?? committedCards
   const activeEdges = preview?.edges ?? committedEdges
 
+  const updateTrashHover = useCallback((clientX: number, clientY: number) => {
+    const trash = trashRef.current
+    if (!trash) {
+      trashHoveredRef.current = false
+      setIsTrashHovered(false)
+      return
+    }
+
+    const hovered = isPointInRect(
+      clientX,
+      clientY,
+      trash.getBoundingClientRect(),
+      TRASH_HIT_PADDING_PX,
+    )
+    trashHoveredRef.current = hovered
+    setIsTrashHovered(hovered)
+  }, [])
+
+  const cleanupDeleteDragListeners = useCallback(() => {
+    if (deleteDragMoveHandlerRef.current) {
+      window.removeEventListener('pointermove', deleteDragMoveHandlerRef.current)
+      deleteDragMoveHandlerRef.current = null
+    }
+
+    if (deleteDragUpHandlerRef.current) {
+      window.removeEventListener('pointerup', deleteDragUpHandlerRef.current)
+      deleteDragUpHandlerRef.current = null
+    }
+  }, [])
+
   const handlePaneClick = useCallback(() => {
+    if (isDeleteMode) {
+      exitDeleteMode()
+      return
+    }
+
     selectCard(null)
-  }, [selectCard])
+  }, [exitDeleteMode, isDeleteMode, selectCard])
+
+  useEffect(() => {
+    if (!isDeleteMode) return undefined
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        exitDeleteMode()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [exitDeleteMode, isDeleteMode])
+
+  useEffect(() => {
+    if (isDeleteMode) return undefined
+
+    cleanupDeleteDragListeners()
+    deleteDragStateRef.current = null
+    trashHoveredRef.current = false
+    setIsTrashHovered(false)
+
+    return cleanupDeleteDragListeners
+  }, [cleanupDeleteDragListeners, isDeleteMode])
 
   const resolvedLayer = useMemo(
     () => resolveViewMode(drillFocusId, activeCards),
@@ -432,26 +540,124 @@ export default function IntentCanvas() {
     (changes) => {
       onNodesChange(changes)
 
+      if (isDeleteMode) {
+        return
+      }
+
       for (const change of changes) {
         if (change.type === 'position' && change.position && !change.dragging) {
           moveCard(change.id, change.position)
         }
       }
     },
-    [moveCard, onNodesChange],
+    [isDeleteMode, moveCard, onNodesChange],
+  )
+
+  const finishDeleteDrag = useCallback(
+    (nodeId: string) => {
+      const dragState = deleteDragStateRef.current
+      if (!dragState || dragState.nodeId !== nodeId || dragState.finished) {
+        return
+      }
+
+      dragState.finished = true
+      cleanupDeleteDragListeners()
+
+      const shouldDelete =
+        trashHoveredRef.current && canDeleteCard(nodeId, centerCardId, activeCards)
+
+      if (shouldDelete) {
+        deleteCard(nodeId)
+      } else {
+        const { origin } = dragState
+        setNodes((currentNodes) =>
+          currentNodes.map((node) =>
+            node.id === nodeId ? { ...node, position: { ...origin } } : node,
+          ),
+        )
+      }
+
+      deleteDragStateRef.current = null
+      trashHoveredRef.current = false
+      setIsTrashHovered(false)
+    },
+    [activeCards, centerCardId, cleanupDeleteDragListeners, deleteCard, setNodes],
+  )
+
+  const handleNodeDragStart = useCallback(
+    (_event: MouseEvent | TouchEvent, node: Node) => {
+      if (!isDeleteMode) return
+
+      cleanupDeleteDragListeners()
+
+      deleteDragStateRef.current = {
+        nodeId: node.id,
+        origin: { ...node.position },
+        finished: false,
+      }
+
+      const onPointerMove = (event: PointerEvent) => {
+        updateTrashHover(event.clientX, event.clientY)
+      }
+
+      const onPointerUp = (event: PointerEvent) => {
+        updateTrashHover(event.clientX, event.clientY)
+        finishDeleteDrag(node.id)
+      }
+
+      deleteDragMoveHandlerRef.current = onPointerMove
+      deleteDragUpHandlerRef.current = onPointerUp
+      window.addEventListener('pointermove', onPointerMove)
+      window.addEventListener('pointerup', onPointerUp)
+    },
+    [cleanupDeleteDragListeners, finishDeleteDrag, isDeleteMode, updateTrashHover],
+  )
+
+  const handleNodeDrag = useCallback(
+    (event: MouseEvent | TouchEvent) => {
+      if (!isDeleteMode) return
+      const pointer = pointerClientPosition(event)
+      if (!pointer) return
+      updateTrashHover(pointer.x, pointer.y)
+    },
+    [isDeleteMode, updateTrashHover],
+  )
+
+  const handleNodeDragStop = useCallback(
+    (_event: MouseEvent | TouchEvent, node: Node) => {
+      if (!isDeleteMode) {
+        trashHoveredRef.current = false
+        setIsTrashHovered(false)
+        return
+      }
+
+      finishDeleteDrag(node.id)
+    },
+    [finishDeleteDrag, isDeleteMode],
   )
 
   return (
-    <div className={`intent-canvas canvas-layer-${transitionPhase} relative h-full w-full`}>
+    <div
+      className={clsx(
+        'intent-canvas relative h-full w-full',
+        `canvas-layer-${transitionPhase}`,
+        isDeleteMode && 'canvas-delete-mode',
+      )}
+    >
       <ReactFlow
         nodes={nodes}
         edges={edges}
         onNodesChange={handleNodesChange}
         onEdgesChange={onEdgesChange}
         onPaneClick={handlePaneClick}
+        onNodeDragStart={handleNodeDragStart}
+        onNodeDrag={handleNodeDrag}
+        onNodeDragStop={handleNodeDragStop}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         elementsSelectable={false}
+        panOnDrag={!isDeleteMode}
+        autoPanOnNodeDrag={!isDeleteMode}
         fitView
         fitViewOptions={{ padding: 0.2 }}
         minZoom={MIN_ZOOM}
@@ -470,9 +676,11 @@ export default function IntentCanvas() {
         <CanvasNavPanel
           mode={viewMode}
           transitionPhase={transitionPhase}
+          hidden={isDeleteMode}
           onNavigateOverview={drillOut}
         />
       </ReactFlow>
+      {isDeleteMode && <DeleteModeTrash ref={trashRef} isHovered={isTrashHovered} />}
       <ChatBar />
     </div>
   )

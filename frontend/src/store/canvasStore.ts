@@ -1,9 +1,11 @@
 import { create } from 'zustand'
 import type { Card, CanvasEdge, PreviewPayload } from '../types/canvas'
+import { canDeleteCard } from '../lib/canDeleteCard'
 import { isTopLayerCard } from '../lib/canvasLayers'
 import {
   commitPreviewRemote,
   DEFAULT_PROJECT_ID,
+  deleteCardRemote,
   discardPreviewRemote,
   patchCardRemote,
   submitIntent,
@@ -20,8 +22,12 @@ interface CanvasStore {
   drillFocusId: string | null
   isTranslating: boolean
   chatDraft: string
+  isDeleteMode: boolean
 
   setChatDraft: (value: string) => void
+  enterDeleteMode: () => void
+  exitDeleteMode: () => void
+  deleteCard: (cardId: string) => boolean
   selectCard: (cardId: string | null) => void
   toggleSelectCard: (cardId: string) => void
   drillIntoCard: (cardId: string) => void
@@ -44,6 +50,22 @@ function cloneEdges(edges: CanvasEdge[]): CanvasEdge[] {
   return edges.map((edge) => ({ ...edge }))
 }
 
+function removeCardFromCanvas(
+  cardId: string,
+  cards: Card[],
+  edges: CanvasEdge[],
+  centerCardId: string,
+): { cards: Card[]; edges: CanvasEdge[] } | null {
+  if (!canDeleteCard(cardId, centerCardId, cards)) {
+    return null
+  }
+
+  return {
+    cards: cards.filter((card) => card.id !== cardId),
+    edges: edges.filter((edge) => edge.source !== cardId && edge.target !== cardId),
+  }
+}
+
 function isAbortError(error: unknown) {
   return error instanceof DOMException && error.name === 'AbortError'
 }
@@ -60,8 +82,49 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   drillFocusId: null,
   isTranslating: false,
   chatDraft: '',
+  isDeleteMode: false,
 
   setChatDraft: (value) => set({ chatDraft: value }),
+
+  enterDeleteMode: () => set({ isDeleteMode: true, selectedCardId: null }),
+
+  exitDeleteMode: () => set({ isDeleteMode: false }),
+
+  deleteCard: (cardId) => {
+    const { centerCardId, preview, selectedCardId, drillFocusId } = get()
+    const sourceCards = preview?.cards ?? get().committedCards
+    const sourceEdges = preview?.edges ?? get().committedEdges
+    const next = removeCardFromCanvas(cardId, sourceCards, sourceEdges, centerCardId)
+
+    if (!next) {
+      return false
+    }
+
+    if (preview) {
+      set({
+        preview: {
+          ...preview,
+          cards: cloneCards(next.cards),
+          edges: cloneEdges(next.edges),
+        },
+        selectedCardId: selectedCardId === cardId ? null : selectedCardId,
+        drillFocusId: drillFocusId === cardId ? null : drillFocusId,
+      })
+    } else {
+      set({
+        committedCards: cloneCards(next.cards),
+        committedEdges: cloneEdges(next.edges),
+        selectedCardId: selectedCardId === cardId ? null : selectedCardId,
+        drillFocusId: drillFocusId === cardId ? null : drillFocusId,
+      })
+    }
+
+    void deleteCardRemote(cardId).catch((error) => {
+      console.warn('delete-card sync failed (local state kept):', error)
+    })
+
+    return true
+  },
 
   selectCard: (cardId) => set({ selectedCardId: cardId }),
 

@@ -30,7 +30,7 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Intent canvas | `frontend/src/components/canvas/IntentCanvas.tsx` |
 | **Layered canvas** (overview ↔ detail via pillar double-click; single-click select) | `canvasLayers.ts`, `layout.ts`, `IntentCanvas.tsx` |
 | Canvas nav (tilted layer stack + fullscreen toggle; minimap detached but hidden) | `CanvasNavPanel.tsx`, `LayerStackIndicator.tsx` |
-| Card nodes + Product hub | `CardNode.tsx`, `IndexNode.tsx` (center pillar styling) |
+| Card nodes + Product hub | `CardNode.tsx`, `IndexNode.tsx` (center pillar styling); long-press delete mode with trash drop zone |
 | Chat input (floating on canvas) + preview actions in side panel | `ChatBar.tsx`, `ChatSubmitButton.tsx`, `PreviewActions.tsx` — circular interpret/stop control; Enter submits |
 | TipTap card editor | `CardEditor.tsx` |
 | Side panel | `SidePanel.tsx` — **Build plan** tab (phases + jobs) + Card editor tab |
