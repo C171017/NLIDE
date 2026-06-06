@@ -75,6 +75,7 @@ See also: [documentation-guide.md](./documentation-guide.md) · [ai-inferred-dec
 | 2026-06-06 | **Router smoke invoke brief approved** | `shared/translator/routerSmokeInvoke.ts`; Phase 2 complete (4/4) |
 | 2026-06-06 | **Features writer section template approved** | `shared/translator/featuresWriterTemplate.ts`; Phase 3 · Job 1 complete |
 | 2026-06-06 | **Acceptance criteria bar approved** | `shared/translator/acceptanceCriteriaBar.ts`; Phase 3 · Job 2 complete |
+| 2026-06-06 | **Features writer golden approved (4 cases, ≥3/4 pass bar)** | `shared/translator/featuresWriterGolden.ts`; Phase 3 complete (3/3) |
 
 ---
 

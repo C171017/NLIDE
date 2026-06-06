@@ -3,7 +3,7 @@ import type { RouterPlan } from './types.ts'
 
 /**
  * Golden features.md writer examples — Phase 3 · Job 3.
- * **[AI-INFERRED]** draft for [USER] review before features writer LLM ships.
+ * **[USER]** approved 2026-06-06 before features writer LLM ships.
  *
  * Maps router plan (features.md operation) → expected markdown patch output.
  */

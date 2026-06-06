@@ -19,6 +19,7 @@ export {
   ROUTER_PROMPT_OUTLINE,
   ROUTER_SMOKE_EXAMPLES,
   ROUTER_SMOKE_INVOKE_BRIEF,
+  TASK_WRITER_RULES,
   ROUTING_RULES,
   SPEC_FILE_ALLOWLIST,
   ROUTER_SCHEMA_FIELDS,
@@ -28,6 +29,8 @@ export {
   formatAcceptanceCriteriaBar,
   formatFeatureSection,
   formatFeaturesWriterTemplate,
+  formatTaskSection,
+  formatTaskWriterRules,
   formatRouterFailureBehavior,
   formatRouterPromptOutline,
   formatRouterSmokeInvokeBrief,
@@ -63,6 +66,9 @@ export type {
   RouterFailureBehavior,
   RouterSmokeExample,
   RouterSmokeInvokeBrief,
+  TaskSectionFields,
+  TaskStatus,
+  TaskWriterRules,
   TranslatorSpec,
 } from '../../../shared/translator/index.ts'
 

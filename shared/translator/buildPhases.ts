@@ -99,7 +99,7 @@ export const BUILD_PHASES: BuildPhase[] = [
     title: 'Phase 3: Features writer brief',
     plainSummary: 'How features.md patches should read.',
     agentModeGoal: 'Implement features.md writer from router operations',
-    status: 'active',
+    status: 'done',
     checklistId: 'phase-3-features-writer',
     jobs: [
       {
@@ -125,7 +125,7 @@ export const BUILD_PHASES: BuildPhase[] = [
     title: 'Phase 4: All writers + validator',
     plainSummary: 'Remaining spec files and validation strictness.',
     agentModeGoal: 'All writers + ID/link validator',
-    status: 'upcoming',
+    status: 'active',
     checklistId: 'phase-4-writers-validator',
     jobs: [
       {
