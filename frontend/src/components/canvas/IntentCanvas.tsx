@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import {
   Background,
-  Controls,
   MiniMap,
   Position,
   ReactFlow,
@@ -212,7 +211,6 @@ export default function IntentCanvas() {
         proOptions={{ hideAttribution: true }}
       >
         <Background gap={20} size={1} color="#1f2433" />
-        <Controls showInteractive={false} />
         <MiniMap
           className="hidden 2xl:block"
           nodeColor={(node) => (node.type === 'index' ? '#f59e0b' : '#374151')}

@@ -1,4 +1,5 @@
 import type { FormEvent } from 'react'
+import { useFullscreen } from '../../hooks/useFullscreen'
 import { useCanvasStore } from '../../store/canvasStore'
 import PreviewActions from './PreviewActions'
 
@@ -8,6 +9,7 @@ export default function ChatBar() {
   const submitChat = useCanvasStore((state) => state.submitChat)
   const isTranslating = useCanvasStore((state) => state.isTranslating)
   const preview = useCanvasStore((state) => state.preview)
+  const { isFullscreen, toggleFullscreen } = useFullscreen()
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault()
@@ -29,13 +31,23 @@ export default function ChatBar() {
             className="w-full resize-none rounded-lg border border-[#2d3348] bg-[#141824] px-3 py-2 text-sm text-[#e8eaed] outline-none focus:border-sky-500/60"
           />
         </label>
-        <button
-          type="submit"
-          disabled={isTranslating || !chatDraft.trim()}
-          className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-        >
-          {isTranslating ? 'Translating…' : 'Send'}
-        </button>
+        <div className="flex shrink-0 flex-col gap-2 sm:w-auto">
+          <button
+            type="button"
+            onClick={() => void toggleFullscreen()}
+            className="rounded-lg border border-[#2d3348] px-4 py-2 text-sm text-[#d1d5db] hover:bg-[#1a1d27]"
+            aria-pressed={isFullscreen}
+          >
+            {isFullscreen ? 'Exit full screen' : 'Full screen'}
+          </button>
+          <button
+            type="submit"
+            disabled={isTranslating || !chatDraft.trim()}
+            className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isTranslating ? 'Translating…' : 'Send'}
+          </button>
+        </div>
       </form>
       {preview && <PreviewActions />}
     </footer>
