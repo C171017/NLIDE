@@ -13,14 +13,14 @@ export default function PreviewActions() {
       <div className="flex gap-2">
         <button
           type="button"
-          onClick={discardPreview}
+          onClick={() => void discardPreview()}
           className="rounded-md border border-[#2d3348] px-3 py-1.5 text-xs text-[#d1d5db] hover:bg-[#1a1d27]"
         >
           Discard
         </button>
         <button
           type="button"
-          onClick={commitPreview}
+          onClick={() => void commitPreview()}
           className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-500"
         >
           Commit

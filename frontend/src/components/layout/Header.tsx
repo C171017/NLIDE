@@ -1,8 +1,10 @@
 import { useCanvasStore } from '../../store/canvasStore'
+import { isInsForgeConfigured } from '../../lib/api'
 
 export default function Header() {
   const projectName = useCanvasStore((state) => state.projectName)
   const preview = useCanvasStore((state) => state.preview)
+  const backendMode = isInsForgeConfigured() ? 'InsForge' : 'Local stub'
 
   return (
     <header className="flex h-12 items-center justify-between border-b border-[#2d3348] bg-[#12151d] px-4">
@@ -10,6 +12,9 @@ export default function Header() {
         <span className="text-sm font-semibold text-[#f3f4f6]">{projectName}</span>
         <span className="rounded-full bg-[#1a1d27] px-2 py-0.5 text-[10px] text-[#9aa3b2]">
           Intent canvas
+        </span>
+        <span className="rounded-full bg-[#1a1d27] px-2 py-0.5 text-[10px] text-[#9aa3b2]">
+          {backendMode}
         </span>
         {preview && (
           <span className="rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] text-sky-300">

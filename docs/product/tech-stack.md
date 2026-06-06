@@ -132,7 +132,9 @@ Card manual edits sync to Postgres immediately; re-export `/spec/*.md` on commit
 ```
 NLIDE/
   frontend/          # React + Vite + React Flow
-  insforge/          # Edge functions, migrations
+  insforge/
+    functions/nlide-api/index.ts
+  migrations/        # Postgres migrations (InsForge CLI)
   spec/              # Exported MD on commit (git tracked)
   docs/
 ```

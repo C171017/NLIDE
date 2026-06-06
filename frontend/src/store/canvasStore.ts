@@ -1,5 +1,11 @@
 import { create } from 'zustand'
 import type { Card, CanvasEdge, PreviewPayload } from '../types/canvas'
+import {
+  commitPreviewRemote,
+  discardPreviewRemote,
+  patchCardRemote,
+  submitIntent,
+} from '../lib/api'
 import { sampleCanvas, SAMPLE_PROJECT_NAME } from '../data/sampleProject'
 
 interface CanvasStore {
@@ -17,8 +23,8 @@ interface CanvasStore {
   updateCard: (cardId: string, patch: Partial<Pick<Card, 'title' | 'body'>>) => void
   moveCard: (cardId: string, position: { x: number; y: number }) => void
   submitChat: (message: string) => Promise<void>
-  commitPreview: () => void
-  discardPreview: () => void
+  commitPreview: () => Promise<void>
+  discardPreview: () => Promise<void>
 }
 
 function cloneCards(cards: Card[]): Card[] {
@@ -27,66 +33,6 @@ function cloneCards(cards: Card[]): Card[] {
 
 function cloneEdges(edges: CanvasEdge[]): CanvasEdge[] {
   return edges.map((edge) => ({ ...edge }))
-}
-
-function buildPreview(message: string, cards: Card[], edges: CanvasEdge[]): PreviewPayload {
-  const previewId = `preview-${Date.now()}`
-  const nextCards = cloneCards(cards)
-  const nextEdges = cloneEdges(edges)
-
-  const openQuestion: Card = {
-    id: `oq-${Date.now()}`,
-    specRef: { file: 'open-questions.md', anchor: 'OQ-preview' },
-    type: 'open-question',
-    title: 'Open question (preview)',
-    body: `From chat: "${message}" — which enterprise domains should be allowed for Google login?`,
-    position: { x: 520, y: -40 },
-    status: 'proposed',
-  }
-
-  const featureCard = nextCards.find((card) => card.id === 'features')
-  if (featureCard?.vizType === 'data-table' && featureCard.vizPayload) {
-    const payload = featureCard.vizPayload as {
-      columns: string[]
-      rows: string[][]
-    }
-    featureCard.vizPayload = {
-      ...payload,
-      rows: [
-        ...payload.rows,
-        ['F-004', 'Google login', 'proposed', 'high'],
-      ],
-    }
-  }
-
-  nextCards.push(openQuestion)
-  nextEdges.push({
-    id: `e-preview-${openQuestion.id}`,
-    source: 'features',
-    target: openQuestion.id,
-    label: 'raises',
-  })
-
-  return {
-    previewId,
-    cards: nextCards,
-    edges: nextEdges,
-    mdPatches: [
-      {
-        file: 'open-questions.md',
-        action: 'add',
-        anchor: 'OQ-preview',
-        summary: 'Add open question about allowed Google domains',
-      },
-      {
-        file: 'features.md',
-        action: 'add',
-        anchor: 'F-004',
-        summary: 'Propose F-004 Google login feature',
-      },
-    ],
-    summary: 'Preview adds F-004 Google login and an open question card linked from Features.',
-  }
 }
 
 export const useCanvasStore = create<CanvasStore>((set, get) => ({
@@ -103,12 +49,17 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 
   selectCard: (cardId) => set({ selectedCardId: cardId }),
 
-  updateCard: (cardId, patch) =>
+  updateCard: (cardId, patch) => {
     set((state) => ({
       committedCards: state.committedCards.map((card) =>
         card.id === cardId ? { ...card, ...patch } : card,
       ),
-    })),
+    }))
+
+    void patchCardRemote(cardId, patch).catch((error) => {
+      console.warn('patch-card sync failed (local state kept):', error)
+    })
+  },
 
   moveCard: (cardId, position) =>
     set((state) => ({
@@ -123,25 +74,49 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 
     set({ isTranslating: true, chatDraft: '' })
 
-    await new Promise((resolve) => setTimeout(resolve, 900))
-
-    const { committedCards, committedEdges } = get()
-    const preview = buildPreview(trimmed, committedCards, committedEdges)
-
-    set({ preview, isTranslating: false })
+    try {
+      const { committedCards, committedEdges, centerCardId } = get()
+      const preview = await submitIntent(trimmed, {
+        cards: committedCards,
+        edges: committedEdges,
+        centerCardId,
+      })
+      set({ preview, isTranslating: false })
+    } catch (error) {
+      console.error('submitChat failed:', error)
+      set({ isTranslating: false, chatDraft: trimmed })
+    }
   },
 
-  commitPreview: () =>
-    set((state) => {
-      if (!state.preview) return state
+  commitPreview: async () => {
+    const { preview } = get()
+    if (!preview) return
 
-      return {
-        committedCards: cloneCards(state.preview.cards),
-        committedEdges: cloneEdges(state.preview.edges),
+    try {
+      await commitPreviewRemote(preview.previewId)
+      set({
+        committedCards: cloneCards(preview.cards),
+        committedEdges: cloneEdges(preview.edges),
         preview: null,
         selectedCardId: null,
-      }
-    }),
+      })
+    } catch (error) {
+      console.error('commitPreview failed:', error)
+    }
+  },
 
-  discardPreview: () => set({ preview: null, selectedCardId: null }),
+  discardPreview: async () => {
+    const { preview } = get()
+    if (!preview) {
+      set({ preview: null, selectedCardId: null })
+      return
+    }
+
+    try {
+      await discardPreviewRemote(preview.previewId)
+      set({ preview: null, selectedCardId: null })
+    } catch (error) {
+      console.error('discardPreview failed:', error)
+    }
+  },
 }))

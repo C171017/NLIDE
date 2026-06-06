@@ -1,0 +1,21 @@
+{
+  "name": "nlide",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Natural Language IDE — intent canvas",
+  "scripts": {
+    "dev": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "insforge:login": "insforge login",
+    "insforge:link": "insforge link",
+    "insforge:current": "insforge current",
+    "insforge:migrate": "insforge db migrations up --all -y",
+    "insforge:migrate:new": "insforge db migrations new",
+    "insforge:deploy:api": "insforge functions deploy nlide-api",
+    "insforge:invoke:health": "insforge functions invoke nlide-api --data '{\"action\":\"health\"}'",
+    "insforge:secrets:setup": "node scripts/print-insforge-secrets-help.js"
+  },
+  "devDependencies": {
+    "@insforge/cli": "^0.1.87"
+  }
+}
