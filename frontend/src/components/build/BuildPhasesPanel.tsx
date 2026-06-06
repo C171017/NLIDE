@@ -1,21 +1,31 @@
 import { useMemo } from 'react'
 import { useTranslatorSpec } from '../../hooks/useTranslatorSpec'
 import { phaseProgress, progressBarSegments, resolveBuildFocus } from '../../lib/buildPhaseUtils'
-import { useImplementationProgressStore } from '../../store/implementationProgressStore'
+import {
+  countDone,
+  isItemDone,
+  useImplementationProgressStore,
+} from '../../store/implementationProgressStore'
 import PhaseJobList from './PhaseJobList'
 
 export default function BuildPhasesPanel() {
   const { phases, source } = useTranslatorSpec()
-  const countDone = useImplementationProgressStore((state) => state.countDone)
-  const isItemDone = useImplementationProgressStore((state) => state.isItemDone)
+  const completed = useImplementationProgressStore((state) => state.completed)
 
   const focus = useMemo(
-    () => resolveBuildFocus(phases, isItemDone, countDone),
-    [phases, isItemDone, countDone],
+    () =>
+      resolveBuildFocus(
+        phases,
+        (checklistId, itemId) => isItemDone(completed, checklistId, itemId),
+        (checklistId, itemIds) => countDone(completed, checklistId, itemIds),
+      ),
+    [phases, completed],
   )
 
   const activeProgress = focus
-    ? phaseProgress(focus.phase, countDone)
+    ? phaseProgress(focus.phase, (checklistId, itemIds) =>
+        countDone(completed, checklistId, itemIds),
+      )
     : { done: 0, total: 0, ready: false }
 
   return (

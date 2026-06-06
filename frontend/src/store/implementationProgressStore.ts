@@ -11,11 +11,27 @@ export const DEFAULT_COMPLETED_JOBS: Record<string, Record<string, boolean>> = {
   },
 }
 
+export function isItemDone(
+  completed: Record<string, Record<string, boolean>>,
+  checklistId: string,
+  itemId: string,
+): boolean {
+  const stored = completed[checklistId]?.[itemId]
+  if (stored !== undefined) return stored
+  return DEFAULT_COMPLETED_JOBS[checklistId]?.[itemId] ?? false
+}
+
+export function countDone(
+  completed: Record<string, Record<string, boolean>>,
+  checklistId: string,
+  itemIds: string[],
+): number {
+  return itemIds.filter((id) => isItemDone(completed, checklistId, id)).length
+}
+
 interface ImplementationProgressStore {
   completed: Record<string, Record<string, boolean>>
   toggleItem: (checklistId: string, itemId: string) => void
-  isItemDone: (checklistId: string, itemId: string) => boolean
-  countDone: (checklistId: string, itemIds: string[]) => number
 }
 
 export const useImplementationProgressStore = create<ImplementationProgressStore>()(
@@ -24,7 +40,7 @@ export const useImplementationProgressStore = create<ImplementationProgressStore
       completed: {},
 
       toggleItem: (checklistId, itemId) => {
-        const current = get().isItemDone(checklistId, itemId)
+        const current = isItemDone(get().completed, checklistId, itemId)
         set((state) => ({
           completed: {
             ...state.completed,
@@ -35,15 +51,6 @@ export const useImplementationProgressStore = create<ImplementationProgressStore
           },
         }))
       },
-
-      isItemDone: (checklistId, itemId) => {
-        const stored = get().completed[checklistId]?.[itemId]
-        if (stored !== undefined) return stored
-        return DEFAULT_COMPLETED_JOBS[checklistId]?.[itemId] ?? false
-      },
-
-      countDone: (checklistId, itemIds) =>
-        itemIds.filter((id) => get().isItemDone(checklistId, id)).length,
     }),
     { name: 'nlide-implementation-progress' },
   ),

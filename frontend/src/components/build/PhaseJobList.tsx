@@ -1,7 +1,11 @@
 import clsx from 'clsx'
 import type { BuildPhase } from '@nlide/shared'
 import { phaseProgress, progressBarSegments } from '../../lib/buildPhaseUtils'
-import { useImplementationProgressStore } from '../../store/implementationProgressStore'
+import {
+  countDone,
+  isItemDone,
+  useImplementationProgressStore,
+} from '../../store/implementationProgressStore'
 import JobCheckbox from './JobCheckbox'
 
 interface PhaseJobListProps {
@@ -17,11 +21,12 @@ export default function PhaseJobList({
   currentChecklistId,
   currentJobId,
 }: PhaseJobListProps) {
+  const completed = useImplementationProgressStore((state) => state.completed)
   const toggleItem = useImplementationProgressStore((state) => state.toggleItem)
-  const isItemDone = useImplementationProgressStore((state) => state.isItemDone)
-  const countDone = useImplementationProgressStore((state) => state.countDone)
 
-  const { done, total, ready } = phaseProgress(phase, countDone)
+  const { done, total, ready } = phaseProgress(phase, (checklistId, itemIds) =>
+    countDone(completed, checklistId, itemIds),
+  )
   const fraction = total > 0 ? done / total : 0
   const isCurrentPhase = phase.checklistId === currentChecklistId
 
@@ -65,7 +70,7 @@ export default function PhaseJobList({
       >
         <ul className="space-y-1">
           {phase.jobs.map((job, index) => {
-            const checked = isItemDone(phase.checklistId, job.id)
+            const checked = isItemDone(completed, phase.checklistId, job.id)
             const highlighted =
               isCurrentPhase && !ready && job.id === currentJobId && !checked
 

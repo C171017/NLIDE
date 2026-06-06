@@ -1,6 +1,10 @@
 import clsx from 'clsx'
 import type { ProgressChecklistPayload } from '../../types/canvas'
-import { useImplementationProgressStore } from '../../store/implementationProgressStore'
+import {
+  countDone,
+  isItemDone,
+  useImplementationProgressStore,
+} from '../../store/implementationProgressStore'
 import { progressBarSegments } from '../../lib/buildPhaseUtils'
 import JobCheckbox from '../build/JobCheckbox'
 
@@ -15,17 +19,16 @@ export default function ProgressChecklistViz({
   compact = false,
   currentJobId,
 }: ProgressChecklistVizProps) {
+  const completed = useImplementationProgressStore((state) => state.completed)
   const toggleItem = useImplementationProgressStore((state) => state.toggleItem)
-  const isItemDone = useImplementationProgressStore((state) => state.isItemDone)
-  const countDone = useImplementationProgressStore((state) => state.countDone)
 
   const itemIds = data.items.map((item) => item.id)
-  const done = countDone(data.checklistId, itemIds)
+  const done = countDone(completed, data.checklistId, itemIds)
   const total = data.items.length
   const fraction = total > 0 ? done / total : 0
   const ready = done === total
   const nextJobId =
-    currentJobId ?? itemIds.find((id) => !isItemDone(data.checklistId, id))
+    currentJobId ?? itemIds.find((id) => !isItemDone(completed, data.checklistId, id))
 
   return (
     <div
@@ -66,7 +69,7 @@ export default function ProgressChecklistViz({
 
       <ul className={clsx('space-y-1', compact && 'max-h-44 overflow-y-auto')}>
         {data.items.map((item, index) => {
-          const checked = isItemDone(data.checklistId, item.id)
+          const checked = isItemDone(completed, data.checklistId, item.id)
           const highlighted = !ready && item.id === nextJobId && !checked
 
           return (
