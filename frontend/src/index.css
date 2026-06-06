@@ -1,0 +1,68 @@
+@import "tailwindcss";
+@import "@xyflow/react/dist/style.css";
+
+:root {
+  color-scheme: dark;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #e8eaed;
+  background-color: #0f1117;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.intent-canvas .react-flow__node {
+  font-family: inherit;
+}
+
+.intent-canvas .react-flow__edge-path {
+  stroke: #4b5563;
+  stroke-width: 1.5;
+}
+
+.intent-canvas .react-flow__edge.selected .react-flow__edge-path {
+  stroke: #60a5fa;
+}
+
+.intent-canvas .react-flow__controls button {
+  background: #1a1d27;
+  border-color: #2d3348;
+  color: #e8eaed;
+}
+
+.intent-canvas .react-flow__controls button:hover {
+  background: #252936;
+}
+
+.intent-canvas .react-flow__minimap {
+  background: #1a1d27;
+}
+
+.ProseMirror {
+  outline: none;
+  min-height: 80px;
+}
+
+.ProseMirror p {
+  margin: 0 0 0.5rem;
+}
+
+.ProseMirror p:last-child {
+  margin-bottom: 0;
+}
