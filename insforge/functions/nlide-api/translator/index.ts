@@ -10,12 +10,14 @@ export {
   GOLDEN_PASS_BAR,
   GOLDEN_PROMPTS,
   GOLDEN_ROUTER_FIXTURE,
+  ROUTER_FAILURE_BEHAVIOR,
   ROUTER_INTENT_TYPES,
   ROUTER_PROMPT_OUTLINE,
   ROUTING_RULES,
   SPEC_FILE_ALLOWLIST,
   ROUTER_SCHEMA_FIELDS,
   evaluateGoldenRouterOutput,
+  formatRouterFailureBehavior,
   formatRouterPromptOutline,
   getGoldenRouterFixture,
   isRouterIntentType,
@@ -37,6 +39,7 @@ export type {
   RouterOperation,
   RouterPlan,
   RouterPromptOutline,
+  RouterFailureBehavior,
   TranslatorSpec,
 } from '../../../shared/translator/index.ts'
 

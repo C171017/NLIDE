@@ -16,6 +16,7 @@ export const DEFAULT_COMPLETED_JOBS: Record<string, Record<string, boolean>> = {
   },
   'phase-2-router-build': {
     'router-system-prompt': true,
+    'golden-fixture': true,
   },
 }
 

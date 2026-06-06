@@ -3,7 +3,7 @@ import type { GoldenRouterFixtureCase, RouterPlan } from './types.ts'
 
 /**
  * Canonical expected router JSON per golden prompt — Phase 2 · Job 2.
- * **[AI-INFERRED]** draft for [USER] review before golden test runner ships.
+ * **[USER]** approved 2026-06-06 before golden test runner ships.
  *
  * Summaries are reference wording; the test matcher allows paraphrase.
  * `canvas_ops` empty for v0 router-only golden tests.

@@ -70,6 +70,7 @@ See also: [documentation-guide.md](./documentation-guide.md) · [ai-inferred-dec
 | 2026-06-06 | **Golden prompts approved (10 cases)** | `shared/translator/goldenPrompts.ts`; covers 9/10 intent types directly (`add_task` via add_feature co-target) |
 | 2026-06-06 | **Router golden pass bar locked: ≥8/10** | `GOLDEN_PASS_BAR` in `shared/translator/goldenPrompts.ts`; Phase 1 complete |
 | 2026-06-06 | **Router system prompt outline approved** | `shared/translator/routerPromptOutline.ts`; Phase 2 · Job 1 complete |
+| 2026-06-06 | **Golden router fixture approved (10 cases)** | `shared/translator/goldenRouterFixture.ts` + `goldenRouterMatch.ts`; Phase 2 · Job 2 complete |
 
 ---
 
