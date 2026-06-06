@@ -1,5 +1,6 @@
 import type { Edge, Node } from '@xyflow/react'
-import { TOP_LAYER_SPREAD, type CanvasViewMode } from './canvasLayers'
+import { PRODUCT_HUB_Y, TOP_LAYER_SPREAD } from '@nlide/shared/canvasPlacementRules'
+import type { CanvasViewMode } from './canvasLayers'
 
 const NODE_WIDTH = 260
 const NODE_HEIGHT = 150
@@ -211,26 +212,37 @@ function layoutTopLayerPillars(nodes: Node[], centerId: string): Node[] {
   const boxes = new Map(nodes.map((node) => [node.id, getNodeLayoutBox(node, centerId)]))
   const centerNode = nodes.find((node) => node.id === centerId)
   const centerBox = centerNode ? boxes.get(centerId) ?? getNodeLayoutBox(centerNode, centerId) : null
-  const centerPoint = centerNode && centerBox ? centerOf(centerNode, centerBox) : { x: 0, y: 0 }
+  const hubCenterX = centerNode && centerBox ? centerOf(centerNode, centerBox).x : 0
   const positions = new Map<string, Point>()
 
   nodes.forEach((node) => {
+    const box = boxes.get(node.id) ?? getNodeLayoutBox(node, centerId)
+
     if (node.id === centerId) {
-      positions.set(node.id, centerPoint)
+      positions.set(node.id, {
+        x: hubCenterX,
+        y: PRODUCT_HUB_Y + box.height / 2,
+      })
       return
     }
 
     if (node.id === 'frontend') {
-      positions.set(node.id, { x: centerPoint.x - TOP_LAYER_SPREAD, y: centerPoint.y })
+      positions.set(node.id, {
+        x: hubCenterX - TOP_LAYER_SPREAD,
+        y: box.height / 2,
+      })
       return
     }
 
     if (node.id === 'backend') {
-      positions.set(node.id, { x: centerPoint.x + TOP_LAYER_SPREAD, y: centerPoint.y })
+      positions.set(node.id, {
+        x: hubCenterX + TOP_LAYER_SPREAD,
+        y: box.height / 2,
+      })
       return
     }
 
-    positions.set(node.id, centerOf(node, boxes.get(node.id) ?? getNodeLayoutBox(node, centerId)))
+    positions.set(node.id, centerOf(node, box))
   })
 
   return applyPositions(nodes, positions, boxes)
@@ -318,7 +330,10 @@ function layoutOverviewRadial(nodes: Node[], edges: Edge[], centerId: string): N
   const boxes = new Map(nodes.map((node) => [node.id, getNodeLayoutBox(node, centerId)]))
   const centerNode = nodes.find((node) => node.id === centerId)
   const centerBox = centerNode ? boxes.get(centerId) ?? getNodeLayoutBox(centerNode, centerId) : null
-  const centerPoint: Point = { x: 0, y: 0 }
+  const centerPoint: Point =
+    centerBox !== null
+      ? { x: 0, y: PRODUCT_HUB_Y + centerBox.height / 2 }
+      : { x: 0, y: 0 }
   const positions = new Map<string, Point>([[centerId, centerPoint]])
 
   const adjacency = buildAdjacency(edges)

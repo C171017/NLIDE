@@ -42,13 +42,16 @@ export interface CanvasPlacementRules {
 /** Matches sampleProject.ts and canvasLayers.ts TOP_LAYER_SPREAD. */
 export const TOP_LAYER_SPREAD = 520
 
+/** Product hub top-left Y — sits above the frontend↔backend "calls" row (y=0). */
+export const PRODUCT_HUB_Y = -150
+
 export const CANVAS_PLACEMENT_RULES: CanvasPlacementRules = {
   policy:
     'New preview cards are placed near their semantic parent on the canvas. Committed cards ' +
     'keep user-dragged positions; preview-only cards use auto-layout offsets from the anchor rules below.',
 
   layerModel: [
-    'Layer 0 (overview): Product center (0,0), Frontend left (-520,0), Backend right (+520,0).',
+    'Layer 0 (overview): Product hub (0,-150), Frontend left (-520,0), Backend right (+520,0) — calls row below hub.',
     'Layer 1 (detail): child cards under a pillar via parentCardId — visible when pillar is drilled into.',
     'centerCardId is always product — hub for radial layout in layout.ts.',
     'New entity cards (F-xxx, T-xxx, D-xxx, OQ-xxx) default to layer 1 unless they are pillar types.',
@@ -72,7 +75,7 @@ export const CANVAS_PLACEMENT_RULES: CanvasPlacementRules = {
     {
       cardType: 'product',
       layer: 0,
-      defaultOffset: { x: 0, y: 0 },
+      defaultOffset: { x: 0, y: PRODUCT_HUB_Y },
       notes: 'Immutable hub — mapper never creates a second product card.',
     },
     {

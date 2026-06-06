@@ -17,7 +17,7 @@ export const sampleCanvas: CanvasState = {
       type: 'product',
       title: 'NLIDE',
       body: 'Natural Language IDE — an intent canvas where humans define what to build; agents execute from exported spec.',
-      position: { x: 0, y: 0 },
+      position: { x: 0, y: -150 },
       layer: 0,
       status: 'approved',
     },

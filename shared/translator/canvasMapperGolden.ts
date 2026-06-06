@@ -37,7 +37,7 @@ export const DEMO_CANVAS_CARDS: CanvasCard[] = [
     type: 'product',
     title: 'NLIDE',
     body: 'Natural Language IDE',
-    position: { x: 0, y: 0 },
+    position: { x: 0, y: -150 },
     layer: 0,
     status: 'approved',
   },
