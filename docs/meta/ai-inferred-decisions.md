@@ -16,7 +16,7 @@ See also: [documentation-guide.md](./documentation-guide.md)
 | 2026-06-06 | React 18 + TypeScript + Vite | Default modern SPA stack for canvas/viz | Yes |
 | 2026-06-06 | Tailwind CSS v4 | Fast solo styling | Yes |
 | 2026-06-06 | **React Flow** (`@xyflow/react`) for main canvas | Structured graph + layered pillars; not tldraw for main canvas | Yes |
-| 2026-06-06 | **Zoom threshold 0.5** to enter detail layer (was 0.88) | Select top card + zoom in reveals `layer: 1` cards; lower threshold keeps detail visible until user zooms out further | Yes |
+| 2026-06-06 | ~~**Zoom threshold 0.5** to enter detail layer~~ — **superseded** by click-to-drill (`drillFocusId` in canvas store) | Pillar click toggles overview ↔ detail; zoom is for pan/read only | Yes |
 | 2026-06-06 | Top layer fixed 3-column layout (Frontend left, Product center, Backend right) | Matches user pillar model | Yes |
 | 2026-06-06 | Detail cards use `layer: 1` + `parentCardId` | Scoped detail under Product / Frontend / Backend | Yes |
 | 2026-06-06 | **TipTap** for inline card editing | Rich text on cards without exposing MD | Yes |

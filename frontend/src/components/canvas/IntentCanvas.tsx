@@ -19,9 +19,9 @@ import {
   filterVisibleCards,
   filterVisibleEdges,
   focusLabel,
+  isTopLayerCard,
   resolveViewMode,
   type CanvasViewMode,
-  ZOOM_DETAIL_THRESHOLD,
 } from '../../lib/canvasLayers'
 import { getNodeLayoutBox, layoutNodes } from '../../lib/layout'
 import { useCanvasStore } from '../../store/canvasStore'
@@ -38,8 +38,9 @@ const edgeTypes = {
   labeled: LabeledEdge,
 }
 
-const TRANSITION_OUT_MS = 140
-const TRANSITION_IN_MS = 260
+const TRANSITION_OUT_MS = 160
+const TRANSITION_IN_MS = 280
+const FIT_VIEW_DURATION_MS = 360
 const MIN_ZOOM = 0.35
 const MAX_ZOOM = 1.5
 const WHEEL_ZOOM_SENSITIVITY = 0.0025
@@ -73,9 +74,10 @@ function cardsToNodes(
   centerCardId: string,
   previewCardIds: Set<string>,
   selectedCardId: string | null,
+  drillFocusId: string | null,
   onSelect: (cardId: string) => void,
 ): Node[] {
-  const selectionActive = selectedCardId !== null
+  const selectionActive = selectedCardId !== null || drillFocusId !== null
 
   return cards.map((card) => ({
     id: card.id,
@@ -84,7 +86,7 @@ function cardsToNodes(
     data: {
       card,
       isPreview: previewCardIds.has(card.id),
-      isSelected: selectedCardId === card.id,
+      isSelected: selectedCardId === card.id || drillFocusId === card.id,
       selectionActive,
       onSelect,
     },
@@ -180,13 +182,10 @@ function CanvasLayerPanel({
         </div>
         <div className="mt-0.5 text-[10px] text-[#7c8494]">
           {mode === 'top'
-            ? 'Two-finger pan · pinch zoom into a selected pillar'
-            : 'Pinch out to return to Product · Frontend · Backend'}
+            ? 'Click a pillar to drill in · two-finger pan · pinch zoom'
+            : 'Click the pillar again to return to overview'}
         </div>
-        <div className="mt-1 text-[10px] tabular-nums text-[#6b7280]">
-          zoom {Math.round(zoom * 100)}%
-          {mode === 'top' && ` · detail ≥ ${Math.round(ZOOM_DETAIL_THRESHOLD * 100)}%`}
-        </div>
+        <div className="mt-1 text-[10px] tabular-nums text-[#6b7280]">zoom {Math.round(zoom * 100)}%</div>
       </div>
     </Panel>
   )
@@ -327,7 +326,7 @@ function LayerViewportAnimator({
 
     const fitTimer = window.setTimeout(() => {
       void reactFlow.fitView({
-        duration: 320,
+        duration: FIT_VIEW_DURATION_MS,
         padding: 0.24,
       })
     }, 40)
@@ -346,14 +345,32 @@ export default function IntentCanvas() {
   const centerCardId = useCanvasStore((state) => state.centerCardId)
   const preview = useCanvasStore((state) => state.preview)
   const selectedCardId = useCanvasStore((state) => state.selectedCardId)
+  const drillFocusId = useCanvasStore((state) => state.drillFocusId)
   const selectCard = useCanvasStore((state) => state.selectCard)
+  const drillIntoCard = useCanvasStore((state) => state.drillIntoCard)
+  const drillOut = useCanvasStore((state) => state.drillOut)
   const moveCard = useCanvasStore((state) => state.moveCard)
+
+  const activeCards = preview?.cards ?? committedCards
+  const activeEdges = preview?.edges ?? committedEdges
 
   const handleSelectCard = useCallback(
     (cardId: string) => {
+      const card = activeCards.find((item) => item.id === cardId)
+      if (!card) return
+
+      if (isTopLayerCard(card)) {
+        if (drillFocusId === cardId) {
+          drillOut()
+        } else {
+          drillIntoCard(cardId)
+        }
+        return
+      }
+
       selectCard(selectedCardId === cardId ? null : cardId)
     },
-    [selectedCardId, selectCard],
+    [activeCards, drillFocusId, drillIntoCard, drillOut, selectCard, selectedCardId],
   )
 
   const handlePaneClick = useCallback(() => {
@@ -362,12 +379,9 @@ export default function IntentCanvas() {
 
   const [zoom, setZoom] = useState(1)
 
-  const activeCards = preview?.cards ?? committedCards
-  const activeEdges = preview?.edges ?? committedEdges
-
   const resolvedLayer = useMemo(
-    () => resolveViewMode(zoom, selectedCardId, activeCards),
-    [zoom, selectedCardId, activeCards],
+    () => resolveViewMode(drillFocusId, activeCards),
+    [drillFocusId, activeCards],
   )
   const [displayedLayer, setDisplayedLayer] = useState<DisplayedLayer>(resolvedLayer)
   const [transitionPhase, setTransitionPhase] = useState<LayerTransitionPhase>('idle')
@@ -437,6 +451,7 @@ export default function IntentCanvas() {
           centerCardId,
           previewCardIds,
           selectedCardId,
+          drillFocusId,
           handleSelectCard,
         ),
         visibleEdges.map((edge) => ({
@@ -454,6 +469,7 @@ export default function IntentCanvas() {
       centerCardId,
       previewCardIds,
       selectedCardId,
+      drillFocusId,
       handleSelectCard,
       viewMode,
       focusId,
@@ -476,8 +492,8 @@ export default function IntentCanvas() {
   useEffect(() => {
     setNodes((currentNodes) =>
       currentNodes.map((node) => {
-        const isSelected = selectedCardId === node.id
-        const selectionActive = selectedCardId !== null
+        const isSelected = selectedCardId === node.id || drillFocusId === node.id
+        const selectionActive = selectedCardId !== null || drillFocusId !== null
         const nodeData = node.data as {
           isSelected?: boolean
           selectionActive?: boolean
@@ -497,7 +513,7 @@ export default function IntentCanvas() {
         }
       }),
     )
-  }, [selectedCardId, setNodes])
+  }, [drillFocusId, selectedCardId, setNodes])
 
   const handleNodesChange: OnNodesChange = useCallback(
     (changes) => {

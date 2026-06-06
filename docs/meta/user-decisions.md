@@ -31,7 +31,7 @@ See also: [documentation-guide.md](./documentation-guide.md) · [ai-inferred-dec
 | 2026-06-06 | **User can edit individual cards anytime** | Manual card edit is important; separate from AI chat batch |
 | 2026-06-06 | **Design loop:** define a lot → run AI once → edit canvas manually → run AI again | Not continuous agent loops |
 | 2026-06-06 | **Whole web app is a canvas** with linked cards and **central node** | Human-readable, easy to edit cards |
-| 2026-06-06 | **Layered canvas navigation** — top layer: **Frontend · Product · Backend** (Product center); detail cards (Users, Architecture, Features, Tasks, etc.) appear when selecting a top card and **zooming past a threshold**; zoom out returns to overview | Spatial hierarchy mirrors product structure |
+| 2026-06-06 | **Layered canvas navigation** — top layer: **Frontend · Product · Backend** (Product center); detail cards appear when **clicking** a top pillar; click the same pillar again returns to overview | Spatial hierarchy mirrors product structure |
 | 2026-06-06 | **Each card has agent-executable MD underneath** | Human layer + agent layer per card |
 | 2026-06-06 | **Rich visualization & interactivity** on canvas (21 viz types listed as aspirational catalog) | Implement subset for v0 |
 
@@ -75,5 +75,6 @@ When user overrides a decision, add a row here and strike through or mark supers
 
 | Date | Change |
 |------|--------|
-| 2026-06-06 | **Central node is Product** (not Index hub); top layer = Frontend · Product · Backend; detail layer via zoom |
-| 2026-06-06 | **Detail zoom-out threshold lowered to 0.5** (from 0.88) — detail cards stay visible until user zooms out further before returning to overview |
+| 2026-06-06 | **Central node is Product** (not Index hub); top layer = Frontend · Product · Backend; detail layer via pillar click |
+| 2026-06-06 | ~~**Detail zoom-out threshold lowered to 0.5**~~ — **superseded**: layer navigation is click-to-drill, not zoom threshold |
+| 2026-06-06 | **Click-to-drill layer navigation** — click a top pillar to show its sub-cards; click the same pillar again to return to overview; no zoom-based layer transition |

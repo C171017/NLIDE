@@ -1,8 +1,5 @@
 import type { Card, CanvasEdge } from '../types/canvas'
 
-/** Zoom at or above this level reveals detail-layer cards for the selected top card. */
-export const ZOOM_DETAIL_THRESHOLD = 0.5
-
 /** Horizontal spread between top-layer pillars (Frontend · Product · Backend). */
 export const TOP_LAYER_SPREAD = 520
 
@@ -17,29 +14,19 @@ export function isDetailCardFor(card: Card, focusId: string): boolean {
 }
 
 export function resolveViewMode(
-  zoom: number,
-  selectedCardId: string | null,
+  drillFocusId: string | null,
   cards: Card[],
 ): { mode: CanvasViewMode; focusId: string | null } {
-  if (zoom < ZOOM_DETAIL_THRESHOLD || !selectedCardId) {
+  if (!drillFocusId) {
     return { mode: 'top', focusId: null }
   }
 
-  const selected = cards.find((card) => card.id === selectedCardId)
-  if (!selected) {
+  const focusCard = cards.find((card) => card.id === drillFocusId)
+  if (!focusCard || !isTopLayerCard(focusCard)) {
     return { mode: 'top', focusId: null }
   }
 
-  if (isTopLayerCard(selected)) {
-    return { mode: 'detail', focusId: selected.id }
-  }
-
-  const parentId = selected.parentCardId
-  if (parentId) {
-    return { mode: 'detail', focusId: parentId }
-  }
-
-  return { mode: 'top', focusId: null }
+  return { mode: 'detail', focusId: drillFocusId }
 }
 
 export function filterVisibleCards(cards: Card[], mode: CanvasViewMode, focusId: string | null): Card[] {

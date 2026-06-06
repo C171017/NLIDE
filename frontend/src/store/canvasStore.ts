@@ -15,11 +15,14 @@ interface CanvasStore {
   centerCardId: string
   preview: PreviewPayload | null
   selectedCardId: string | null
+  drillFocusId: string | null
   isTranslating: boolean
   chatDraft: string
 
   setChatDraft: (value: string) => void
   selectCard: (cardId: string | null) => void
+  drillIntoCard: (cardId: string) => void
+  drillOut: () => void
   updateCard: (cardId: string, patch: Partial<Pick<Card, 'title' | 'body'>>) => void
   moveCard: (cardId: string, position: { x: number; y: number }) => void
   submitChat: (message: string) => Promise<void>
@@ -42,12 +45,17 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   centerCardId: sampleCanvas.centerCardId,
   preview: null,
   selectedCardId: null,
+  drillFocusId: null,
   isTranslating: false,
   chatDraft: '',
 
   setChatDraft: (value) => set({ chatDraft: value }),
 
   selectCard: (cardId) => set({ selectedCardId: cardId }),
+
+  drillIntoCard: (cardId) => set({ drillFocusId: cardId, selectedCardId: cardId }),
+
+  drillOut: () => set({ drillFocusId: null, selectedCardId: null }),
 
   updateCard: (cardId, patch) => {
     set((state) => ({
@@ -99,6 +107,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
         committedEdges: cloneEdges(preview.edges),
         preview: null,
         selectedCardId: null,
+        drillFocusId: null,
       })
     } catch (error) {
       console.error('commitPreview failed:', error)
@@ -108,13 +117,13 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   discardPreview: async () => {
     const { preview } = get()
     if (!preview) {
-      set({ preview: null, selectedCardId: null })
+      set({ preview: null, selectedCardId: null, drillFocusId: null })
       return
     }
 
     try {
       await discardPreviewRemote(preview.previewId)
-      set({ preview: null, selectedCardId: null })
+      set({ preview: null, selectedCardId: null, drillFocusId: null })
     } catch (error) {
       console.error('discardPreview failed:', error)
     }
