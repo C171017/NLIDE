@@ -1,6 +1,6 @@
 /**
  * canvas_ops → cards/edges mapping — Phase 5 · Job 2.
- * **[AI-INFERRED]** draft for [USER] review before canvas mapper ships.
+ * **[USER]** approved 2026-06-06 before canvas mapper ships.
  *
  * How router `canvas_ops[]` (and fallbacks from `operations[]`) become preview
  * cards and edges with ghost styling on the canvas.

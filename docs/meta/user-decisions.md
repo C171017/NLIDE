@@ -80,6 +80,7 @@ See also: [documentation-guide.md](./documentation-guide.md) · [ai-inferred-dec
 | 2026-06-06 | **Validator strictness approved** | `shared/translator/validatorStrictness.ts`; Phase 4 · Job 2 complete |
 | 2026-06-06 | **Remaining writers order approved** | `shared/translator/remainingWritersOrder.ts`; Phase 4 complete (3/3) |
 | 2026-06-06 | **Canvas placement rules approved** | `shared/translator/canvasPlacementRules.ts`; Phase 5 · Job 1 complete |
+| 2026-06-06 | **Canvas ops mapping approved** | `shared/translator/canvasOpsMapping.ts`; Phase 5 · Job 2 complete |
 
 ---
 

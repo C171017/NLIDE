@@ -52,7 +52,8 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Validator strictness | `shared/translator/validatorStrictness.ts` — Phase 4 · Job 2 **approved** |
 | Remaining writers order | `shared/translator/remainingWritersOrder.ts` — Phase 4 · Job 3 **approved** |
 | Canvas placement rules | `shared/translator/canvasPlacementRules.ts` — Phase 5 · Job 1 **approved** |
-| Canvas ops mapping | `shared/translator/canvasOpsMapping.ts` — Phase 5 · Job 2 draft |
+| Canvas ops mapping | `shared/translator/canvasOpsMapping.ts` — Phase 5 · Job 2 **approved** |
+| Preview diff rules | `shared/translator/previewDiffRules.ts` — Phase 5 · Job 3 draft |
 | Implementation progress store | `implementationProgressStore.ts` — persists checklist ticks in localStorage |
 | Canvas state (Zustand) | `frontend/src/store/canvasStore.ts` |
 | API client + local stub | `frontend/src/lib/api.ts`, `translatorStub.ts` |
