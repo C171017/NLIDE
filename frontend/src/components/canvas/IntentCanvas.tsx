@@ -185,7 +185,6 @@ function clampZoom(value: number) {
 function ExcalidrawStyleGestures() {
   const reactFlow = useReactFlow()
   const liveViewport = useViewport()
-  const isDeleteMode = useCanvasStore((state) => state.isDeleteMode)
   const rafRef = useRef<number | null>(null)
   const targetViewportRef = useRef(reactFlow.getViewport())
 
@@ -196,8 +195,6 @@ function ExcalidrawStyleGestures() {
   }, [liveViewport])
 
   useEffect(() => {
-    if (isDeleteMode) return undefined
-
     const pane = document.querySelector<HTMLElement>('.intent-canvas .react-flow__pane')
 
     if (!pane) return undefined
@@ -278,7 +275,7 @@ function ExcalidrawStyleGestures() {
         window.cancelAnimationFrame(rafRef.current)
       }
     }
-  }, [isDeleteMode, reactFlow])
+  }, [reactFlow])
 
   return null
 }

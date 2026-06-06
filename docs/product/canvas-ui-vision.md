@@ -86,7 +86,7 @@ Detail cards carry `parentCardId` pointing at their top-layer owner. Cross-links
 
 **Selection:** single click toggles select/deselect on any visible card (type-colored ring highlight). Click empty canvas to clear selection. Selecting a card switches the side panel to **Card editor**.
 
-**Delete mode:** **`[AI-INFERRED]`** long-press (~550ms) any card → all visible cards jiggle (iPhone-style); top-left nav panel collapses to a **trash** drop zone only. Drag a deletable detail card onto the trash to remove it (macOS-style). In delete mode, cards float as pseudo-objects (drag does not persist layout or pan the viewport). Click empty canvas or press Escape to exit. Overview pillars (Frontend · Product · Backend) and the Product hub cannot be deleted.
+**Delete mode:** **`[AI-INFERRED]`** long-press (~550ms) any card → all visible cards jiggle (iPhone-style); top-left nav panel collapses to a **trash** drop zone only. Drag a deletable detail card onto the trash to remove it (macOS-style). In delete mode, cards float as pseudo-objects (dragging a card does not persist layout; mouse drag on empty canvas does not pan). Two-finger trackpad pan and pinch/wheel zoom still work normally. Click empty canvas or press Escape to exit. Overview pillars (Frontend · Product · Backend) and the Product hub cannot be deleted.
 
 **`[USER]`** Layer changes use a short crossfade + animated fit (double-click-to-drill, not zoom threshold). Pinch/wheel zoom is for reading only.
 
