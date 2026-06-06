@@ -8,6 +8,8 @@ export const DEFAULT_COMPLETED_JOBS: Record<string, Record<string, boolean>> = {
   },
   'phase-1-router-contract': {
     'routing-policy': true,
+    'intent-type-enum': true,
+    'schema-fields': true,
   },
 }
 

@@ -97,6 +97,7 @@ export const SPEC_FILE_ALLOWLIST: string[] = [
   'open-questions.md',
 ]
 
+/** **[USER]** locked v0 (2026-06-06) — router JSON top-level fields; LLM fills slots only. */
 export const ROUTER_SCHEMA_FIELDS: string[] = [
   'intent_type',
   'summary',

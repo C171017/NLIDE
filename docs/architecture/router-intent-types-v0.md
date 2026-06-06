@@ -102,13 +102,13 @@ Allowed `target` files (v0): `INDEX.md`, `product.md`, `users.md`, `features.md`
 
 ## Review checklist (for you)
 
-Edit this file directly, then tell the agent when v0 is approved:
-
-- [ ] Types 1–10 names and boundaries feel right
-- [ ] Canvas UX → update F-001 (yes/no)
-- [ ] Layered canvas / product-center layout → architecture + feature (yes/no)
-- [ ] `noop` list matches what chat should ignore
-- [ ] Ready to tick **Routing policy** on canvas (1/6)
+- [x] Types 1–10 names and boundaries feel right — **[USER]** 2026-06-06
+- [x] Canvas UX → update F-001 — **[USER]** yes
+- [x] Layered canvas / product-center layout → architecture + feature — **[USER]** yes
+- [x] `noop` list matches what chat should ignore — **[USER]** yes
+- [x] **Routing policy** ticked (1/6)
+- [x] **`intent_type` enum locked** ticked (2/6)
+- [x] **Hardcoded schema fields** ticked (3/6)
 
 ---
 

@@ -37,7 +37,7 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Backend translator module | `insforge/functions/nlide-api/translator/` |
 | Build phases UI | `BuildPhasesPanel.tsx`, `PhaseJobList.tsx` |
 | P0 viz embeds | Mermaid, markdown table, force graph, data table, **progress-checklist** |
-| Step 1 progress card | `translator-step1` task card — interactive 6/6 checklist (`ProgressChecklistViz`) |
+| Step 1 progress card | `translator-step1` task card — interactive 6/6 checklist (`ProgressChecklistViz`); **3/6** jobs done |
 | Implementation progress store | `implementationProgressStore.ts` — persists checklist ticks in localStorage |
 | Canvas state (Zustand) | `frontend/src/store/canvasStore.ts` |
 | API client + local stub | `frontend/src/lib/api.ts`, `translatorStub.ts` |

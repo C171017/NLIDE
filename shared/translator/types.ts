@@ -20,6 +20,7 @@ export interface BuildPhase {
   jobs: BuildJob[]
 }
 
+/** **[USER]** locked v0 (2026-06-06) — ten router buckets; may revise before Phase 2 router ship. */
 export type RouterIntentType =
   | 'add_feature'
   | 'update_feature'
