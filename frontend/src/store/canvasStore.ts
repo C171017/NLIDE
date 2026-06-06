@@ -6,6 +6,7 @@ import {
   commitPreviewRemote,
   DEFAULT_PROJECT_ID,
   deleteCardRemote,
+  deleteEdgeRemote,
   discardPreviewRemote,
   patchCardRemote,
   submitIntent,
@@ -21,6 +22,7 @@ interface CanvasStore {
   centerCardId: string
   preview: PreviewPayload | null
   selectedCardId: string | null
+  selectedEdgeId: string | null
   drillFocusId: string | null
   isTranslating: boolean
   chatDraft: string
@@ -30,8 +32,11 @@ interface CanvasStore {
   enterDeleteMode: () => void
   exitDeleteMode: () => void
   deleteCard: (cardId: string) => boolean
+  deleteEdge: (edgeId: string) => boolean
   selectCard: (cardId: string | null) => void
   toggleSelectCard: (cardId: string) => void
+  selectEdge: (edgeId: string | null) => void
+  toggleSelectEdge: (edgeId: string) => void
   drillIntoCard: (cardId: string) => void
   drillOut: () => void
   drillTopLayerCard: (cardId: string) => void
@@ -81,6 +86,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   centerCardId: initialSpecCanvas.centerCardId,
   preview: null,
   selectedCardId: null,
+  selectedEdgeId: null,
   drillFocusId: null,
   isTranslating: false,
   chatDraft: '',
@@ -88,9 +94,9 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 
   setChatDraft: (value) => set({ chatDraft: value }),
 
-  enterDeleteMode: () => set({ isDeleteMode: true, selectedCardId: null }),
+  enterDeleteMode: () => set({ isDeleteMode: true, selectedCardId: null, selectedEdgeId: null }),
 
-  exitDeleteMode: () => set({ isDeleteMode: false }),
+  exitDeleteMode: () => set({ isDeleteMode: false, selectedEdgeId: null }),
 
   deleteCard: (cardId) => {
     const { centerCardId, preview, selectedCardId, drillFocusId } = get()
@@ -128,11 +134,56 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     return true
   },
 
-  selectCard: (cardId) => set({ selectedCardId: cardId }),
+  deleteEdge: (edgeId) => {
+    const { preview, selectedEdgeId } = get()
+    const sourceEdges = preview?.edges ?? get().committedEdges
+
+    if (!sourceEdges.some((edge) => edge.id === edgeId)) {
+      return false
+    }
+
+    const nextEdges = sourceEdges.filter((edge) => edge.id !== edgeId)
+
+    if (preview) {
+      set({
+        preview: {
+          ...preview,
+          edges: cloneEdges(nextEdges),
+        },
+        selectedEdgeId: selectedEdgeId === edgeId ? null : selectedEdgeId,
+      })
+    } else {
+      set({
+        committedEdges: cloneEdges(nextEdges),
+        selectedEdgeId: selectedEdgeId === edgeId ? null : selectedEdgeId,
+      })
+    }
+
+    void deleteEdgeRemote(edgeId).catch((error) => {
+      console.warn('delete-edge sync failed (local state kept):', error)
+    })
+
+    return true
+  },
+
+  selectCard: (cardId) => set({ selectedCardId: cardId, selectedEdgeId: null }),
 
   toggleSelectCard: (cardId) => {
     const { selectedCardId } = get()
-    set({ selectedCardId: selectedCardId === cardId ? null : cardId })
+    set({
+      selectedCardId: selectedCardId === cardId ? null : cardId,
+      selectedEdgeId: null,
+    })
+  },
+
+  selectEdge: (edgeId) => set({ selectedEdgeId: edgeId, selectedCardId: null }),
+
+  toggleSelectEdge: (edgeId) => {
+    const { selectedEdgeId } = get()
+    set({
+      selectedEdgeId: selectedEdgeId === edgeId ? null : edgeId,
+      selectedCardId: null,
+    })
   },
 
   drillIntoCard: (cardId) => set({ drillFocusId: cardId, selectedCardId: cardId }),

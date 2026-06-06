@@ -131,6 +131,15 @@ export async function deleteCardRemote(
   await post({ action: 'delete-card', cardId, projectId })
 }
 
+export async function deleteEdgeRemote(
+  edgeId: string,
+  projectId = DEFAULT_PROJECT_ID,
+): Promise<void> {
+  if (!functionUrl) return
+
+  await post({ action: 'delete-edge', edgeId, projectId })
+}
+
 export async function fetchSpecFileRemote(
   file: string,
   projectId = DEFAULT_PROJECT_ID,

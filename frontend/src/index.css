@@ -166,6 +166,17 @@ html:-webkit-full-screen {
   cursor: default;
 }
 
+.intent-canvas.canvas-delete-mode .react-flow__edge {
+  cursor: pointer;
+}
+
+.canvas-edge-label--selected {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
 .intent-canvas .react-flow__minimap {
   background: rgba(18, 24, 36, 0.78);
   border: 1px solid rgba(148, 163, 184, 0.16);

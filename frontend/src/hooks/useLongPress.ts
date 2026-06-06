@@ -21,6 +21,7 @@ export function useLongPress(
   const timerRef = useRef<number | null>(null)
   const originRef = useRef<{ x: number; y: number } | null>(null)
   const didLongPressRef = useRef(false)
+  const moveHandlerRef = useRef<((event: PointerEvent) => void) | null>(null)
 
   const clearTimer = useCallback(() => {
     if (timerRef.current !== null) {
@@ -29,29 +30,20 @@ export function useLongPress(
     }
   }, [])
 
-  const onPointerDown = useCallback(
-    (event: React.PointerEvent) => {
-      if (disabled || event.button !== 0) return
-
-      didLongPressRef.current = false
-      originRef.current = { x: event.clientX, y: event.clientY }
-
-      clearTimer()
-      timerRef.current = window.setTimeout(() => {
-        didLongPressRef.current = true
-        onLongPress()
-      }, delayMs)
-    },
-    [clearTimer, delayMs, disabled, onLongPress],
-  )
+  const removeMoveListener = useCallback(() => {
+    if (moveHandlerRef.current) {
+      window.removeEventListener('pointermove', moveHandlerRef.current)
+      moveHandlerRef.current = null
+    }
+  }, [])
 
   const cancelIfMoved = useCallback(
-    (event: React.PointerEvent) => {
+    (clientX: number, clientY: number) => {
       const origin = originRef.current
       if (!origin || timerRef.current === null) return
 
-      const dx = event.clientX - origin.x
-      const dy = event.clientY - origin.y
+      const dx = clientX - origin.x
+      const dy = clientY - origin.y
       if (Math.hypot(dx, dy) > moveThresholdPx) {
         clearTimer()
       }
@@ -59,28 +51,55 @@ export function useLongPress(
     [clearTimer, moveThresholdPx],
   )
 
+  const finishPress = useCallback(() => {
+    removeMoveListener()
+    clearTimer()
+    originRef.current = null
+  }, [clearTimer, removeMoveListener])
+
+  const onPointerDown = useCallback(
+    (event: React.PointerEvent) => {
+      if (disabled || event.button !== 0) return
+
+      didLongPressRef.current = false
+      originRef.current = { x: event.clientX, y: event.clientY }
+
+      finishPress()
+
+      const handlePointerMove = (moveEvent: PointerEvent) => {
+        cancelIfMoved(moveEvent.clientX, moveEvent.clientY)
+      }
+      moveHandlerRef.current = handlePointerMove
+      window.addEventListener('pointermove', handlePointerMove)
+
+      timerRef.current = window.setTimeout(() => {
+        didLongPressRef.current = true
+        removeMoveListener()
+        onLongPress()
+      }, delayMs)
+    },
+    [cancelIfMoved, delayMs, disabled, finishPress, onLongPress, removeMoveListener],
+  )
+
   const onPointerUp = useCallback(
     (event: React.PointerEvent) => {
-      cancelIfMoved(event)
-      clearTimer()
-      originRef.current = null
+      cancelIfMoved(event.clientX, event.clientY)
+      finishPress()
     },
-    [cancelIfMoved, clearTimer],
+    [cancelIfMoved, finishPress],
   )
 
   const onPointerLeave = useCallback(
     (event: React.PointerEvent) => {
-      cancelIfMoved(event)
-      clearTimer()
-      originRef.current = null
+      cancelIfMoved(event.clientX, event.clientY)
+      finishPress()
     },
-    [cancelIfMoved, clearTimer],
+    [cancelIfMoved, finishPress],
   )
 
   const onPointerCancel = useCallback(() => {
-    clearTimer()
-    originRef.current = null
-  }, [clearTimer])
+    finishPress()
+  }, [finishPress])
 
   const consumeClick = useCallback(() => {
     if (!didLongPressRef.current) return false

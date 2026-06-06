@@ -135,9 +135,16 @@ function nearestSide(source: Node, target: Node, centerCardId: string) {
   return dy >= 0 ? Position.Bottom : Position.Top
 }
 
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  const tag = target.tagName
+  return tag === 'INPUT' || tag === 'TEXTAREA' || target.isContentEditable
+}
+
 function edgesToFlow(
   canvasEdges: CanvasEdge[],
   previewEdgeIds: Set<string>,
+  selectedEdgeId: string | null,
   nodes: Node[],
   centerCardId: string,
 ): Edge[] {
@@ -159,6 +166,7 @@ function edgesToFlow(
       data: {
         label: edge.label,
         isPreview: previewEdgeIds.has(edge.id),
+        isSelected: edge.id === selectedEdgeId,
       },
     }
   })
@@ -323,8 +331,11 @@ export default function IntentCanvas() {
   const moveCard = useCanvasStore((state) => state.moveCard)
   const setCardPositions = useCanvasStore((state) => state.setCardPositions)
   const isDeleteMode = useCanvasStore((state) => state.isDeleteMode)
+  const selectedEdgeId = useCanvasStore((state) => state.selectedEdgeId)
   const exitDeleteMode = useCanvasStore((state) => state.exitDeleteMode)
   const deleteCard = useCanvasStore((state) => state.deleteCard)
+  const deleteEdge = useCanvasStore((state) => state.deleteEdge)
+  const toggleSelectEdge = useCanvasStore((state) => state.toggleSelectEdge)
 
   const trashRef = useRef<HTMLDivElement>(null)
   const trashHoveredRef = useRef(false)
@@ -385,6 +396,17 @@ export default function IntentCanvas() {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         exitDeleteMode()
+        return
+      }
+
+      if (isEditableTarget(event.target)) return
+
+      if (event.key === 'Delete' || event.key === 'Backspace') {
+        const edgeId = useCanvasStore.getState().selectedEdgeId
+        if (!edgeId) return
+
+        event.preventDefault()
+        deleteEdge(edgeId)
       }
     }
 
@@ -392,7 +414,7 @@ export default function IntentCanvas() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [exitDeleteMode, isDeleteMode])
+  }, [deleteEdge, exitDeleteMode, isDeleteMode])
 
   useEffect(() => {
     if (isDeleteMode) return undefined
@@ -481,8 +503,8 @@ export default function IntentCanvas() {
   )
 
   const flowEdges = useMemo(
-    () => edgesToFlow(visibleEdges, previewEdgeIds, baseNodes, centerCardId),
-    [visibleEdges, centerCardId, baseNodes, previewEdgeIds],
+    () => edgesToFlow(visibleEdges, previewEdgeIds, selectedEdgeId, baseNodes, centerCardId),
+    [visibleEdges, centerCardId, baseNodes, previewEdgeIds, selectedEdgeId],
   )
 
   const [nodes, setNodes, onNodesChange] = useNodesState(baseNodes)
@@ -633,6 +655,14 @@ export default function IntentCanvas() {
     [finishDeleteDrag, isDeleteMode],
   )
 
+  const handleEdgeClick = useCallback(
+    (_event: React.MouseEvent, edge: Edge) => {
+      if (!isDeleteMode) return
+      toggleSelectEdge(edge.id)
+    },
+    [isDeleteMode, toggleSelectEdge],
+  )
+
   return (
     <div
       className={clsx(
@@ -647,6 +677,7 @@ export default function IntentCanvas() {
         onNodesChange={handleNodesChange}
         onEdgesChange={onEdgesChange}
         onPaneClick={handlePaneClick}
+        onEdgeClick={handleEdgeClick}
         onNodeDragStart={handleNodeDragStart}
         onNodeDrag={handleNodeDrag}
         onNodeDragStop={handleNodeDragStop}
