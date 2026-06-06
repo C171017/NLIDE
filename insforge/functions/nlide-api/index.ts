@@ -25,6 +25,19 @@ import {
   buildIntentPreview,
   isIntentPipelineConfigured,
 } from './intent/buildIntentPreview.ts'
+import {
+  buildExecutionPlan,
+  isExecutionPlannerConfigured,
+  synthesisFromApiCards,
+} from './planner/buildExecutionPlan.ts'
+import type { CardSynthesisBundle } from './_shared/translator/cardSynthesis.ts'
+import { mergeExecutionPlanSpec } from './_shared/translator/mergeExecutionPlanSpec.ts'
+import {
+  commitExecutionPlan,
+  discardExecutionPlanPreview,
+  loadExecutionPlanState,
+  saveExecutionPlanPreview,
+} from './planner/executionPlanStore.ts'
 
 const DEFAULT_PROJECT_ID = '00000000-0000-4000-8000-000000000001'
 
@@ -91,7 +104,14 @@ interface ApiRequest {
     | 'discard'
     | 'patch-card'
     | 'get-spec-file'
+    | 'plan-execution'
+    | 'get-execution-plan'
+    | 'commit-execution-plan'
+    | 'discard-execution-plan'
   projectId?: string
+  specBundle?: Record<string, string>
+  cardSynthesis?: CardSynthesisBundle
+  projectName?: string
   file?: string
   message?: string
   previewId?: string
@@ -477,6 +497,7 @@ export default async function handler(req: Request): Promise<Response> {
         taskWriterConfigured: isTaskWriterConfigured(),
         phase4PipelineConfigured: isFeaturesWriterConfigured() && isTaskWriterConfigured(),
         intentPipelineConfigured: isIntentPipelineConfigured(),
+        executionPlannerConfigured: isExecutionPlannerConfigured(),
         mode: hasSecrets ? 'insforge' : 'stub-secrets-missing',
       })
     }
@@ -892,6 +913,118 @@ export default async function handler(req: Request): Promise<Response> {
         )
 
         return json({ file, content })
+      }
+
+      case 'get-execution-plan': {
+        const state = await loadExecutionPlanState(client, projectId)
+        return json(state)
+      }
+
+      case 'plan-execution': {
+        if (!isExecutionPlannerConfigured()) {
+          return json(
+            {
+              ok: false,
+              error: {
+                code: 'execution_planner_unconfigured',
+                message:
+                  'OPENROUTER_API_KEY required for plan-execution — no stub fallback',
+              },
+            },
+            503,
+          )
+        }
+
+        const rows = await loadSpecSections(client, projectId)
+        const projectName = body.projectName ?? (await loadProjectName(client, projectId))
+
+        let spec: Record<string, string>
+        let specSource: 'postgres' | 'client'
+
+        if (rows.length > 0) {
+          const fromPostgres = assembleFullExportedSpec({ projectName, rows })
+          if (body.specBundle && Object.keys(body.specBundle).length > 0) {
+            spec = mergeExecutionPlanSpec({
+              fromCanvas: body.specBundle,
+              fromRepo: fromPostgres,
+            })
+          } else {
+            spec = fromPostgres
+          }
+          specSource = 'postgres'
+        } else if (body.specBundle && Object.keys(body.specBundle).length > 0) {
+          spec = body.specBundle
+          specSource = 'client'
+        } else {
+          return errorResponse(
+            'No spec in Postgres and no specBundle provided — assemble spec client-side',
+            400,
+          )
+        }
+
+        let synthesis: CardSynthesisBundle
+        if (body.cardSynthesis?.cards?.length) {
+          synthesis = body.cardSynthesis
+        } else {
+          const project = await getProject(client, projectId)
+          synthesis = project?.cards.length
+            ? synthesisFromApiCards(project.cards)
+            : { cards: [], byFile: {} }
+        }
+
+        const result = await buildExecutionPlan({ spec, synthesis, projectName })
+
+        if (!result.ok) {
+          return json(
+            {
+              ok: false,
+              error: {
+                code: result.code,
+                message: result.message,
+                issues: result.issues,
+                zodIssues: result.zodIssues,
+              },
+            },
+            422,
+          )
+        }
+
+        const previewId = crypto.randomUUID()
+        await saveExecutionPlanPreview(client, projectId, previewId, result.plan)
+
+        return json({
+          ok: true,
+          previewId,
+          plan: result.plan,
+          model: result.model,
+          specSource,
+        })
+      }
+
+      case 'commit-execution-plan': {
+        if (!body.previewId) {
+          return errorResponse('previewId is required')
+        }
+
+        const plan = await commitExecutionPlan(client, projectId, body.previewId)
+        if (!plan) {
+          return errorResponse('Execution plan preview not found', 404)
+        }
+
+        return json({ committed: true, plan })
+      }
+
+      case 'discard-execution-plan': {
+        if (!body.previewId) {
+          return errorResponse('previewId is required')
+        }
+
+        const discarded = await discardExecutionPlanPreview(client, body.previewId)
+        if (!discarded) {
+          return errorResponse('Execution plan preview not found', 404)
+        }
+
+        return json({ discarded: true, previewId: body.previewId })
       }
 
       default:

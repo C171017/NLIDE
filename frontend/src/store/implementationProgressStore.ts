@@ -1,53 +1,12 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-/** Jobs already satisfied — user approved or code shipped. */
-export const DEFAULT_COMPLETED_JOBS: Record<string, Record<string, boolean>> = {
-  'phase-0-preview-loop': {
-    'preview-commit-ux': true,
-  },
-  'phase-1-router-contract': {
-    'routing-policy': true,
-    'intent-type-enum': true,
-    'schema-fields': true,
-    'spec-allowlist': true,
-    'golden-prompts': true,
-    'pass-bar': true,
-  },
-  'phase-2-router-build': {
-    'router-system-prompt': true,
-    'golden-fixture': true,
-    'failure-behavior': true,
-    'router-smoke': true,
-  },
-  'phase-3-features-writer': {
-    'feature-md-template': true,
-    'acceptance-criteria-rules': true,
-    'features-golden': true,
-  },
-  'phase-4-writers-validator': {
-    'task-writer-rules': true,
-    'validator-strictness': true,
-    'remaining-writers': true,
-  },
-  'phase-5-canvas-mapper': {
-    'placement-rules': true,
-    'canvas-ops-mapping': true,
-    'preview-diff-rules': true,
-  },
-}
-
-/** Human execution tasks ticked after running deploy/tests (separate from brief approval). */
-export const DEFAULT_HUMAN_EXECUTION: Record<string, Record<string, boolean>> = {}
-
 export function isItemDone(
   completed: Record<string, Record<string, boolean>>,
   checklistId: string,
   itemId: string,
 ): boolean {
-  const stored = completed[checklistId]?.[itemId]
-  if (stored !== undefined) return stored
-  return DEFAULT_COMPLETED_JOBS[checklistId]?.[itemId] ?? false
+  return completed[checklistId]?.[itemId] ?? false
 }
 
 export function countDone(
@@ -58,36 +17,18 @@ export function countDone(
   return itemIds.filter((id) => isItemDone(completed, checklistId, id)).length
 }
 
-export function isHumanExecutionDone(
-  humanExecution: Record<string, Record<string, boolean>>,
-  checklistId: string,
-  taskId: string,
-): boolean {
-  const stored = humanExecution[checklistId]?.[taskId]
-  if (stored !== undefined) return stored
-  return DEFAULT_HUMAN_EXECUTION[checklistId]?.[taskId] ?? false
-}
-
-export function countHumanExecutionDone(
-  humanExecution: Record<string, Record<string, boolean>>,
-  checklistId: string,
-  taskIds: string[],
-): number {
-  return taskIds.filter((id) => isHumanExecutionDone(humanExecution, checklistId, id)).length
-}
-
 interface ImplementationProgressStore {
+  activePlanVersion: string | null
   completed: Record<string, Record<string, boolean>>
-  humanExecution: Record<string, Record<string, boolean>>
   toggleItem: (checklistId: string, itemId: string) => void
-  toggleHumanExecution: (checklistId: string, taskId: string) => void
+  resetForPlan: (planVersion: string) => void
 }
 
 export const useImplementationProgressStore = create<ImplementationProgressStore>()(
   persist(
     (set, get) => ({
+      activePlanVersion: null,
       completed: {},
-      humanExecution: {},
 
       toggleItem: (checklistId, itemId) => {
         const current = isItemDone(get().completed, checklistId, itemId)
@@ -102,17 +43,12 @@ export const useImplementationProgressStore = create<ImplementationProgressStore
         }))
       },
 
-      toggleHumanExecution: (checklistId, taskId) => {
-        const current = isHumanExecutionDone(get().humanExecution, checklistId, taskId)
-        set((state) => ({
-          humanExecution: {
-            ...state.humanExecution,
-            [checklistId]: {
-              ...(state.humanExecution[checklistId] ?? {}),
-              [taskId]: !current,
-            },
-          },
-        }))
+      resetForPlan: (planVersion) => {
+        if (get().activePlanVersion === planVersion) return
+        set({
+          activePlanVersion: planVersion,
+          completed: {},
+        })
       },
     }),
     { name: 'nlide-implementation-progress' },

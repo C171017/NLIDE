@@ -55,13 +55,13 @@
   - Viz payload syncs from card data without breaking spec export
 - **Related:** tasks.md (T-007)
 
-### F-006: Translator build plan panel
+### F-006: Execution plan panel (Build plan)
 
-- **Status:** in_progress
+- **Status:** done
 - **Priority:** low
-- **Description:** Side panel Build plan tab shows translator phase jobs with Agent vs You columns and local progress checkboxes for human deploy/test steps.
+- **Description:** Side panel Build plan tab regenerates execution phases from all Flow B spec MDs (fresh each time). Preview → commit replaces stored plan; task checkboxes persist per planVersion in localStorage.
 - **Acceptance criteria:**
-  - Phases load from shared translator build spec
-  - Active phase and next job highlighted
-  - Checkbox progress persists in localStorage
+  - Regenerate reads full spec and produces phased task groupings
+  - Preview banner with Commit / Discard before persistence
+  - Active phase and next task highlighted; progress checkboxes in localStorage
 - **Related:** tasks.md (T-005)

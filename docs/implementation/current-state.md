@@ -33,12 +33,13 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Card nodes + Product hub | `CardNode.tsx`, `IndexNode.tsx` (center pillar styling); long-press edit mode with trash drop zone; click link + Delete/Backspace to remove edge |
 | Chat input (floating on canvas) + preview actions in side panel | `ChatBar.tsx`, `ChatSubmitButton.tsx`, `PreviewActions.tsx` — circular interpret/stop control; Enter submits |
 | TipTap card editor | `CardEditor.tsx` — title/body edit + **entity stacked MD preview** (`SpecFilePanel.tsx`, `useSpecFileContent.ts`, `specFilePreview.ts`) — Current vs Proposed `###` section on update intents; **auto-opens Card editor + canvas focus** on update preview (`previewFocus.ts`, `previewFocusCardId`) |
-| Side panel | `SidePanel.tsx` — **Build plan** tab (phases + jobs) + Card editor tab |
+| Side panel | `SidePanel.tsx` — **Build plan** tab (LLM execution phases + jobs) + Card editor tab |
 | **Resizable layout** | `AppShell.tsx`, `ResizeHandle.tsx`, `CornerResizeHandle.tsx`, `useResizableSize.ts` — drag borders between canvas and side panel; preview summary height in card tab; canvas nav minimap corner resize; sizes persist in `localStorage` |
 | Translator spec (shared) | `shared/translator/` — intent types, routing rules, build phases, **golden prompts** |
 | Backend translator module | `insforge/functions/nlide-api/translator/` |
-| Build phases UI | `BuildPhasesPanel.tsx`, `PhaseJobList.tsx`, `PhaseExecutionPanel.tsx` — Agent / You columns |
-| Phase execution map | `shared/translator/phaseExecution.ts` — shipped status + human task list per phase |
+| **Execution plan UI** | `BuildPhasesPanel.tsx`, `ExecutionPlanActions.tsx`, `PhaseJobList.tsx` — Regenerate from spec, preview → commit |
+| Execution plan hook | `useExecutionPlan.ts` — loads committed/preview plan; local stub when no API |
+| Execution planner (shared) | `executionPlanTypes.ts`, `validateExecutionPlan.ts`, `executionPlanStub.ts`, `executionPlannerPrompt.ts` |
 | P0 viz embeds | Mermaid, markdown table, force graph, data table, **progress-checklist** |
 | Step 1 progress card | `translator-step1` task card — Phase 5 **shipped**; Phase 6 active |
 | Router prompt outline | `shared/translator/routerPromptOutline.ts` — Phase 2 · Job 1 **approved** |
@@ -61,7 +62,7 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | **Canvas mapper (Phase 5)** | `shared/translator/canvasMapper.ts` — `mapCanvasToPreview()`, placement + `canvas_ops` derivation; **temp v0:** new entity cards (`F-*`, `T-*`, etc.) placed on overview (`layer: 0`, no pillar link) via `OVERVIEW_ORPHAN_NEW_ENTITIES` |
 | **Preview diff (shared)** | `shared/translator/diffPreview.ts` — ghost card/edge id diff; used by `IntentCanvas.tsx` |
 | Canvas mapper golden | `shared/translator/canvasMapperGolden.ts` — 5 cases, ≥4/5 pass bar |
-| Implementation progress store | `implementationProgressStore.ts` — persists checklist ticks in localStorage |
+| Implementation progress store | `implementationProgressStore.ts` — per-phase task checkboxes; resets on new `planVersion` |
 | Canvas state (Zustand) | `frontend/src/store/canvasStore.ts` — **loads from `spec/*.md` on startup** via `loadSpecCanvas.ts` |
 | **Spec → canvas loader** | `shared/translator/specToCanvas.ts` — `buildCanvasFromSpec()` parses Flow B markdown into layered cards + edges; tasks link to Frontend/Backend via **Pillar:** |
 | API client + local stub | `frontend/src/lib/api.ts`, `translatorStub.ts` — stub uses `mapCanvasToPreview()` |
@@ -82,6 +83,7 @@ Run: `npm run dev` (from repo root)
 | **Task + remaining writers (Phase 4)** | `taskWriter.ts`, `remainingWriter.ts`, `pipeline.ts` — `action:write-tasks`, `action:write-remaining`, `action:run-writers` |
 | **Canvas mapper (Phase 5)** | `shared/translator/canvasMapper.ts` — wired into stub `buildPreview()` on `action:intent` |
 | **Spec export (Phase 6)** | `shared/translator/specExport.ts`, `export/specStore.ts`, `export/exportSmoke.ts` — commit returns `exportedSpec` |
+| **Execution planner** | `planner/buildExecutionPlan.ts`, `executionPlanStore.ts` — fresh replan from full spec |
 | **Spec validator (Phase 4)** | `validator/validateSpec.ts` — `action:validate-spec`; wired into commit export |
 | Translator preview | **`action:intent`** — router → writers → validator → canvas mapper (requires `OPENROUTER_API_KEY`) |
 | DB access | `@insforge/sdk` in edge function |
@@ -109,8 +111,14 @@ Run: `npm run dev` (from repo root)
 | `get-spec-file` | ✅ Assembles one spec file from `spec_sections` |
 | `get-translator-spec` | ✅ Intent types, routing rules, build phases, golden prompts |
 | `get-project` | ✅ Loads from DB (empty until commit seeds data) |
+| `plan-execution` | ✅ LLM only (`OPENROUTER_API_KEY`) — synthesis + full MD; no stub fallback |
+| `get-execution-plan` | ✅ Returns committed + preview plan for project |
+| `commit-execution-plan` | ✅ Upserts `execution_plans`, deletes preview |
+| `discard-execution-plan` | ✅ Deletes execution plan preview |
 
 Deploy: `npm run insforge:deploy:api`
+
+**Migration:** `migrations/20260606200000_execution_plans.sql` — `execution_plans`, `execution_plan_previews`
 
 ---
 
@@ -126,7 +134,7 @@ Deploy: `npm run insforge:deploy:api`
 | InsForge Sites / Cloudflare deploy | **[USER]** hosting choice |
 | Auth | Out of v0 scope |
 | Flow A repo import | flow-a-v0 (deferred) |
-| Execution phase planner | execution-phases.md (future) |
+| Execution plan → `phases.md` export + canvas Phase cards | execution-phases.md (v1 planner shipped; export deferred) |
 | Flow C in-app execution | **[USER]** out of scope |
 | DB seed from sample project on first load | ~~ai-inferred gap~~ — **superseded:** frontend loads repo `spec/*.md` via `specToCanvas` |
 | DB columns for `layer` / `parent_card_id` on cards | layer model in frontend only for now |

@@ -186,6 +186,7 @@ function parseTaskPillar(body: string): PillarId | undefined {
 }
 
 function applyCardPlacement(card: CanvasCard, pillarOverride?: PillarId): void {
+  if (card.type === 'index') return
   const anchor = getDefaultAnchor(card.type)
   if (!anchor) return
 

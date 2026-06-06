@@ -152,3 +152,92 @@ export async function fetchSpecFileRemote(
     projectId,
   })
 }
+
+export type ExecutionPlanState = import('@nlide/shared').ExecutionPlanState
+
+export async function fetchExecutionPlan(
+  projectId = DEFAULT_PROJECT_ID,
+): Promise<ExecutionPlanState> {
+  if (!functionUrl) {
+    return { committed: null, preview: null }
+  }
+
+  return post<ExecutionPlanState>({
+    action: 'get-execution-plan',
+    projectId,
+  })
+}
+
+export interface RegenerateExecutionPlanResult {
+  previewId: string
+  plan: import('@nlide/shared').ExecutionPlan
+  model: string
+  specSource: 'postgres' | 'client'
+}
+
+export async function regenerateExecutionPlan(
+  context: {
+    specBundle: Record<string, string>
+    cardSynthesis: import('@nlide/shared').CardSynthesisBundle
+    projectName?: string
+  },
+  projectId = DEFAULT_PROJECT_ID,
+): Promise<RegenerateExecutionPlanResult> {
+  if (!functionUrl) {
+    throw new Error('VITE_INSFORGE_FUNCTION_URL is not set')
+  }
+
+  const data = await post<{
+    ok: boolean
+    previewId: string
+    plan: import('@nlide/shared').ExecutionPlan
+    model: string
+    specSource: 'postgres' | 'client'
+    error?: { message?: string }
+  }>({
+    action: 'plan-execution',
+    projectId,
+    specBundle: context.specBundle,
+    cardSynthesis: context.cardSynthesis,
+    projectName: context.projectName,
+  })
+
+  if (!data.ok) {
+    throw new Error(data.error?.message ?? 'Failed to regenerate execution plan')
+  }
+
+  return {
+    previewId: data.previewId,
+    plan: data.plan,
+    model: data.model,
+    specSource: data.specSource,
+  }
+}
+
+export async function commitExecutionPlanRemote(
+  previewId: string,
+  projectId = DEFAULT_PROJECT_ID,
+): Promise<import('@nlide/shared').ExecutionPlan> {
+  if (!functionUrl) {
+    throw new Error('VITE_INSFORGE_FUNCTION_URL is not set')
+  }
+
+  const data = await post<{ committed: boolean; plan: import('@nlide/shared').ExecutionPlan }>({
+    action: 'commit-execution-plan',
+    previewId,
+    projectId,
+  })
+
+  return data.plan
+}
+
+export async function discardExecutionPlanRemote(
+  previewId: string,
+  projectId = DEFAULT_PROJECT_ID,
+): Promise<void> {
+  if (!functionUrl) {
+    throw new Error('VITE_INSFORGE_FUNCTION_URL is not set')
+  }
+
+  await post({ action: 'discard-execution-plan', previewId, projectId })
+}

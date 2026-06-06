@@ -1,6 +1,6 @@
-# Execution Phase Planning (Future)
+# Execution Phase Planning
 
-Planned capability — **not v0**. Documented here so the canvas and spec schema can evolve toward it.
+**v1 shipped** in Build plan tab — fresh LLM regenerate from full spec, preview → commit. Canvas Phase cards and `phases.md` export remain future.
 
 Related: [Flow B v0](../architecture/flow-b-v0.md) · [Canvas UI](./canvas-ui-vision.md) · [Tech stack](./tech-stack.md)
 
@@ -20,7 +20,7 @@ This sits **between Flow B (intent MD)** and **Flow C (external agent execution)
 ```
 Intent spec (Flow B)
         ↓
-Execution phase planner  ← future
+Execution phase planner  ← v1 (Build plan Regenerate)
         ↓
 Phase 1 → Phase 2 → Phase 3 …
         ↓
@@ -56,17 +56,19 @@ Each phase becomes a **canvas card** linked to its task cards and to the previou
 
 ---
 
-## Planner behavior (conceptual)
+## Planner behavior (v1 shipped)
 
 ```
-POST /api/plan-execution
-  → load spec (features, tasks, constraints, architecture)
-  → LLM: estimate complexity, identify dependency layers
-  → LLM: propose phase count + grouping + ordering
-  → validate: every task assigned, no cycles, constraints respected
-  → human review / approve phase plan
-  → write phases.md + update canvas (Phase cards + edges)
+action:plan-execution
+  → load agentSpec (merged full MD: repo/Postgres base + canvas overrides) + humanSynthesis (all canvas card title/body)
+  → LLM only (requires `OPENROUTER_API_KEY`): fresh phase count + grouping — no stub fallback
+  → validate: every T-xxx assigned exactly once
+  → save execution_plan_previews → UI preview banner
+action:commit-execution-plan → execution_plans (full replace)
+action:discard-execution-plan → delete preview
 ```
+
+**Not yet:** `phases.md` in spec export, canvas Phase cards.
 
 ### Rules the planner should follow
 
@@ -130,4 +132,4 @@ spec/
 | Manual task order | AI proposes phase count + breakdown |
 | No execution | External agent runs phase-by-phase |
 
-Build intent capture first; add phase planner once Flow B loop works.
+Flow B loop works; phase planner v1 lives in Build plan. Next: `phases.md` + canvas Phase cards.

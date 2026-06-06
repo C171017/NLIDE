@@ -11,6 +11,7 @@ import {
   type WriterEntityHint,
 } from '../_shared/translator/canvasMapper.ts'
 import type { CanvasCard, CanvasEdge, MdPatch } from '../_shared/translator/canvasTypes.ts'
+import { extractEntityIds } from '../_shared/translator/extractEntityIds.ts'
 import { assembleFullExportedSpec, type SpecSectionRow } from '../_shared/translator/specExport.ts'
 
 interface IntentCard {
@@ -66,16 +67,6 @@ export type BuildIntentPreviewResult =
 
 export function isIntentPipelineConfigured(): boolean {
   return isRouterConfigured() && isFeaturesWriterConfigured() && isTaskWriterConfigured()
-}
-
-function extractEntityIds(content: string, prefix: string): string[] {
-  const pattern = new RegExp(`### (${prefix}-\\d{3}):`, 'g')
-  const ids: string[] = []
-  let match: RegExpExecArray | null
-  while ((match = pattern.exec(content)) !== null) {
-    ids.push(match[1])
-  }
-  return ids
 }
 
 function specMapFromRows(rows: SpecSectionRow[], projectName: string): Record<string, string> {
