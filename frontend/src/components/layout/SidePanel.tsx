@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import clsx from 'clsx'
 import { useResizableSize } from '../../hooks/useResizableSize'
 import { useCanvasStore } from '../../store/canvasStore'
@@ -22,6 +22,7 @@ export default function SidePanel({ style }: SidePanelProps) {
   } | null>(null)
   const committedCards = useCanvasStore((state) => state.committedCards)
   const preview = useCanvasStore((state) => state.preview)
+  const previewFocusCardId = useCanvasStore((state) => state.previewFocusCardId)
   const selectedCardId = useCanvasStore((state) => state.selectedCardId)
   const updateCard = useCanvasStore((state) => state.updateCard)
 
@@ -46,6 +47,11 @@ export default function SidePanel({ style }: SidePanelProps) {
   const selectTab = (nextTab: SideTab) => {
     setManualTab({ selectedCardId, tab: nextTab })
   }
+
+  useEffect(() => {
+    if (!previewFocusCardId) return
+    setManualTab({ selectedCardId: previewFocusCardId, tab: 'card' })
+  }, [previewFocusCardId])
 
   return (
     <aside

@@ -320,12 +320,71 @@ function LayerViewportAnimator({
   return null
 }
 
+function CardViewportAnimator({
+  cardId,
+  centerCardId,
+  transitionPhase,
+  onComplete,
+}: {
+  cardId: string | null
+  centerCardId: string
+  transitionPhase: LayerTransitionPhase
+  onComplete: () => void
+}) {
+  const reactFlow = useReactFlow()
+  const lastCardIdRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (!cardId) {
+      lastCardIdRef.current = null
+      return undefined
+    }
+
+    if (lastCardIdRef.current === cardId) {
+      return undefined
+    }
+
+    lastCardIdRef.current = cardId
+
+    const layerDelay =
+      transitionPhase === 'leaving' || transitionPhase === 'entering'
+        ? TRANSITION_OUT_MS + TRANSITION_IN_MS + 40
+        : 80
+
+    const focusTimer = window.setTimeout(() => {
+      const node = reactFlow.getNode(cardId)
+      if (node) {
+        const center = nodeCenter(node, centerCardId)
+        void reactFlow.setCenter(center.x, center.y, {
+          zoom: 0.95,
+          duration: FIT_VIEW_DURATION_MS,
+        })
+      } else {
+        void reactFlow.fitView({
+          nodes: [{ id: cardId }],
+          duration: FIT_VIEW_DURATION_MS,
+          padding: 0.3,
+        })
+      }
+      onComplete()
+    }, layerDelay)
+
+    return () => {
+      window.clearTimeout(focusTimer)
+    }
+  }, [cardId, centerCardId, onComplete, reactFlow, transitionPhase])
+
+  return null
+}
+
 export default function IntentCanvas() {
   const committedCards = useCanvasStore((state) => state.committedCards)
   const committedEdges = useCanvasStore((state) => state.committedEdges)
   const centerCardId = useCanvasStore((state) => state.centerCardId)
   const preview = useCanvasStore((state) => state.preview)
   const drillFocusId = useCanvasStore((state) => state.drillFocusId)
+  const previewFocusCardId = useCanvasStore((state) => state.previewFocusCardId)
+  const clearPreviewFocus = useCanvasStore((state) => state.clearPreviewFocus)
   const drillOut = useCanvasStore((state) => state.drillOut)
   const selectCard = useCanvasStore((state) => state.selectCard)
   const moveCard = useCanvasStore((state) => state.moveCard)
@@ -700,6 +759,12 @@ export default function IntentCanvas() {
         <LayerViewportAnimator
           layerKeyValue={layerKey(displayedLayer)}
           transitionPhase={transitionPhase}
+        />
+        <CardViewportAnimator
+          cardId={previewFocusCardId}
+          centerCardId={centerCardId}
+          transitionPhase={transitionPhase}
+          onComplete={clearPreviewFocus}
         />
         <CanvasNavPanel
           mode={resolvedLayer.mode}

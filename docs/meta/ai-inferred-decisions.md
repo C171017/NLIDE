@@ -27,6 +27,7 @@ See also: [documentation-guide.md](./documentation-guide.md)
 | 2026-06-06 | **Drag-to-resize panel borders** (canvas / side panel / chat bar) | IDE-style layout; sizes in `localStorage` (`nlide.layout.*`) | Yes |
 | 2026-06-06 | **dagre** for auto-layout | Layout linked cards from graph | Yes |
 | 2026-06-06 | react-markdown + remark-gfm for MD preview panel | Side panel agent MD preview | Yes |
+| 2026-06-06 | **Entity-scoped stacked MD preview** on update intents | Card editor shows committed `###` section + proposed section below (not full-file diff); baseline from repo `spec/` during preview, `exportedSpecCache` after commit | Yes |
 | 2026-06-06 | tldraw **only** inside card for viz #21 (drawing) | Not main canvas | Yes |
 | 2026-06-06 | **Milky paper canvas surface** (`#faf8f3`, plain); cards use light fills + dark text | Paper-like workspace with readable card copy; side panel stays dark glass | Yes |
 | 2026-06-06 | **Distinct card-type colors** (`cardStyles.ts`) | Each type gets its own hue (amber product, emerald frontend, sky backend, violet users, teal feature, orange task, blue architecture, rose constraint, indigo decision, yellow open-question) with ~50% tint fill + colored border; title/body stay `stone-900`/`stone-700` for readability | Yes |

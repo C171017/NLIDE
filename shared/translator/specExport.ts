@@ -44,6 +44,77 @@ export function sectionMapToRows(map: Map<string, SpecSectionRow>): SpecSectionR
   return [...map.values()]
 }
 
+const ENTITY_HEADING_LINE_RE = /^((?:F|T|D|OQ|oq)-\d+):\s*(.+)$/i
+
+function parseEntitySectionsFromFile(file: string, content: string): SpecSectionRow[] {
+  const rows: SpecSectionRow[] = []
+  const chunks = content.split(/^###\s+/m).slice(1)
+
+  for (const chunk of chunks) {
+    const firstLineEnd = chunk.indexOf('\n')
+    const firstLine = firstLineEnd === -1 ? chunk.trim() : chunk.slice(0, firstLineEnd).trim()
+    const match = firstLine.match(ENTITY_HEADING_LINE_RE)
+    if (!match) continue
+
+    const anchor = match[1].toUpperCase().startsWith('OQ-')
+      ? match[1].toUpperCase()
+      : match[1].toUpperCase()
+    const title = match[2].trim()
+    const body = firstLineEnd === -1 ? '' : chunk.slice(firstLineEnd + 1).trim()
+    const sectionContent = body
+      ? `### ${anchor}: ${title}\n\n${body}`
+      : `### ${anchor}: ${title}`
+
+    rows.push({ file, anchor, content: sectionContent.trim() })
+  }
+
+  return rows
+}
+
+/** Parse one spec file string into section rows for patch application. */
+export function parseSpecFileToSectionRows(file: string, content: string): SpecSectionRow[] {
+  const layout = getSpecFileLayout(file)
+  if (!layout || file === 'INDEX.md') return []
+
+  const trimmed = content.trim()
+  if (!trimmed) return []
+
+  if (layout.kind === 'entity-sections') {
+    const rows = parseEntitySectionsFromFile(file, trimmed)
+    if (rows.length > 0) return rows
+    return []
+  }
+
+  return [{ file, anchor: '', content: trimmed }]
+}
+
+/** Extract one entity section (### F-xxx block) from assembled markdown. */
+export function extractEntitySection(markdown: string, anchor: string): string {
+  if (!markdown.trim() || !anchor) return ''
+
+  const escaped = anchor.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const re = new RegExp(`(### ${escaped}:[\\s\\S]*?)(?=\\n### |$)`, 'i')
+  return markdown.match(re)?.[1]?.trim() ?? ''
+}
+
+/** Apply mdPatches to a base file string and return reassembled markdown. */
+export function applyMdPatchesToFileContent(
+  file: string,
+  baseContent: string,
+  patches: MdPatch[],
+  cards: CardForExport[],
+): string {
+  const rows = parseSpecFileToSectionRows(file, baseContent)
+  let map = rowsToSectionMap(rows)
+  const filePatches = patches.filter((patch) => patch.file === file)
+  map = applyMdPatchesToSectionMap(map, filePatches, cards)
+  const sections = sectionMapToRows(map)
+    .filter((row) => row.file === file)
+    .map((row) => ({ anchor: row.anchor, content: row.content }))
+
+  return assembleSpecFile(file, sections)
+}
+
 function findCardForPatch(cards: CardForExport[], patch: MdPatch): CardForExport | undefined {
   if (!patch.anchor) return undefined
 

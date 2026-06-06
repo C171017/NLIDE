@@ -1,12 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { assembleSpecFileFromCards } from '../lib/assembleSpecFromCards'
 import { fetchSpecFileRemote } from '../lib/api'
 import { getLocalSpecFile } from '../lib/localSpecFiles'
-import type { Card } from '../types/canvas'
+import { buildEntitySectionPreview } from '../lib/specFilePreview'
+import type { Card, PreviewPayload } from '../types/canvas'
 
-export function useSpecFileContent(file: string, cards: Card[], projectName: string) {
-  const [content, setContent] = useState('')
+export interface UseSpecFileContentInput {
+  committedCards: Card[]
+  preview: PreviewPayload | null
+  projectName: string
+  exportedSpecCache?: Record<string, string> | null
+}
+
+export function useSpecFileContent(
+  file: string,
+  anchor: string | undefined,
+  input: UseSpecFileContentInput,
+) {
+  const { committedCards, preview, projectName, exportedSpecCache } = input
+  const [committedFileContent, setCommittedFileContent] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+
+  const previewCards = preview?.cards ?? committedCards
 
   useEffect(() => {
     let cancelled = false
@@ -14,19 +29,31 @@ export function useSpecFileContent(file: string, cards: Card[], projectName: str
     async function load() {
       setIsLoading(true)
 
-      const assembled = assembleSpecFileFromCards(file, cards, projectName)
-      const remote = await fetchSpecFileRemote(file).catch(() => null)
-      const local = getLocalSpecFile(file)
+      const local = getLocalSpecFile(file) ?? ''
+      const assembled = assembleSpecFileFromCards(file, committedCards, projectName)
+
+      let content = ''
+
+      if (preview) {
+        content = local.trim() || assembled.trim()
+      } else if (exportedSpecCache?.[file]?.trim()) {
+        content = exportedSpecCache[file]
+      } else {
+        const remote = await fetchSpecFileRemote(file).catch(() => null)
+        if (cancelled) return
+
+        content = remote?.content?.trim()
+          ? remote.content
+          : local.trim()
+            ? local
+            : assembled.trim()
+              ? assembled
+              : local
+      }
 
       if (cancelled) return
 
-      setContent(
-        remote?.content?.trim()
-          ? remote.content
-          : assembled.trim()
-            ? assembled
-            : (local ?? assembled),
-      )
+      setCommittedFileContent(content)
       setIsLoading(false)
     }
 
@@ -35,7 +62,28 @@ export function useSpecFileContent(file: string, cards: Card[], projectName: str
     return () => {
       cancelled = true
     }
-  }, [file, cards, projectName])
+  }, [file, anchor, committedCards, preview, projectName, exportedSpecCache])
 
-  return { content, isLoading }
+  const entityPreview = useMemo(
+    () =>
+      buildEntitySectionPreview(
+        file,
+        anchor,
+        committedFileContent,
+        preview,
+        previewCards,
+      ),
+    [file, anchor, committedFileContent, preview, previewCards],
+  )
+
+  const committedSection = anchor
+    ? entityPreview.committedSection
+    : committedFileContent
+
+  return {
+    committedSection,
+    proposedSection: entityPreview.proposedSection,
+    hasPreview: entityPreview.hasPreview,
+    isLoading,
+  }
 }

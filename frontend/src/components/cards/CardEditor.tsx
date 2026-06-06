@@ -17,12 +17,18 @@ export default function CardEditor({ card, onChange }: CardEditorProps) {
   const projectName = useCanvasStore((state) => state.projectName)
   const committedCards = useCanvasStore((state) => state.committedCards)
   const preview = useCanvasStore((state) => state.preview)
-  const cards = preview?.cards ?? committedCards
-  const { content: specFileContent, isLoading: isSpecFileLoading } = useSpecFileContent(
-    card.specRef.file,
-    cards,
+  const exportedSpecCache = useCanvasStore((state) => state.exportedSpecCache)
+  const {
+    committedSection,
+    proposedSection,
+    hasPreview,
+    isLoading: isSpecFileLoading,
+  } = useSpecFileContent(card.specRef.file, card.specRef.anchor, {
+    committedCards,
+    preview,
     projectName,
-  )
+    exportedSpecCache,
+  })
   const editor = useEditor({
     extensions: [StarterKit],
     content: `<p>${card.body}</p>`,
@@ -65,7 +71,10 @@ export default function CardEditor({ card, onChange }: CardEditorProps) {
 
       <SpecFilePanel
         file={card.specRef.file}
-        content={specFileContent}
+        anchor={card.specRef.anchor}
+        committedSection={committedSection}
+        proposedSection={proposedSection}
+        hasPreview={hasPreview}
         isLoading={isSpecFileLoading}
       />
     </div>

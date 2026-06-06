@@ -122,6 +122,8 @@ export const PREVIEW_DIFF_RULES: PreviewDiffRules = {
     'Canvas: ghost cards/edges via diffPreview.',
     'Side panel PreviewActions: summary + Commit / Discard buttons.',
     'Card editor tab: resizable "Preview summary" block with summary + mdPatches list.',
+    'Card editor SpecFilePanel: entity-scoped stacked MD — Current ### section on top, Proposed (preview) below when update patch targets selected card anchor.',
+    'Update-intent preview auto-focus: select target card, open Card editor tab, animate canvas to card (drill to parent layer when needed).',
     'Build plan tab: unchanged during preview — user can still tick jobs.',
     'Chat bar: no inline diff — interpret button triggers preview load.',
   ],
@@ -188,11 +190,11 @@ export const PREVIEW_DIFF_RULES: PreviewDiffRules = {
   ],
 
   explicitNonGoals: [
-    'No side-by-side committed vs preview split view.',
+    'No full-file side-by-side committed vs preview split view (entity section only).',
     'No per-field markdown diff highlighting in v0.',
     'No ghost styling on updated existing cards — id-based diff only.',
     'No auto-commit; user must click Commit (workflow.md policy).',
-    'No /spec/*.md write on commit until Phase 6.',
+    'No automatic repo spec/ disk write on commit — use exportedSpec + write:spec dev script.',
   ],
 }
 

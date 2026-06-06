@@ -12,6 +12,10 @@ import {
   submitIntent,
 } from '../lib/api'
 import { loadSpecCanvas, loadSpecProjectName } from '../lib/loadSpecCanvas'
+import {
+  resolvePreviewFocusCardId,
+  resolveViewStateForFocusCard,
+} from '../lib/previewFocus'
 
 const initialSpecCanvas = loadSpecCanvas()
 
@@ -21,6 +25,8 @@ interface CanvasStore {
   committedEdges: CanvasEdge[]
   centerCardId: string
   preview: PreviewPayload | null
+  previewFocusCardId: string | null
+  exportedSpecCache: Record<string, string> | null
   selectedCardId: string | null
   selectedEdgeId: string | null
   drillFocusId: string | null
@@ -47,6 +53,7 @@ interface CanvasStore {
   cancelChat: () => void
   commitPreview: () => Promise<void>
   discardPreview: () => Promise<void>
+  clearPreviewFocus: () => void
 }
 
 function cloneCards(cards: Card[]): Card[] {
@@ -85,6 +92,8 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   committedEdges: cloneEdges(initialSpecCanvas.edges),
   centerCardId: initialSpecCanvas.centerCardId,
   preview: null,
+  previewFocusCardId: null,
+  exportedSpecCache: null,
   selectedCardId: null,
   selectedEdgeId: null,
   drillFocusId: null,
@@ -296,7 +305,20 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
         controller.signal,
       )
       if (chatAbortController !== controller) return
-      set({ preview, isTranslating: false })
+
+      const focusCardId = resolvePreviewFocusCardId(preview, committedCards)
+      const focusCard = focusCardId
+        ? preview.cards.find((card) => card.id === focusCardId)
+        : undefined
+      const viewState = resolveViewStateForFocusCard(focusCard, preview.cards)
+
+      set({
+        preview,
+        isTranslating: false,
+        selectedCardId: focusCardId,
+        previewFocusCardId: focusCardId,
+        drillFocusId: focusCardId ? viewState.drillFocusId : get().drillFocusId,
+      })
     } catch (error) {
       if (chatAbortController !== controller) return
       if (isAbortError(error)) {
@@ -316,6 +338,8 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     chatAbortController?.abort()
   },
 
+  clearPreviewFocus: () => set({ previewFocusCardId: null }),
+
   commitPreview: async () => {
     const { preview, committedCards } = get()
     if (!preview) return
@@ -331,12 +355,14 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       .map((card) => card.id)
 
     try {
-      await commitPreviewRemote(preview.previewId)
+      const result = await commitPreviewRemote(preview.previewId)
       set({
         committedCards: cloneCards(preview.cards),
         committedEdges: cloneEdges(preview.edges),
         preview: null,
-        selectedCardId: newEntityIds[0] ?? null,
+        previewFocusCardId: null,
+        exportedSpecCache: result.exportedSpec ?? null,
+        selectedCardId: newEntityIds[0] ?? get().selectedCardId,
         drillFocusId: null,
       })
     } catch (error) {
@@ -347,13 +373,13 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   discardPreview: async () => {
     const { preview } = get()
     if (!preview) {
-      set({ preview: null, selectedCardId: null, drillFocusId: null })
+      set({ preview: null, previewFocusCardId: null, selectedCardId: null, drillFocusId: null })
       return
     }
 
     try {
       await discardPreviewRemote(preview.previewId)
-      set({ preview: null, selectedCardId: null, drillFocusId: null })
+      set({ preview: null, previewFocusCardId: null, selectedCardId: null, drillFocusId: null })
     } catch (error) {
       console.error('discardPreview failed:', error)
     }

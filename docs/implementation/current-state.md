@@ -32,7 +32,7 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Canvas nav (tilted layer stack — click Overview plate to return from detail; drill in via pillar double-click; fullscreen toggle; minimap detached but hidden) | `CanvasNavPanel.tsx`, `LayerStackIndicator.tsx` |
 | Card nodes + Product hub | `CardNode.tsx`, `IndexNode.tsx` (center pillar styling); long-press edit mode with trash drop zone; click link + Delete/Backspace to remove edge |
 | Chat input (floating on canvas) + preview actions in side panel | `ChatBar.tsx`, `ChatSubmitButton.tsx`, `PreviewActions.tsx` — circular interpret/stop control; Enter submits |
-| TipTap card editor | `CardEditor.tsx` — title/body edit + **spec MD file panel** (`SpecFilePanel.tsx`, `useSpecFileContent.ts`) |
+| TipTap card editor | `CardEditor.tsx` — title/body edit + **entity stacked MD preview** (`SpecFilePanel.tsx`, `useSpecFileContent.ts`, `specFilePreview.ts`) — Current vs Proposed `###` section on update intents; **auto-opens Card editor + canvas focus** on update preview (`previewFocus.ts`, `previewFocusCardId`) |
 | Side panel | `SidePanel.tsx` — **Build plan** tab (phases + jobs) + Card editor tab |
 | **Resizable layout** | `AppShell.tsx`, `ResizeHandle.tsx`, `CornerResizeHandle.tsx`, `useResizableSize.ts` — drag borders between canvas and side panel; preview summary height in card tab; canvas nav minimap corner resize; sizes persist in `localStorage` |
 | Translator spec (shared) | `shared/translator/` — intent types, routing rules, build phases, **golden prompts** |

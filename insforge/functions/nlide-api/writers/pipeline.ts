@@ -1,3 +1,12 @@
+import type { MdPatch } from '../_shared/translator/canvasTypes.ts'
+import {
+  applyMdPatchesToSectionMap,
+  parseSpecFileToSectionRows,
+  rowsToSectionMap,
+  sectionMapToRows,
+  type SpecSectionRow,
+} from '../_shared/translator/specExport.ts'
+import { assembleSpecFile } from '../_shared/translator/specFolderLayout.ts'
 import type { RouterPlan } from '../_shared/translator/types.ts'
 import { writeFeaturesSection } from './featuresWriter.ts'
 import { writeRemainingSection } from './remainingWriter.ts'
@@ -20,11 +29,13 @@ const REMAINING_FILE_ORDER = [
   'architecture.md',
 ] as const
 
-function mergeSectionIntoFile(existing: string | undefined, section: string, action: 'add' | 'update'): string {
-  if (!existing?.trim() || action === 'add') {
-    return existing?.trim() ? `${existing.trim()}\n\n${section}` : section
+function baseSpecToSectionMap(base: Record<string, string>): Map<string, SpecSectionRow> {
+  const rows: SpecSectionRow[] = []
+  for (const [file, content] of Object.entries(base)) {
+    if (file === 'INDEX.md') continue
+    rows.push(...parseSpecFileToSectionRows(file, content))
   }
-  return section
+  return rowsToSectionMap(rows)
 }
 
 function uniqueTargets(plan: RouterPlan): string[] {
@@ -164,15 +175,39 @@ export async function runWritersFromPlan(input: RunWritersInput): Promise<RunWri
   return { ok: true, patches, models }
 }
 
-/** Apply writer patches into a spec file map for validation. */
+/** Apply writer patches into a spec file map for validation (section-level merge). */
 export function applyPatchesToSpec(
   base: Record<string, string>,
   patches: WriterPatch[],
 ): Record<string, string> {
-  const next = { ...base }
+  if (patches.length === 0) {
+    return { ...base }
+  }
 
-  for (const patch of patches) {
-    next[patch.file] = mergeSectionIntoFile(next[patch.file], patch.section, patch.action)
+  let map = baseSpecToSectionMap(base)
+  const mdPatches: MdPatch[] = patches.map((patch) => ({
+    file: patch.file,
+    action: patch.action,
+    anchor: patch.anchor ?? patch.entityId,
+    summary: `${patch.action} ${patch.anchor ?? patch.entityId ?? ''}`.trim(),
+    section: patch.section,
+  }))
+
+  map = applyMdPatchesToSectionMap(map, mdPatches, [])
+
+  const next = { ...base }
+  const rowsByFile = new Map<string, SpecSectionRow[]>()
+  for (const row of sectionMapToRows(map)) {
+    const list = rowsByFile.get(row.file) ?? []
+    list.push(row)
+    rowsByFile.set(row.file, list)
+  }
+
+  for (const [file, rows] of rowsByFile) {
+    next[file] = assembleSpecFile(
+      file,
+      rows.map((row) => ({ anchor: row.anchor, content: row.content })),
+    )
   }
 
   return next
