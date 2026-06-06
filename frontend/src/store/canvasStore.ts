@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { Card, CanvasEdge, PreviewPayload } from '../types/canvas'
+import { isTopLayerCard } from '../lib/canvasLayers'
 import {
   commitPreviewRemote,
   discardPreviewRemote,
@@ -21,8 +22,10 @@ interface CanvasStore {
 
   setChatDraft: (value: string) => void
   selectCard: (cardId: string | null) => void
+  toggleSelectCard: (cardId: string) => void
   drillIntoCard: (cardId: string) => void
   drillOut: () => void
+  drillTopLayerCard: (cardId: string) => void
   updateCard: (cardId: string, patch: Partial<Pick<Card, 'title' | 'body'>>) => void
   moveCard: (cardId: string, position: { x: number; y: number }) => void
   submitChat: (message: string) => Promise<void>
@@ -53,9 +56,27 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 
   selectCard: (cardId) => set({ selectedCardId: cardId }),
 
+  toggleSelectCard: (cardId) => {
+    const { selectedCardId } = get()
+    set({ selectedCardId: selectedCardId === cardId ? null : cardId })
+  },
+
   drillIntoCard: (cardId) => set({ drillFocusId: cardId, selectedCardId: cardId }),
 
   drillOut: () => set({ drillFocusId: null, selectedCardId: null }),
+
+  drillTopLayerCard: (cardId) => {
+    const { drillFocusId, committedCards, preview } = get()
+    const cards = preview?.cards ?? committedCards
+    const card = cards.find((item) => item.id === cardId)
+    if (!card || !isTopLayerCard(card)) return
+
+    if (drillFocusId === cardId) {
+      get().drillOut()
+    } else {
+      get().drillIntoCard(cardId)
+    }
+  },
 
   updateCard: (cardId, patch) => {
     set((state) => ({

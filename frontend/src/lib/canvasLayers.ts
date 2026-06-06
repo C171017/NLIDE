@@ -68,9 +68,3 @@ export function filterVisibleEdges(
     return connectsFocus
   })
 }
-
-export function focusLabel(cards: Card[], focusId: string | null): string {
-  if (!focusId) return 'Overview'
-  const card = cards.find((item) => item.id === focusId)
-  return card ? `${card.title} detail` : 'Detail'
-}

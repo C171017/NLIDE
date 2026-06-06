@@ -58,10 +58,10 @@ The whole web experience is one **canvas** — an infinite or large pannable/zoo
 
 - **Central node** — **`Product`** at the center of the overview layer (mirrors `spec/product.md` as the project anchor)
 - **Top layer (overview)** — three pillars only: **Frontend** (left), **Product** (center), **Backend** (right)
-- **Detail layer** — general and scoped cards (Users, Features, Tasks, Architecture, etc.) live under a top pillar; revealed when the user **clicks** that pillar; **click the same pillar again** returns to overview
+- **Detail layer** — general and scoped cards (Users, Features, Tasks, Architecture, etc.) live under a top pillar; revealed when the user **double-clicks** that pillar; **double-click the same pillar again** returns to overview
 - **Linked cards** — edges show relationships (depends on, relates to, blocks, implements)
 - **Spatial layout** — top layer uses fixed horizontal layout; detail layer uses radial layout around the focused pillar
-- **Layer navigation** — overview (three pillars) ↔ detail (pillar + related cards) via pillar click, not zoom level
+- **Layer navigation** — overview (three pillars) ↔ detail (pillar + related cards) via pillar double-click, not zoom level
 - **High interactivity** — drag, connect, expand, inline edit, rich embeds per card type
 
 ### Layer model **`[USER]`**
@@ -71,18 +71,20 @@ The canvas has **two spatial layers**, not separate pages:
 | Layer | `layer` field | Visible when | Contents |
 |-------|---------------|--------------|----------|
 | **Overview** | `0` | Default; no pillar drilled in | Frontend · Product · Backend |
-| **Detail** | `1` | User clicked a top pillar | Focus pillar + cards with matching `parentCardId` |
+| **Detail** | `1` | User double-clicked a top pillar | Focus pillar + cards with matching `parentCardId` |
 
 **Navigation:**
 
 1. **Overview** — user sees three pillar cards; Product is the hub (center node, amber styling).
-2. **Drill in** — user clicks Frontend, Product, or Backend.
-3. **Detail view** — focused pillar stays visible; its detail cards appear in a ring (Users/Features under Product; canvas tasks under Frontend; Architecture/tasks under Backend). Sub-cards can be selected to inspect wiring without leaving detail view.
-4. **Drill out** — click the same top pillar again → overview only; detail cards hidden.
+2. **Drill in** — user double-clicks Frontend, Product, or Backend.
+3. **Detail view** — focused pillar stays visible; its detail cards appear in a ring (Users/Features under Product; canvas tasks under Frontend; Architecture/tasks under Backend). Sub-cards can be **single-clicked** to select (type-colored ring highlight) and edit in the side-panel Card editor.
+4. **Drill out** — double-click the same top pillar again → overview only; detail cards hidden.
 
 Detail cards carry `parentCardId` pointing at their top-layer owner. Cross-links between detail cards (e.g. Features → Tasks) remain visible when both ends are in the active detail scope.
 
-**`[USER]`** Layer changes use a short crossfade + animated fit (click-to-drill, not zoom threshold). Pinch/wheel zoom is for reading only.
+**Selection:** single click toggles select/deselect on any visible card (type-colored ring highlight). Click empty canvas to clear selection. Selecting a card switches the side panel to **Card editor**.
+
+**`[USER]`** Layer changes use a short crossfade + animated fit (double-click-to-drill, not zoom threshold). Pinch/wheel zoom is for reading only.
 
 ### Card types (map to spec files)
 

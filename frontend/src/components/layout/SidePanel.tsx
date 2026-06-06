@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import clsx from 'clsx'
 import { useCanvasStore } from '../../store/canvasStore'
 import CardEditor from '../cards/CardEditor'
@@ -19,6 +19,12 @@ export default function SidePanel() {
     () => activeCards.find((card) => card.id === selectedCardId) ?? null,
     [activeCards, selectedCardId],
   )
+
+  useEffect(() => {
+    if (selectedCardId) {
+      setTab('card')
+    }
+  }, [selectedCardId])
 
   return (
     <aside className="glass-panel flex max-h-[40vh] min-h-48 w-full shrink flex-col overflow-hidden rounded-3xl lg:max-h-none lg:min-h-0 lg:w-96 lg:shrink-0">

@@ -1,38 +1,49 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import clsx from 'clsx'
 import type { Card } from '../../../types/canvas'
-import { cardTypeLabel, cardTypeStyles } from '../../../lib/cardStyles'
+import { cardTypeLabel, cardTypeStyles, cardSelectedStyles } from '../../../lib/cardStyles'
+import { useCanvasStore } from '../../../store/canvasStore'
 import VizEmbed from '../../viz/VizEmbed'
 
 export type CardNodeData = {
   card: Card
   isPreview?: boolean
-  onSelect?: (cardId: string) => void
 }
 
 const handlePositions = [Position.Top, Position.Right, Position.Bottom, Position.Left]
 
 export default function CardNode({ data }: NodeProps) {
   const nodeData = data as CardNodeData
-  const { card, isPreview, onSelect } = nodeData
+  const { card, isPreview } = nodeData
   const hasInteractiveViz = card.vizType === 'progress-checklist'
+  const isSelected = useCanvasStore((state) => state.selectedCardId === card.id)
+  const toggleSelectCard = useCanvasStore((state) => state.toggleSelectCard)
+  const drillTopLayerCard = useCanvasStore((state) => state.drillTopLayerCard)
 
   return (
     <div
       role="button"
       tabIndex={0}
-      onClick={() => onSelect?.(card.id)}
+      onClick={(event) => {
+        if (event.detail === 2) return
+        toggleSelectCard(card.id)
+      }}
+      onDoubleClick={(event) => {
+        event.stopPropagation()
+        drillTopLayerCard(card.id)
+      }}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault()
-          onSelect?.(card.id)
+          toggleSelectCard(card.id)
         }
       }}
       className={clsx(
-        'canvas-node-card cursor-pointer rounded-2xl border px-3 py-2.5 text-left shadow-xl shadow-black/20 backdrop-blur-xl transition-[opacity,box-shadow,border-color,filter,transform]',
+        'canvas-node-card cursor-pointer rounded-2xl border px-3 py-2.5 text-left shadow-xl shadow-black/20 backdrop-blur-xl transition-[opacity,box-shadow,border-color,filter,transform,ring-color]',
         hasInteractiveViz ? 'w-[300px]' : 'w-[260px]',
         cardTypeStyles(card.type),
         isPreview && 'border-dashed opacity-80',
+        isSelected && cardSelectedStyles(card.type),
       )}
     >
       {handlePositions.map((position) => (
