@@ -49,11 +49,12 @@ User Commit or Discard
 | API routing (`action` field) | ✅ Live |
 | Preview storage | ✅ Live |
 | Commit / discard | ✅ Live |
-| Stub `buildPreview()` | ✅ Live (no LLM) |
-| Router LLM | ❌ Not implemented |
+| Stub `buildPreview()` on `intent` | ✅ Live (no LLM) |
+| Router LLM (`action:route`) | ✅ Implemented — `router/routeIntent.ts`; needs `OPENROUTER_API_KEY` |
+| Golden router batch (`action:route-golden`) | ✅ Implemented |
 | Writer LLM(s) | ❌ Not implemented |
-| Validator | ❌ Minimal |
-| Model Gateway (Claude Sonnet) | ❌ Not wired |
+| Validator | ❌ Minimal (router Zod + business rules only) |
+| Model Gateway (Claude Sonnet) | ✅ Wired via OpenRouter when secret set |
 
 **[USER]** Real translator must still use **preview → commit** — never auto-apply.
 
@@ -96,7 +97,7 @@ When each step ships, update [current-state.md](../implementation/current-state.
 React app  ──POST──►  nlide-api (Edge Function)
                            │
                            ├──► Postgres (context + previews)
-                           └──► Model Gateway (Claude) — planned
+                           └──► OpenRouter (Claude Sonnet) — `action:route` when `OPENROUTER_API_KEY` set
 ```
 
 Function URL: see [insforge/README.md](../../insforge/README.md)

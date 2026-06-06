@@ -1,5 +1,8 @@
 import { createClient, type InsForgeClient } from 'npm:@insforge/sdk@latest'
 import { handleGetTranslatorSpec } from './translator/index.ts'
+import { runGoldenRouterTests } from './router/goldenRunner.ts'
+import { isRouterConfigured, routeIntent } from './router/routeIntent.ts'
+import type { RouterContext } from './router/types.ts'
 
 const DEFAULT_PROJECT_ID = '00000000-0000-4000-8000-000000000001'
 
@@ -49,6 +52,8 @@ interface ApiRequest {
     | 'health'
     | 'get-project'
     | 'get-translator-spec'
+    | 'route'
+    | 'route-golden'
     | 'intent'
     | 'commit'
     | 'discard'
@@ -58,11 +63,7 @@ interface ApiRequest {
   previewId?: string
   cardId?: string
   patch?: { title?: string; body?: string }
-  context?: {
-    cards: Card[]
-    edges: CanvasEdge[]
-    centerCardId: string
-  }
+  context?: RouterContext
 }
 
 interface ProjectPayload {
@@ -351,7 +352,39 @@ function json(data: unknown, status = 200): Response {
 }
 
 function errorResponse(message: string, status = 400): Response {
-  return json({ error: message }, status)
+  return json({ ok: false, error: { code: 'bad_request', message } }, status)
+}
+
+function routerErrorResponse(
+  code: string,
+  message: string,
+  status: number,
+  zodIssues?: Array<{ path: string; message: string }>,
+): Response {
+  return json({ ok: false, error: { code, message, zodIssues } }, status)
+}
+
+function routerFailureStatus(code: string): number {
+  switch (code) {
+    case 'router_validation_failed':
+      return 422
+    case 'router_unconfigured':
+      return 503
+    case 'router_invalid_json':
+    case 'router_upstream_error':
+      return 502
+    default:
+      return 500
+  }
+}
+
+function defaultRouterContext(): RouterContext {
+  return {
+    projectName: 'NLIDE Demo',
+    centerCardId: 'product',
+    cards: [],
+    edges: [],
+  }
 }
 
 export default async function handler(req: Request): Promise<Response> {
@@ -386,6 +419,7 @@ export default async function handler(req: Request): Promise<Response> {
         ok: true,
         service: 'nlide-api',
         hasSecrets,
+        routerConfigured: isRouterConfigured(),
         mode: hasSecrets ? 'insforge' : 'stub-secrets-missing',
       })
     }
@@ -411,6 +445,31 @@ export default async function handler(req: Request): Promise<Response> {
 
       case 'get-translator-spec': {
         return json({ spec: handleGetTranslatorSpec() })
+      }
+
+      case 'route': {
+        if (!body.message?.trim()) {
+          return errorResponse('message is required')
+        }
+
+        const context = body.context ?? defaultRouterContext()
+        const result = await routeIntent({ message: body.message.trim(), context })
+
+        if (!result.ok) {
+          return routerErrorResponse(
+            result.error.code,
+            result.error.message,
+            routerFailureStatus(result.error.code),
+            result.error.zodIssues,
+          )
+        }
+
+        return json({ ok: true, plan: result.plan, model: result.model })
+      }
+
+      case 'route-golden': {
+        const report = await runGoldenRouterTests(body.context)
+        return json({ ok: true, ...report })
       }
 
       case 'intent': {

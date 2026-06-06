@@ -82,9 +82,11 @@ insforge functions invoke nlide-api --data '{
 }'
 ```
 
-### Router smoke (`action:route`) — after Agent mode ships routeIntent()
+### Router smoke (`action:route`) — Phase 2 shipped
 
-Router-only classify (no preview write). Canonical brief: `shared/translator/routerSmokeInvoke.ts`.
+Router-only classify (no preview write). Implementation: `insforge/functions/nlide-api/router/`.
+
+**Requires** function secret `OPENROUTER_API_KEY` (run `npx @insforge/cli ai setup` then `insforge secrets add OPENROUTER_API_KEY ...`).
 
 Quick smoke (golden #1 — pan/zoom → `update_feature`):
 
@@ -120,6 +122,10 @@ insforge functions invoke nlide-api --data '{
 Additional examples (noop, clarify): see `ROUTER_SMOKE_EXAMPLES` in `shared/translator/routerSmokeInvoke.ts`.  
 Golden batch: run all 10 fixture messages; need ≥8/10 pass before replacing stub.
 
+```bash
+npm run insforge:invoke:route-golden
+```
+
 ## 7. Wire frontend
 
 `frontend/.env.local` is already configured for this project:
@@ -151,8 +157,9 @@ insforge deployments create --name nlide-web --dir frontend/dist
 | `health` | Liveness + secrets check |
 | `get-translator-spec` | Intent types, routing rules, build phases, golden prompts |
 | `get-project` | Load cards/edges from Postgres |
-| `route` | Router-only classify → `RouterPlan` JSON (**planned** — Phase 2 Agent mode) |
-| `intent` | Chat → preview (stored in `previews`) |
+| `route` | Router-only classify → `RouterPlan` JSON (Claude via OpenRouter) |
+| `route-golden` | Run all 10 golden router prompts; returns pass count vs ≥8/10 bar |
+| `intent` | Chat → preview (stored in `previews`) — **still stub** until writers ship |
 | `commit` | Apply preview to `cards` / `canvas_edges` |
 | `discard` | Delete preview row |
 | `patch-card` | Manual card edit sync |

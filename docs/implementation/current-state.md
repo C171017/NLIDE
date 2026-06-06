@@ -61,14 +61,17 @@ Run: `npm run dev` (from repo root)
 | Component | Path / notes |
 |-----------|----------------|
 | Edge function (bundled) | `insforge/functions/nlide-api/index.ts` |
-| Translator | **Stub** `buildPreview()` — not yet Claude router/writers |
+| **Router (Phase 2)** | `insforge/functions/nlide-api/router/` — `routeIntent()`, Zod, `action:route`, `action:route-golden` |
+| Translator preview | **Stub** `buildPreview()` on `action:intent` — writers not wired yet |
 | DB access | `@insforge/sdk` in edge function |
 
 ### API actions (live)
 
 | action | Status |
 |--------|--------|
-| `health` | ✅ Deployed |
+| `health` | ✅ Deployed (+ `routerConfigured`) |
+| `route` | ✅ **Implemented** — needs `OPENROUTER_API_KEY` secret |
+| `route-golden` | ✅ **Implemented** — batch golden router tests |
 | `intent` | ✅ Stub preview → saves to `previews` table |
 | `commit` | ✅ Applies preview to `cards` / `canvas_edges` |
 | `discard` | ✅ Deletes preview row |
@@ -85,6 +88,8 @@ Deploy: `npm run insforge:deploy:api`
 | Item | Doc reference |
 |------|----------------|
 | Real LLM translator (router + writers + Claude) | flow-b-v0, tech-stack |
+| **Router LLM** | ✅ Phase 2 shipped — `action:route`; tune with `route-golden` until ≥8/10 |
+| **Writer LLMs** | Phase 3+ — features/tasks writers not wired to `intent` yet |
 | `/spec/*.md` export on commit | **[USER]** hybrid storage |
 | InsForge Sites / Cloudflare deploy | **[USER]** hosting choice |
 | Auth | Out of v0 scope |
