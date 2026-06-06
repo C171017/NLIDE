@@ -17,18 +17,6 @@ export const sampleCanvas: CanvasState = {
       body: 'Natural Language IDE — an intent canvas where humans define what to build; agents execute from exported spec.',
       position: { x: 0, y: 0 },
       layer: 0,
-      vizType: 'force-graph',
-      vizPayload: {
-        nodes: [
-          { id: 'product', label: 'Product' },
-          { id: 'frontend', label: 'Frontend' },
-          { id: 'backend', label: 'Backend' },
-        ],
-        links: [
-          { source: 'product', target: 'frontend' },
-          { source: 'product', target: 'backend' },
-        ],
-      },
       status: 'approved',
     },
     {
