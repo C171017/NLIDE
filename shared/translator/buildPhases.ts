@@ -150,8 +150,8 @@ export const BUILD_PHASES: BuildPhase[] = [
     order: 5,
     title: 'Phase 5: Canvas mapper brief',
     plainSummary: 'How MD patches become preview cards and edges.',
-    agentModeGoal: 'Canvas mapper + preview diff on canvas',
-    status: 'active',
+    agentModeGoal: 'Canvas mapper + preview diff on canvas (shipped)',
+    status: 'done',
     checklistId: 'phase-5-canvas-mapper',
     jobs: [
       {

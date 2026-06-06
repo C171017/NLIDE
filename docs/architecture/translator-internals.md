@@ -49,11 +49,13 @@ User Commit or Discard
 | API routing (`action` field) | ✅ Live |
 | Preview storage | ✅ Live |
 | Commit / discard | ✅ Live |
-| Stub `buildPreview()` on `intent` | ✅ Live (no LLM) |
+| Stub `buildPreview()` on `intent` | ✅ Live — uses `mapCanvasToPreview()` (no LLM on intent yet) |
+| Canvas mapper | ✅ **Implemented** — `shared/translator/canvasMapper.ts`; golden via `action:canvas-mapper-golden` |
+| Preview diff (ghost styling) | ✅ **Implemented** — `shared/translator/diffPreview.ts` + `IntentCanvas.tsx` |
 | Router LLM (`action:route`) | ✅ Implemented — `router/routeIntent.ts`; needs `OPENROUTER_API_KEY` |
 | Golden router batch (`action:route-golden`) | ✅ Implemented |
-| Writer LLM(s) | ❌ Not implemented |
-| Validator | ❌ Minimal (router Zod + business rules only) |
+| Writer LLM(s) | ✅ Phase 3–4 implemented — features, tasks, remaining |
+| Validator | ✅ Phase 4 — `validateSpec()` on `action:run-writers` |
 | Model Gateway (Claude Sonnet) | ✅ Wired via OpenRouter when secret set |
 
 **[USER]** Real translator must still use **preview → commit** — never auto-apply.
@@ -81,11 +83,12 @@ User Commit or Discard
 ## Build order (recommended)
 
 1. Stub preview (done) — prove UX loop  
-2. Router only — validate JSON routing on test prompts  
-3. One writer (`features.md`)  
-4. All writers + validator  
-5. Commit + `/spec/*.md` export  
-6. Replace stub in `insforge/functions/nlide-api/index.ts`
+2. Router only (done) — validate JSON routing on test prompts  
+3. One writer (`features.md`) (done)  
+4. All writers + validator (done)  
+5. Canvas mapper + preview diff (done) — `mapCanvasToPreview()`  
+6. Commit + `/spec/*.md` export (next)  
+7. Wire router + writers → `action:intent` end-to-end
 
 When each step ships, update [current-state.md](../implementation/current-state.md).
 

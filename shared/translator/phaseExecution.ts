@@ -95,8 +95,19 @@ export const PHASE_EXECUTION: Record<string, PhaseExecutionConfig> = {
     ],
   },
   'phase-5-canvas-mapper': {
-    agentShipped: false,
-    humanTasks: [],
+    agentShipped: true,
+    humanTasks: [
+      {
+        id: 'mapper-golden',
+        label: 'Run canvas mapper golden tests',
+        detail: 'npm run insforge:invoke:canvas-mapper-golden — ≥4/5 pass',
+      },
+      {
+        id: 'manual-preview-ghost',
+        label: 'Manual test: ghost cards + mdPatches summary on canvas',
+        detail: 'npm run dev — chat → preview → verify dashed cards and side panel list',
+      },
+    ],
   },
   'phase-6-export': {
     agentShipped: false,

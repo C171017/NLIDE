@@ -11,6 +11,11 @@ import { runPhase4Smoke } from './writers/phase4Smoke.ts'
 import { writeRemainingSection } from './writers/remainingWriter.ts'
 import { writeTaskSection, isTaskWriterConfigured } from './writers/taskWriter.ts'
 import { validateSpec } from './validator/validateSpec.ts'
+import { runCanvasMapperGoldenTests } from './canvas/goldenRunner.ts'
+import {
+  buildStubPreviewPlan,
+  mapCanvasToPreview,
+} from './_shared/translator/canvasMapper.ts'
 
 const DEFAULT_PROJECT_ID = '00000000-0000-4000-8000-000000000001'
 
@@ -69,6 +74,7 @@ interface ApiRequest {
     | 'run-writers'
     | 'validate-spec'
     | 'phase4-smoke'
+    | 'canvas-mapper-golden'
     | 'intent'
     | 'commit'
     | 'discard'
@@ -298,72 +304,50 @@ async function patchCard(
   return rowToCard(data as DbCardRow)
 }
 
-function cloneCards(cards: Card[]): Card[] {
-  return cards.map((card) => ({
-    ...card,
-    position: { ...card.position },
-    specRef: { ...card.specRef },
-  }))
-}
-
-function cloneEdges(edges: CanvasEdge[]): CanvasEdge[] {
-  return edges.map((edge) => ({ ...edge }))
-}
-
-function buildPreview(message: string, cards: Card[], edges: CanvasEdge[]): PreviewPayload {
-  const previewId = `preview-${Date.now()}`
-  const nextCards = cloneCards(cards)
-  const nextEdges = cloneEdges(edges)
-
-  const openQuestion: Card = {
-    id: `oq-${Date.now()}`,
-    specRef: { file: 'open-questions.md', anchor: 'OQ-preview' },
-    type: 'open-question',
-    title: 'Open question (preview)',
-    body: `From chat: "${message}" — which enterprise domains should be allowed for Google login?`,
-    position: { x: 520, y: -40 },
-    layer: 1,
-    parentCardId: 'product',
-    status: 'proposed',
-  }
-
-  const featureCard = nextCards.find((card) => card.id === 'features')
-  if (featureCard?.vizType === 'data-table' && featureCard.vizPayload) {
-    const payload = featureCard.vizPayload as { columns: string[]; rows: string[][] }
-    featureCard.vizPayload = {
-      ...payload,
-      rows: [...payload.rows, ['F-004', 'Google login', 'proposed', 'high']],
-    }
-  }
-
-  nextCards.push(openQuestion)
-  nextEdges.push({
-    id: `e-preview-${openQuestion.id}`,
-    source: 'features',
-    target: openQuestion.id,
-    label: 'raises',
-  })
+function finalizeStubMdPatches(
+  preview: PreviewPayload,
+  committedCardIds: Set<string>,
+): PreviewPayload {
+  const newOq = preview.cards.find(
+    (card) => card.type === 'open-question' && !committedCardIds.has(card.id),
+  )
+  const featuresPatch = preview.mdPatches.find((patch) => patch.file === 'features.md')
 
   return {
-    previewId,
-    cards: nextCards,
-    edges: nextEdges,
+    ...preview,
     mdPatches: [
       {
         file: 'open-questions.md',
         action: 'add',
-        anchor: 'OQ-preview',
+        anchor: newOq?.specRef.anchor ?? newOq?.id ?? 'OQ-preview',
         summary: 'Add open question about allowed Google domains',
       },
       {
         file: 'features.md',
         action: 'add',
-        anchor: 'F-004',
-        summary: 'Propose F-004 Google login feature',
+        anchor: featuresPatch?.anchor ?? 'F-004',
+        summary: featuresPatch?.summary ?? 'Propose F-004 Google login feature',
       },
     ],
-    summary: 'Preview adds F-004 Google login and an open question card linked from Features.',
   }
+}
+
+function buildPreview(
+  message: string,
+  cards: Card[],
+  edges: CanvasEdge[],
+  centerCardId = 'product',
+): PreviewPayload {
+  const committedCardIds = new Set(cards.map((card) => card.id))
+  const preview = mapCanvasToPreview({
+    committedCards: cards as import('./_shared/translator/canvasTypes.ts').CanvasCard[],
+    committedEdges: edges,
+    centerCardId,
+    routerPlan: buildStubPreviewPlan(message),
+    userMessage: message,
+  })
+
+  return finalizeStubMdPatches(preview, committedCardIds) as PreviewPayload
 }
 
 const corsHeaders = {
@@ -725,6 +709,14 @@ export default async function handler(req: Request): Promise<Response> {
         const report = await runPhase4Smoke()
         if (!report.ok) {
           return json(report, report.stage === 'writers' ? 502 : 422)
+        }
+        return json({ ok: true, ...report })
+      }
+
+      case 'canvas-mapper-golden': {
+        const report = runCanvasMapperGoldenTests()
+        if (!report.passedBar) {
+          return json(report, 422)
         }
         return json({ ok: true, ...report })
       }

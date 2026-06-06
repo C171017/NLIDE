@@ -40,7 +40,7 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Build phases UI | `BuildPhasesPanel.tsx`, `PhaseJobList.tsx`, `PhaseExecutionPanel.tsx` — Agent / You columns |
 | Phase execution map | `shared/translator/phaseExecution.ts` — shipped status + human task list per phase |
 | P0 viz embeds | Mermaid, markdown table, force graph, data table, **progress-checklist** |
-| Step 1 progress card | `translator-step1` task card — Phase 5 **complete (3/3)**; Phase 6 active |
+| Step 1 progress card | `translator-step1` task card — Phase 5 **shipped**; Phase 6 active |
 | Router prompt outline | `shared/translator/routerPromptOutline.ts` — Phase 2 · Job 1 **approved** |
 | Golden router fixture | `shared/translator/goldenRouterFixture.ts` — Phase 2 · Job 2 **approved** |
 | Router failure behavior | `shared/translator/routerFailureBehavior.ts` — Phase 2 · Job 3 **approved** |
@@ -54,9 +54,12 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Canvas placement rules | `shared/translator/canvasPlacementRules.ts` — Phase 5 · Job 1 **approved** |
 | Canvas ops mapping | `shared/translator/canvasOpsMapping.ts` — Phase 5 · Job 2 **approved** |
 | Preview diff rules | `shared/translator/previewDiffRules.ts` — Phase 5 · Job 3 **approved** |
+| **Canvas mapper (Phase 5)** | `shared/translator/canvasMapper.ts` — `mapCanvasToPreview()`, placement + `canvas_ops` derivation |
+| **Preview diff (shared)** | `shared/translator/diffPreview.ts` — ghost card/edge id diff; used by `IntentCanvas.tsx` |
+| Canvas mapper golden | `shared/translator/canvasMapperGolden.ts` — 5 cases, ≥4/5 pass bar |
 | Implementation progress store | `implementationProgressStore.ts` — persists checklist ticks in localStorage |
 | Canvas state (Zustand) | `frontend/src/store/canvasStore.ts` |
-| API client + local stub | `frontend/src/lib/api.ts`, `translatorStub.ts` |
+| API client + local stub | `frontend/src/lib/api.ts`, `translatorStub.ts` — stub uses `mapCanvasToPreview()` |
 | Sample demo canvas | `frontend/src/data/sampleProject.ts` — Product center, Frontend/Backend pillars, detail cards under each |
 
 Run: `npm run dev` (from repo root)
@@ -71,8 +74,9 @@ Run: `npm run dev` (from repo root)
 | **Router (Phase 2)** | `insforge/functions/nlide-api/router/` — `routeIntent()`, Zod, `action:route`, `action:route-golden` |
 | **Features writer (Phase 3)** | `insforge/functions/nlide-api/writers/` — `writeFeaturesSection()`, `action:write-features`, `action:write-features-golden` |
 | **Task + remaining writers (Phase 4)** | `taskWriter.ts`, `remainingWriter.ts`, `pipeline.ts` — `action:write-tasks`, `action:write-remaining`, `action:run-writers` |
+| **Canvas mapper (Phase 5)** | `shared/translator/canvasMapper.ts` — wired into stub `buildPreview()` on `action:intent` |
 | **Spec validator (Phase 4)** | `validator/validateSpec.ts` — `action:validate-spec`; wired into `action:run-writers` |
-| Translator preview | **Stub** `buildPreview()` on `action:intent` — full pipeline not wired to canvas chat yet |
+| Translator preview | Stub plan via `buildStubPreviewPlan()` → `mapCanvasToPreview()` — router+writers not wired to `action:intent` yet |
 | DB access | `@insforge/sdk` in edge function |
 
 ### API actions (live)
@@ -89,7 +93,8 @@ Run: `npm run dev` (from repo root)
 | `run-writers` | ✅ **Implemented** — all writers + validator for one router plan |
 | `validate-spec` | ✅ **Implemented** — ID/link/content validation |
 | `phase4-smoke` | ✅ **Implemented** — gp-03 writers + validator smoke |
-| `intent` | ✅ Stub preview → saves to `previews` table |
+| `canvas-mapper-golden` | ✅ **Implemented** — 5 mapper cases, ≥4/5 pass bar |
+| `intent` | ✅ Stub preview via canvas mapper → saves to `previews` table |
 | `commit` | ✅ Applies preview to `cards` / `canvas_edges` |
 | `discard` | ✅ Deletes preview row |
 | `patch-card` | ✅ Updates card in Postgres |

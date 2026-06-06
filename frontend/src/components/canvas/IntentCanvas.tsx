@@ -12,6 +12,7 @@ import {
   type OnNodesChange,
 } from '@xyflow/react'
 import type { Card, CanvasEdge } from '../../types/canvas'
+import { diffPreview } from '@nlide/shared/diffPreview'
 import {
   filterVisibleCards,
   filterVisibleEdges,
@@ -132,26 +133,6 @@ function edgesToFlow(
       },
     }
   })
-}
-
-function diffPreview(
-  committedCards: Card[],
-  committedEdges: CanvasEdge[],
-  previewCards: Card[],
-  previewEdges: CanvasEdge[],
-) {
-  const committedCardIds = new Set(committedCards.map((card) => card.id))
-  const committedEdgeIds = new Set(committedEdges.map((edge) => edge.id))
-
-  const previewCardIds = new Set(
-    previewCards.filter((card) => !committedCardIds.has(card.id)).map((card) => card.id),
-  )
-
-  const previewEdgeIds = new Set(
-    previewEdges.filter((edge) => !committedEdgeIds.has(edge.id)).map((edge) => edge.id),
-  )
-
-  return { previewCardIds, previewEdgeIds }
 }
 
 function normalizeWheelDelta(event: WheelEvent) {
