@@ -62,7 +62,7 @@ export const CANVAS_PLACEMENT_RULES: CanvasPlacementRules = {
   ],
 
   autoLayout: [
-    'Use radial offset from parent center via layout.ts resolvePreviewPosition() — collision gap 48px.',
+    'Use radial offset from parent center via layout.ts layoutDetailRing() — COLLISION_GAP 48px, DEFAULT_RING_RADIUS 420.',
     'If parent not found, fall back to product hub (0,0) on layer 1 below hub (+y).',
     'Stack siblings: offset each new sibling by +80y or +NODE_WIDTH+GAP in parent\'s dominant direction.',
     'Prefer placing to the right of parent in detail layer when horizontal space exists.',
