@@ -359,11 +359,6 @@ export default function IntentCanvas() {
   const viewMode = displayedLayer.mode
   const focusId = displayedLayer.focusId
 
-  const focusTitle = useMemo(() => {
-    if (!focusId) return null
-    return activeCards.find((card) => card.id === focusId)?.title ?? null
-  }, [activeCards, focusId])
-
   const visibleCards = useMemo(
     () => filterVisibleCards(activeCards, viewMode, focusId),
     [activeCards, viewMode, focusId],
@@ -465,7 +460,6 @@ export default function IntentCanvas() {
         />
         <CanvasNavPanel
           mode={viewMode}
-          focusTitle={focusTitle}
           transitionPhase={transitionPhase}
           onNavigateOverview={drillOut}
         />

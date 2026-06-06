@@ -6,14 +6,12 @@ type LayerTransitionPhase = 'idle' | 'leaving' | 'entering'
 
 interface CanvasNavPanelProps {
   mode: CanvasViewMode
-  focusTitle: string | null
   transitionPhase: LayerTransitionPhase
   onNavigateOverview?: () => void
 }
 
 export default function CanvasNavPanel({
   mode,
-  focusTitle,
   transitionPhase,
   onNavigateOverview,
 }: CanvasNavPanelProps) {
@@ -22,7 +20,6 @@ export default function CanvasNavPanel({
       <div className="canvas-nav-panel__cluster">
         <LayerStackIndicator
           mode={mode}
-          focusTitle={focusTitle}
           transitionPhase={transitionPhase}
           onSelectOverview={onNavigateOverview}
         />
