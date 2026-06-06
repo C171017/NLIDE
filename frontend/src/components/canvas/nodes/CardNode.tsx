@@ -11,6 +11,8 @@ export type CardNodeData = {
   onSelect?: (cardId: string) => void
 }
 
+const handlePositions = [Position.Top, Position.Right, Position.Bottom, Position.Left]
+
 export default function CardNode({ data }: NodeProps) {
   const nodeData = data as CardNodeData
   const { card, isPreview, isSelected, onSelect } = nodeData
@@ -26,7 +28,24 @@ export default function CardNode({ data }: NodeProps) {
         isSelected && 'ring-2 ring-sky-400/70',
       )}
     >
-      <Handle type="target" position={Position.Top} className="!bg-[#6b7280]" />
+      {handlePositions.map((position) => (
+        <Handle
+          key={`target-${position}`}
+          id={`target-${position}`}
+          type="target"
+          position={position}
+          className="!h-1.5 !w-1.5 !bg-[#6b7280]"
+        />
+      ))}
+      {handlePositions.map((position) => (
+        <Handle
+          key={`source-${position}`}
+          id={`source-${position}`}
+          type="source"
+          position={position}
+          className="!h-1.5 !w-1.5 !bg-[#6b7280]"
+        />
+      ))}
       <div className="mb-1 flex flex-wrap items-center gap-2">
         <span className="text-[10px] font-medium uppercase tracking-wide text-[#9aa3b2]">
           {cardTypeLabel(card.type)}
@@ -49,7 +68,6 @@ export default function CardNode({ data }: NodeProps) {
           <VizEmbed vizType={card.vizType} payload={card.vizPayload} compact />
         </div>
       )}
-      <Handle type="source" position={Position.Bottom} className="!bg-[#6b7280]" />
     </button>
   )
 }

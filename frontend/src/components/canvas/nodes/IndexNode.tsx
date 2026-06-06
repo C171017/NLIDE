@@ -10,6 +10,8 @@ export type IndexNodeData = {
   onSelect?: (cardId: string) => void
 }
 
+const handlePositions = [Position.Top, Position.Right, Position.Bottom, Position.Left]
+
 export default function IndexNode({ data }: NodeProps) {
   const nodeData = data as IndexNodeData
   const { card, isPreview, isSelected, onSelect } = nodeData
@@ -24,7 +26,24 @@ export default function IndexNode({ data }: NodeProps) {
         isSelected && 'ring-2 ring-amber-300/80',
       )}
     >
-      <Handle type="target" position={Position.Top} className="!bg-amber-400" />
+      {handlePositions.map((position) => (
+        <Handle
+          key={`target-${position}`}
+          id={`target-${position}`}
+          type="target"
+          position={position}
+          className="!h-1.5 !w-1.5 !bg-amber-400"
+        />
+      ))}
+      {handlePositions.map((position) => (
+        <Handle
+          key={`source-${position}`}
+          id={`source-${position}`}
+          type="source"
+          position={position}
+          className="!h-1.5 !w-1.5 !bg-amber-400"
+        />
+      ))}
       <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-200/80">
         Index
       </div>
@@ -35,7 +54,6 @@ export default function IndexNode({ data }: NodeProps) {
           <VizEmbed vizType={card.vizType} payload={card.vizPayload} compact />
         </div>
       )}
-      <Handle type="source" position={Position.Bottom} className="!bg-amber-400" />
     </button>
   )
 }

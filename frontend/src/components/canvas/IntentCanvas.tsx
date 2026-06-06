@@ -3,6 +3,7 @@ import {
   Background,
   Controls,
   MiniMap,
+  Position,
   ReactFlow,
   useEdgesState,
   useNodesState,
@@ -11,7 +12,7 @@ import {
   type OnNodesChange,
 } from '@xyflow/react'
 import type { Card, CanvasEdge } from '../../types/canvas'
-import { layoutNodes } from '../../lib/layout'
+import { getNodeLayoutBox, layoutNodes } from '../../lib/layout'
 import { useCanvasStore } from '../../store/canvasStore'
 import CardNode from './nodes/CardNode'
 import IndexNode from './nodes/IndexNode'
@@ -24,6 +25,17 @@ const nodeTypes = {
 
 const edgeTypes = {
   labeled: LabeledEdge,
+}
+
+const oppositePosition = {
+  [Position.Top]: Position.Bottom,
+  [Position.Right]: Position.Left,
+  [Position.Bottom]: Position.Top,
+  [Position.Left]: Position.Right,
+}
+
+function handleId(type: 'source' | 'target', position: Position) {
+  return `${type}-${position}`
 }
 
 function cardsToNodes(
@@ -47,17 +59,55 @@ function cardsToNodes(
   }))
 }
 
-function edgesToFlow(edges: CanvasEdge[], previewEdgeIds: Set<string>): Edge[] {
-  return edges.map((edge) => ({
-    id: edge.id,
-    source: edge.source,
-    target: edge.target,
-    type: 'labeled',
-    data: {
-      label: edge.label,
-      isPreview: previewEdgeIds.has(edge.id),
-    },
-  }))
+function nodeCenter(node: Node, centerCardId: string) {
+  const box = getNodeLayoutBox(node, centerCardId)
+
+  return {
+    x: node.position.x + box.width / 2,
+    y: node.position.y + box.height / 2,
+  }
+}
+
+function nearestSide(source: Node, target: Node, centerCardId: string) {
+  const sourceCenter = nodeCenter(source, centerCardId)
+  const targetCenter = nodeCenter(target, centerCardId)
+  const dx = targetCenter.x - sourceCenter.x
+  const dy = targetCenter.y - sourceCenter.y
+
+  if (Math.abs(dx) > Math.abs(dy)) {
+    return dx >= 0 ? Position.Right : Position.Left
+  }
+
+  return dy >= 0 ? Position.Bottom : Position.Top
+}
+
+function edgesToFlow(
+  canvasEdges: CanvasEdge[],
+  previewEdgeIds: Set<string>,
+  nodes: Node[],
+  centerCardId: string,
+): Edge[] {
+  const nodesById = new Map(nodes.map((node) => [node.id, node]))
+
+  return canvasEdges.map((edge) => {
+    const source = nodesById.get(edge.source)
+    const target = nodesById.get(edge.target)
+    const sourceSide = source && target ? nearestSide(source, target, centerCardId) : Position.Bottom
+    const targetSide = oppositePosition[sourceSide]
+
+    return {
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+      sourceHandle: handleId('source', sourceSide),
+      targetHandle: handleId('target', targetSide),
+      type: 'labeled',
+      data: {
+        label: edge.label,
+        isPreview: previewEdgeIds.has(edge.id),
+      },
+    }
+  })
 }
 
 function diffPreview(
@@ -110,15 +160,19 @@ export default function IntentCanvas() {
           selectedCardId,
           selectCard,
         ),
-        edgesToFlow(activeEdges, previewEdgeIds),
+        activeEdges.map((edge) => ({
+          id: edge.id,
+          source: edge.source,
+          target: edge.target,
+        })),
         centerCardId,
       ),
-    [activeCards, activeEdges, centerCardId, previewCardIds, previewEdgeIds, selectedCardId, selectCard],
+    [activeCards, activeEdges, centerCardId, previewCardIds, selectedCardId, selectCard],
   )
 
   const initialEdges = useMemo(
-    () => edgesToFlow(activeEdges, previewEdgeIds),
-    [activeEdges, previewEdgeIds],
+    () => edgesToFlow(activeEdges, previewEdgeIds, initialNodes, centerCardId),
+    [activeEdges, centerCardId, initialNodes, previewEdgeIds],
   )
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
@@ -160,6 +214,7 @@ export default function IntentCanvas() {
         <Background gap={20} size={1} color="#1f2433" />
         <Controls showInteractive={false} />
         <MiniMap
+          className="hidden 2xl:block"
           nodeColor={(node) => (node.type === 'index' ? '#f59e0b' : '#374151')}
           maskColor="rgba(15, 17, 23, 0.75)"
         />
