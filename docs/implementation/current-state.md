@@ -56,6 +56,8 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Preview diff rules | `shared/translator/previewDiffRules.ts` — Phase 5 · Job 3 **approved** |
 | Export scope on commit | `shared/translator/exportScopeOnCommit.ts` — Phase 6 · Job 1 **approved** |
 | spec/ folder layout | `shared/translator/specFolderLayout.ts` — Phase 6 · Job 2 **approved** |
+| Export end-to-end smoke | `shared/translator/exportEndToEndSmoke.ts` — Phase 6 · Job 3 **approved** |
+| Write spec to disk helper | `scripts/write-exported-spec.mjs` — `npm run write:spec` |
 | **Canvas mapper (Phase 5)** | `shared/translator/canvasMapper.ts` — `mapCanvasToPreview()`, placement + `canvas_ops` derivation |
 | **Preview diff (shared)** | `shared/translator/diffPreview.ts` — ghost card/edge id diff; used by `IntentCanvas.tsx` |
 | Canvas mapper golden | `shared/translator/canvasMapperGolden.ts` — 5 cases, ≥4/5 pass bar |

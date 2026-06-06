@@ -84,6 +84,7 @@ See also: [documentation-guide.md](./documentation-guide.md) · [ai-inferred-dec
 | 2026-06-06 | **Preview diff rules approved** | `shared/translator/previewDiffRules.ts`; Phase 5 complete (3/3) |
 | 2026-06-06 | **Export scope on commit approved** — full spec/ tree every commit, not delta-only | `shared/translator/exportScopeOnCommit.ts`; Phase 6 · Job 1 complete |
 | 2026-06-06 | **spec/ folder layout approved** — flat `spec/` at repo root, nine Flow B files, INDEX regenerated | `shared/translator/specFolderLayout.ts`; Phase 6 · Job 2 complete |
+| 2026-06-06 | **Export end-to-end smoke approved** — UI + CLI path; pass bar 9/9 files on disk | `shared/translator/exportEndToEndSmoke.ts`; Phase 6 complete (3/3) |
 
 ---
 

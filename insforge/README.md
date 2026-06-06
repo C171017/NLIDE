@@ -211,6 +211,22 @@ insforge deployments create --name nlide-web --dir frontend/dist
 | `commit` | Apply preview to `cards` / `canvas_edges` |
 | `discard` | Delete preview row |
 | `patch-card` | Manual card edit sync |
+| `export-smoke` | **Planned (Phase 6 Agent mode)** — headless assemble → `exportedSpec` |
+
+## Export smoke (Phase 6)
+
+After Agent mode wires commit export:
+
+```bash
+# UI: npm run dev → chat → preview → Commit → save response JSON
+npm run write:spec -- /tmp/nlide-commit.json
+ls spec/*.md   # expect 9 files
+
+# Headless (when action:export-smoke ships):
+npm run insforge:invoke:export-smoke
+```
+
+See `shared/translator/exportEndToEndSmoke.ts`.
 
 ## Next steps
 

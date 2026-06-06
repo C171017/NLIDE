@@ -111,7 +111,23 @@ export const PHASE_EXECUTION: Record<string, PhaseExecutionConfig> = {
   },
   'phase-6-export': {
     agentShipped: false,
-    humanTasks: [],
+    humanTasks: [
+      {
+        id: 'deploy-phase6',
+        label: 'Deploy nlide-api with commit export (Agent mode)',
+        detail: 'npm run insforge:deploy:api — after export wired to action:commit',
+      },
+      {
+        id: 'manual-export-smoke',
+        label: 'Manual test: chat → preview → commit → spec/ on disk',
+        detail: 'npm run dev — commit, then npm run write:spec -- /tmp/commit.json',
+      },
+      {
+        id: 'cli-export-smoke',
+        label: 'Optional: headless export smoke',
+        detail: 'npm run insforge:invoke:export-smoke — after action:export-smoke ships',
+      },
+    ],
   },
 }
 
