@@ -6,6 +6,7 @@ import { getTranslatorSpec } from '../../../shared/translator/index.ts'
 
 export { getTranslatorSpec }
 export {
+  ACCEPTANCE_CRITERIA_BAR,
   BUILD_PHASES,
   FEATURES_WRITER_TEMPLATE,
   GOLDEN_PASS_BAR,
@@ -21,18 +22,22 @@ export {
   ROUTER_SCHEMA_FIELDS,
   buildRouteInvokePayload,
   evaluateGoldenRouterOutput,
+  formatAcceptanceCriteriaBar,
   formatFeatureSection,
   formatFeaturesWriterTemplate,
   formatRouterFailureBehavior,
   formatRouterPromptOutline,
   formatRouterSmokeInvokeBrief,
   getGoldenRouterFixture,
+  isLikelyWeakCriterion,
   isRouterIntentType,
   isSpecFileAllowed,
   scoreGoldenRouterResults,
 } from '../../../shared/translator/index.ts'
 
 export type {
+  AcceptanceCriteriaBar,
+  AcceptanceCriteriaExample,
   BuildPhase,
   BuildJob,
   BuildPhaseStatus,

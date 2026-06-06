@@ -1,6 +1,6 @@
 /**
  * Features.md writer section template — Phase 3 · Job 1.
- * **[AI-INFERRED]** draft for [USER] review before features writer LLM ships.
+ * **[USER]** approved 2026-06-06 before features writer LLM ships.
  *
  * Defines the markdown shape the writer LLM must produce for add/update on features.md.
  */

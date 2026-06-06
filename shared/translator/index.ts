@@ -25,6 +25,7 @@ export function getTranslatorSpec(): TranslatorSpec {
 
 export * from './types.ts'
 export * from './intentTypes.ts'
+export * from './acceptanceCriteriaBar.ts'
 export * from './buildPhases.ts'
 export * from './featuresWriterTemplate.ts'
 export * from './goldenPrompts.ts'

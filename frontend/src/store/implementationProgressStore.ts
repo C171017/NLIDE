@@ -20,6 +20,9 @@ export const DEFAULT_COMPLETED_JOBS: Record<string, Record<string, boolean>> = {
     'failure-behavior': true,
     'router-smoke': true,
   },
+  'phase-3-features-writer': {
+    'feature-md-template': true,
+  },
 }
 
 export function isItemDone(

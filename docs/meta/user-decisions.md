@@ -73,6 +73,7 @@ See also: [documentation-guide.md](./documentation-guide.md) · [ai-inferred-dec
 | 2026-06-06 | **Golden router fixture approved (10 cases)** | `shared/translator/goldenRouterFixture.ts` + `goldenRouterMatch.ts`; Phase 2 · Job 2 complete |
 | 2026-06-06 | **Router failure behavior approved** — fail loud, no stub fallback | `shared/translator/routerFailureBehavior.ts`; Phase 2 · Job 3 complete |
 | 2026-06-06 | **Router smoke invoke brief approved** | `shared/translator/routerSmokeInvoke.ts`; Phase 2 complete (4/4) |
+| 2026-06-06 | **Features writer section template approved** | `shared/translator/featuresWriterTemplate.ts`; Phase 3 · Job 1 complete |
 
 ---
 
