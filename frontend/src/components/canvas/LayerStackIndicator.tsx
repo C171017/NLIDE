@@ -25,6 +25,7 @@ export default function LayerStackIndicator({
   onSelectOverview,
 }: LayerStackIndicatorProps) {
   const currentLabel = LAYER_LABELS[mode]
+  const canReturnToOverview = mode === 'detail' && onSelectOverview
 
   const sheets: LayerSheet[] = [
     { id: 'top', depth: 0 },
@@ -39,7 +40,7 @@ export default function LayerStackIndicator({
       <div className="layer-stack__stage">
         {sheets.map((sheet) => {
           const isActive = sheet.id === mode
-          const canNavigate = sheet.id === 'top' && mode === 'detail' && onSelectOverview
+          const canNavigate = sheet.id === 'top' && canReturnToOverview
 
           return (
             <button
@@ -53,11 +54,12 @@ export default function LayerStackIndicator({
               onClick={canNavigate ? onSelectOverview : undefined}
               title={canNavigate ? 'Return to overview' : undefined}
             >
-              {isActive ? (
-                <span className="layer-stack__sheet-label" aria-live="polite">
-                  {LAYER_LABELS[sheet.id]}
-                </span>
-              ) : null}
+              <span
+                className={`layer-stack__sheet-label${isActive ? '' : ' layer-stack__sheet-label--inactive'}`}
+                aria-live={isActive ? 'polite' : undefined}
+              >
+                {LAYER_LABELS[sheet.id]}
+              </span>
             </button>
           )
         })}
