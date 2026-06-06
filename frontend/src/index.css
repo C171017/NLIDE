@@ -376,6 +376,13 @@ html:-webkit-full-screen {
   transform-style: preserve-3d;
 }
 
+.layer-stack__visual {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transform-style: preserve-3d;
+}
+
 .layer-stack__sheet {
   position: absolute;
   left: 50%;
@@ -398,7 +405,6 @@ html:-webkit-full-screen {
     border-color 220ms ease,
     box-shadow 220ms ease,
     transform 220ms ease;
-  cursor: default;
   overflow: hidden;
 }
 
@@ -414,43 +420,64 @@ html:-webkit-full-screen {
   transform: rotateX(56deg) rotateZ(-8deg) translate3d(4px, 6px, -8px);
 }
 
-.layer-stack__sheet:disabled {
-  cursor: default;
-}
-
-.layer-stack__sheet:not(:disabled) {
+.layer-stack__return-hit {
+  position: absolute;
+  left: 50%;
+  bottom: 34px;
+  z-index: 10;
+  width: 78px;
+  height: 32px;
+  margin: 0;
+  margin-left: -39px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
   cursor: pointer;
-  opacity: 0.72;
 }
 
-.layer-stack__sheet:not(:disabled):hover {
-  border-color: rgba(125, 211, 252, 0.35);
-  opacity: 0.9;
+.layer-stack__return-hit:focus-visible {
+  outline: none;
+}
+
+.layer-stack--can-return .layer-stack__sheet--top {
+  opacity: 0.82;
+}
+
+.layer-stack--can-return:has(.layer-stack__return-hit:hover) .layer-stack__sheet--top,
+.layer-stack--can-return:has(.layer-stack__return-hit:focus-visible) .layer-stack__sheet--top {
+  opacity: 1;
+  transform: rotateX(56deg) rotateZ(-8deg) translate3d(0, -2px, 12px) scale(1.08);
 }
 
 .layer-stack__sheet-label {
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  padding: 0 6px 8px;
-  font-size: 9px;
+  padding: 0 6px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(253, 230, 138, 0.95);
+  color: rgba(254, 243, 199, 0.98);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   pointer-events: none;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.65),
+    0 0 10px rgba(245, 158, 11, 0.22);
+  transform: translateY(-1px);
 }
 
 .layer-stack__sheet-label--inactive {
-  font-size: 8px;
-  color: rgba(148, 163, 184, 0.55);
-  text-shadow: none;
+  font-size: 9px;
+  color: rgba(226, 232, 240, 0.92);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.72),
+    0 0 6px rgba(15, 23, 42, 0.55);
 }
 
 .layer-stack__sheet--active {

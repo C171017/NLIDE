@@ -48,7 +48,10 @@ export default function CanvasNavPanel({
 
   return (
     <Panel position="top-left" className="canvas-nav-panel">
-      <div className="canvas-nav-panel__cluster canvas-nav-panel__cluster--layer">
+      <div
+        className="canvas-nav-panel__cluster canvas-nav-panel__cluster--layer"
+        onPointerDown={(event) => event.stopPropagation()}
+      >
         <div className="canvas-nav-panel__layer-section">
           <div className="canvas-nav-panel__layer-header">
             <span className="canvas-nav-panel__layer-title">View</span>

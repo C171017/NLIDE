@@ -29,7 +29,7 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | React + Vite + TS app | `frontend/` |
 | Intent canvas | `frontend/src/components/canvas/IntentCanvas.tsx` |
 | **Layered canvas** (overview ↔ detail via pillar double-click; single-click select) | `canvasLayers.ts`, `layout.ts`, `IntentCanvas.tsx` |
-| Canvas nav (tilted layer stack + fullscreen toggle; minimap detached but hidden) | `CanvasNavPanel.tsx`, `LayerStackIndicator.tsx` |
+| Canvas nav (tilted layer stack — click Overview plate to return from detail; drill in via pillar double-click; fullscreen toggle; minimap detached but hidden) | `CanvasNavPanel.tsx`, `LayerStackIndicator.tsx` |
 | Card nodes + Product hub | `CardNode.tsx`, `IndexNode.tsx` (center pillar styling); long-press delete mode with trash drop zone |
 | Chat input (floating on canvas) + preview actions in side panel | `ChatBar.tsx`, `ChatSubmitButton.tsx`, `PreviewActions.tsx` — circular interpret/stop control; Enter submits |
 | TipTap card editor | `CardEditor.tsx` |

@@ -674,7 +674,7 @@ export default function IntentCanvas() {
           transitionPhase={transitionPhase}
         />
         <CanvasNavPanel
-          mode={viewMode}
+          mode={resolvedLayer.mode}
           transitionPhase={transitionPhase}
           hidden={isDeleteMode}
           onNavigateOverview={drillOut}
