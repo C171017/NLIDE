@@ -33,6 +33,7 @@ export const DEFAULT_COMPLETED_JOBS: Record<string, Record<string, boolean>> = {
   'phase-5-canvas-mapper': {
     'placement-rules': true,
     'canvas-ops-mapping': true,
+    'preview-diff-rules': true,
   },
 }
 

@@ -177,7 +177,7 @@ export const BUILD_PHASES: BuildPhase[] = [
     title: 'Phase 6: Export on commit',
     plainSummary: 'Hybrid storage: Postgres + /spec/*.md export.',
     agentModeGoal: 'Commit writes spec/ files; replace stub end-to-end',
-    status: 'upcoming',
+    status: 'active',
     checklistId: 'phase-6-export',
     jobs: [
       {

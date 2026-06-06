@@ -40,7 +40,7 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Build phases UI | `BuildPhasesPanel.tsx`, `PhaseJobList.tsx`, `PhaseExecutionPanel.tsx` — Agent / You columns |
 | Phase execution map | `shared/translator/phaseExecution.ts` — shipped status + human task list per phase |
 | P0 viz embeds | Mermaid, markdown table, force graph, data table, **progress-checklist** |
-| Step 1 progress card | `translator-step1` task card — Phase 4 **complete (3/3)**; Phase 5 active |
+| Step 1 progress card | `translator-step1` task card — Phase 5 **complete (3/3)**; Phase 6 active |
 | Router prompt outline | `shared/translator/routerPromptOutline.ts` — Phase 2 · Job 1 **approved** |
 | Golden router fixture | `shared/translator/goldenRouterFixture.ts` — Phase 2 · Job 2 **approved** |
 | Router failure behavior | `shared/translator/routerFailureBehavior.ts` — Phase 2 · Job 3 **approved** |
@@ -53,7 +53,7 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Remaining writers order | `shared/translator/remainingWritersOrder.ts` — Phase 4 · Job 3 **approved** |
 | Canvas placement rules | `shared/translator/canvasPlacementRules.ts` — Phase 5 · Job 1 **approved** |
 | Canvas ops mapping | `shared/translator/canvasOpsMapping.ts` — Phase 5 · Job 2 **approved** |
-| Preview diff rules | `shared/translator/previewDiffRules.ts` — Phase 5 · Job 3 draft |
+| Preview diff rules | `shared/translator/previewDiffRules.ts` — Phase 5 · Job 3 **approved** |
 | Implementation progress store | `implementationProgressStore.ts` — persists checklist ticks in localStorage |
 | Canvas state (Zustand) | `frontend/src/store/canvasStore.ts` |
 | API client + local stub | `frontend/src/lib/api.ts`, `translatorStub.ts` |

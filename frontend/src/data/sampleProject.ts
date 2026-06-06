@@ -2,7 +2,7 @@ import type { CanvasState } from '../types/canvas'
 import { BUILD_PHASES } from '@nlide/shared'
 import { phaseToChecklistPayload } from '../lib/buildPhaseUtils'
 
-const PHASE_5 = BUILD_PHASES.find((phase) => phase.id === 'phase-5-canvas-mapper')!
+const PHASE_6 = BUILD_PHASES.find((phase) => phase.id === 'phase-6-export')!
 
 export const SAMPLE_PROJECT_NAME = 'NLIDE'
 
@@ -104,14 +104,14 @@ export const sampleCanvas: CanvasState = {
       id: 'translator-step1',
       specRef: { file: 'tasks.md', anchor: 'T-002' },
       type: 'task',
-      title: 'Phase 5: Canvas mapper',
-      body: 'Approve placement rules and canvas_ops mapping in Build plan, then Agent mode implements the mapper.',
+      title: 'Phase 6: Export on commit',
+      body: 'Approve export scope and spec/ layout in Build plan, then Agent mode wires commit + end-to-end pipeline.',
       position: { x: 720, y: 280 },
       layer: 1,
       parentCardId: 'backend',
       status: 'in_progress',
       vizType: 'progress-checklist',
-      vizPayload: phaseToChecklistPayload(PHASE_5),
+      vizPayload: phaseToChecklistPayload(PHASE_6),
     },
   ],
   edges: [

@@ -1,6 +1,6 @@
 /**
  * Preview vs committed diff rules — Phase 5 · Job 3.
- * **[AI-INFERRED]** draft for [USER] review before canvas mapper ships.
+ * **[USER]** approved 2026-06-06 before canvas mapper ships.
  *
  * How the UI distinguishes preview deltas from committed canvas state — ghost cards,
  * mdPatches summary, commit/discard behavior.
