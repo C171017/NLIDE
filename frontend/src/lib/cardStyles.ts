@@ -35,23 +35,3 @@ export function cardTypeLabel(type: CardType): string {
 export function cardTypeStyles(type: CardType): string {
   return TYPE_COLORS[type]
 }
-
-export function cardSelectionStyles(
-  isSelected: boolean,
-  selectionActive: boolean,
-  variant: 'default' | 'center' = 'default',
-): string {
-  if (isSelected) {
-    if (variant === 'center') {
-      return 'z-10 border-amber-200/80 ring-2 ring-amber-300 ring-offset-2 ring-offset-[#0f1219] shadow-lg shadow-amber-500/30'
-    }
-
-    return 'z-10 border-sky-300/70 ring-2 ring-sky-400 ring-offset-2 ring-offset-[#0f1219] shadow-lg shadow-sky-500/25'
-  }
-
-  if (selectionActive) {
-    return 'opacity-55 saturate-[0.82]'
-  }
-
-  return ''
-}

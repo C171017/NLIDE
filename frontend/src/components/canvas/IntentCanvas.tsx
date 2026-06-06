@@ -73,12 +73,8 @@ function cardsToNodes(
   cards: Card[],
   centerCardId: string,
   previewCardIds: Set<string>,
-  selectedCardId: string | null,
-  drillFocusId: string | null,
   onSelect: (cardId: string) => void,
 ): Node[] {
-  const selectionActive = selectedCardId !== null || drillFocusId !== null
-
   return cards.map((card) => ({
     id: card.id,
     type: card.id === centerCardId ? 'index' : 'card',
@@ -86,8 +82,6 @@ function cardsToNodes(
     data: {
       card,
       isPreview: previewCardIds.has(card.id),
-      isSelected: selectedCardId === card.id || drillFocusId === card.id,
-      selectionActive,
       onSelect,
     },
     draggable: true,
@@ -450,8 +444,6 @@ export default function IntentCanvas() {
           visibleCards,
           centerCardId,
           previewCardIds,
-          selectedCardId,
-          drillFocusId,
           handleSelectCard,
         ),
         visibleEdges.map((edge) => ({
@@ -468,8 +460,6 @@ export default function IntentCanvas() {
       visibleEdges,
       centerCardId,
       previewCardIds,
-      selectedCardId,
-      drillFocusId,
       handleSelectCard,
       viewMode,
       focusId,
@@ -488,32 +478,6 @@ export default function IntentCanvas() {
     setNodes(initialNodes)
     setEdges(initialEdges)
   }, [initialNodes, initialEdges, setNodes, setEdges])
-
-  useEffect(() => {
-    setNodes((currentNodes) =>
-      currentNodes.map((node) => {
-        const isSelected = selectedCardId === node.id || drillFocusId === node.id
-        const selectionActive = selectedCardId !== null || drillFocusId !== null
-        const nodeData = node.data as {
-          isSelected?: boolean
-          selectionActive?: boolean
-        }
-
-        if (nodeData.isSelected === isSelected && nodeData.selectionActive === selectionActive) {
-          return node
-        }
-
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            isSelected,
-            selectionActive,
-          },
-        }
-      }),
-    )
-  }, [drillFocusId, selectedCardId, setNodes])
 
   const handleNodesChange: OnNodesChange = useCallback(
     (changes) => {

@@ -1,14 +1,12 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import clsx from 'clsx'
 import type { Card } from '../../../types/canvas'
-import { cardTypeLabel, cardTypeStyles, cardSelectionStyles } from '../../../lib/cardStyles'
+import { cardTypeLabel, cardTypeStyles } from '../../../lib/cardStyles'
 import VizEmbed from '../../viz/VizEmbed'
 
 export type CardNodeData = {
   card: Card
   isPreview?: boolean
-  isSelected?: boolean
-  selectionActive?: boolean
   onSelect?: (cardId: string) => void
 }
 
@@ -16,7 +14,7 @@ const handlePositions = [Position.Top, Position.Right, Position.Bottom, Position
 
 export default function CardNode({ data }: NodeProps) {
   const nodeData = data as CardNodeData
-  const { card, isPreview, isSelected = false, selectionActive = false, onSelect } = nodeData
+  const { card, isPreview, onSelect } = nodeData
   const hasInteractiveViz = card.vizType === 'progress-checklist'
 
   return (
@@ -34,9 +32,7 @@ export default function CardNode({ data }: NodeProps) {
         'canvas-node-card cursor-pointer rounded-2xl border px-3 py-2.5 text-left shadow-xl shadow-black/20 backdrop-blur-xl transition-[opacity,box-shadow,border-color,filter,transform]',
         hasInteractiveViz ? 'w-[300px]' : 'w-[260px]',
         cardTypeStyles(card.type),
-        cardSelectionStyles(isSelected, selectionActive),
         isPreview && 'border-dashed opacity-80',
-        isSelected && isPreview && 'opacity-100',
       )}
     >
       {handlePositions.map((position) => (

@@ -1,14 +1,12 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import clsx from 'clsx'
 import type { Card } from '../../../types/canvas'
-import { cardTypeLabel, cardSelectionStyles } from '../../../lib/cardStyles'
+import { cardTypeLabel } from '../../../lib/cardStyles'
 import VizEmbed from '../../viz/VizEmbed'
 
 export type IndexNodeData = {
   card: Card
   isPreview?: boolean
-  isSelected?: boolean
-  selectionActive?: boolean
   onSelect?: (cardId: string) => void
 }
 
@@ -16,7 +14,7 @@ const handlePositions = [Position.Top, Position.Right, Position.Bottom, Position
 
 export default function IndexNode({ data }: NodeProps) {
   const nodeData = data as IndexNodeData
-  const { card, isPreview, isSelected = false, selectionActive = false, onSelect } = nodeData
+  const { card, isPreview, onSelect } = nodeData
 
   return (
     <button
@@ -24,9 +22,7 @@ export default function IndexNode({ data }: NodeProps) {
       onClick={() => onSelect?.(card.id)}
       className={clsx(
         'canvas-node-card w-[300px] rounded-3xl border border-amber-300/40 bg-amber-400/14 px-4 py-3 text-left shadow-2xl shadow-black/25 backdrop-blur-xl transition-[opacity,box-shadow,border-color,filter,transform]',
-        cardSelectionStyles(isSelected, selectionActive, 'center'),
         isPreview && 'border-dashed opacity-80',
-        isSelected && isPreview && 'opacity-100',
       )}
     >
       {handlePositions.map((position) => (
