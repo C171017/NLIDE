@@ -62,9 +62,11 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | **Preview diff (shared)** | `shared/translator/diffPreview.ts` — ghost card/edge id diff; used by `IntentCanvas.tsx` |
 | Canvas mapper golden | `shared/translator/canvasMapperGolden.ts` — 5 cases, ≥4/5 pass bar |
 | Implementation progress store | `implementationProgressStore.ts` — persists checklist ticks in localStorage |
-| Canvas state (Zustand) | `frontend/src/store/canvasStore.ts` |
+| Canvas state (Zustand) | `frontend/src/store/canvasStore.ts` — **loads from `spec/*.md` on startup** via `loadSpecCanvas.ts` |
+| **Spec → canvas loader** | `shared/translator/specToCanvas.ts` — `buildCanvasFromSpec()` parses Flow B markdown into layer-0 cards + edges |
 | API client + local stub | `frontend/src/lib/api.ts`, `translatorStub.ts` — stub uses `mapCanvasToPreview()` |
-| Sample demo canvas | `frontend/src/data/sampleProject.ts` — Product center, Frontend/Backend pillars, detail cards under each |
+| Sample demo canvas | `frontend/src/data/sampleProject.ts` — **legacy reference only** (superseded by spec load) |
+| **Seeded NLIDE spec** | `spec/` — F-001…F-003, T-001…T-003, D-001…D-003, architecture Frontend/Backend sections |
 
 Run: `npm run dev` (from repo root)
 
@@ -126,7 +128,7 @@ Deploy: `npm run insforge:deploy:api`
 | Flow A repo import | flow-a-v0 (deferred) |
 | Execution phase planner | execution-phases.md (future) |
 | Flow C in-app execution | **[USER]** out of scope |
-| DB seed from sample project on first load | ai-inferred gap |
+| DB seed from sample project on first load | ~~ai-inferred gap~~ — **superseded:** frontend loads repo `spec/*.md` via `specToCanvas` |
 | DB columns for `layer` / `parent_card_id` on cards | layer model in frontend only for now |
 | canvas.json export | planned in structured.md |
 

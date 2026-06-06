@@ -1,11 +1,3 @@
-### oq-1780783280569: Domain allowlist
+# Open questions
 
-- **Status:** open
-- **Question:** which enterprise domains should be allowed for Google login?
-- **Context:** From translator preview
-
-### oq-1780783839735: Domain allowlist
-
-- **Status:** open
-- **Question:** which enterprise domains should be allowed for Google login?
-- **Context:** From translator preview
+_(No open questions — add via chat when the translator needs clarification.)_

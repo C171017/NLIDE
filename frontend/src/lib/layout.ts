@@ -6,7 +6,34 @@ const NODE_HEIGHT = 150
 const HUB_WIDTH = 300
 const HUB_HEIGHT = 260
 const DEFAULT_RING_RADIUS = 420
+const RING_STEP = 360
 const COLLISION_GAP = 48
+
+/** Rotate equal ring spacing so pillars sit left/right of the hub. */
+function assignRingAngles(ids: string[]): Map<string, number> {
+  const ordered = orderRingNodeIds(ids)
+  const count = ordered.length
+  const angles = new Map<string, number>()
+  if (count === 0) return angles
+
+  const step = (Math.PI * 2) / count
+  const baseStart = -Math.PI / 2
+  let rotation = 0
+
+  if (ordered.includes('frontend')) {
+    const index = ordered.indexOf('frontend')
+    rotation = Math.PI - (baseStart + index * step)
+  } else if (ordered.includes('backend')) {
+    const index = ordered.indexOf('backend')
+    rotation = -Math.PI / 2 - index * step
+  }
+
+  ordered.forEach((id, index) => {
+    angles.set(id, baseStart + index * step + rotation)
+  })
+
+  return angles
+}
 
 interface NodeBox {
   id: string
@@ -172,7 +199,15 @@ function applyPositions(nodes: Node[], positions: Map<string, Point>, boxes: Map
   })
 }
 
-function layoutTopLayer(nodes: Node[], centerId: string): Node[] {
+function layoutTopLayer(nodes: Node[], edges: Edge[], centerId: string): Node[] {
+  if (nodes.length <= 3) {
+    return layoutTopLayerPillars(nodes, centerId)
+  }
+
+  return layoutOverviewRadial(nodes, edges, centerId)
+}
+
+function layoutTopLayerPillars(nodes: Node[], centerId: string): Node[] {
   const boxes = new Map(nodes.map((node) => [node.id, getNodeLayoutBox(node, centerId)]))
   const centerNode = nodes.find((node) => node.id === centerId)
   const centerBox = centerNode ? boxes.get(centerId) ?? getNodeLayoutBox(centerNode, centerId) : null
@@ -197,6 +232,131 @@ function layoutTopLayer(nodes: Node[], centerId: string): Node[] {
 
     positions.set(node.id, centerOf(node, boxes.get(node.id) ?? getNodeLayoutBox(node, centerId)))
   })
+
+  return applyPositions(nodes, positions, boxes)
+}
+
+function buildAdjacency(edges: Edge[]): Map<string, Set<string>> {
+  const adjacency = new Map<string, Set<string>>()
+
+  const link = (a: string, b: string) => {
+    if (!adjacency.has(a)) adjacency.set(a, new Set())
+    adjacency.get(a)!.add(b)
+  }
+
+  for (const edge of edges) {
+    link(edge.source, edge.target)
+    link(edge.target, edge.source)
+  }
+
+  return adjacency
+}
+
+function ringDepths(centerId: string, nodeIds: string[], adjacency: Map<string, Set<string>>): Map<string, number> {
+  const depths = new Map<string, number>()
+  depths.set(centerId, 0)
+
+  const queue = [centerId]
+
+  while (queue.length > 0) {
+    const current = queue.shift()!
+    const nextDepth = (depths.get(current) ?? 0) + 1
+    const neighbors = adjacency.get(current) ?? new Set<string>()
+
+    for (const neighbor of neighbors) {
+      if (depths.has(neighbor)) continue
+      depths.set(neighbor, nextDepth)
+      queue.push(neighbor)
+    }
+  }
+
+  for (const id of nodeIds) {
+    if (!depths.has(id)) {
+      depths.set(id, 1)
+    }
+  }
+
+  return depths
+}
+
+function orderRingNodeIds(ids: string[]): string[] {
+  const others = sortRingNodeIds(ids.filter((id) => id !== 'frontend' && id !== 'backend'))
+  const hasFrontend = ids.includes('frontend')
+  const hasBackend = ids.includes('backend')
+
+  if (!hasFrontend && !hasBackend) {
+    return others
+  }
+
+  const ordered: string[] = []
+  if (hasFrontend) ordered.push('frontend')
+
+  const splitAt = Math.ceil(others.length / 2)
+  ordered.push(...others.slice(0, splitAt))
+
+  if (hasBackend) ordered.push('backend')
+
+  ordered.push(...others.slice(splitAt))
+  return ordered
+}
+
+function sortRingNodeIds(ids: string[]): string[] {
+  const priority = ['frontend', 'backend', 'users', 'architecture', 'constraints']
+
+  return [...ids].sort((a, b) => {
+    const pa = priority.indexOf(a)
+    const pb = priority.indexOf(b)
+    if (pa !== -1 || pb !== -1) {
+      return (pa === -1 ? 99 : pa) - (pb === -1 ? 99 : pb)
+    }
+    return a.localeCompare(b)
+  })
+}
+
+
+function layoutOverviewRadial(nodes: Node[], edges: Edge[], centerId: string): Node[] {
+  const boxes = new Map(nodes.map((node) => [node.id, getNodeLayoutBox(node, centerId)]))
+  const centerNode = nodes.find((node) => node.id === centerId)
+  const centerBox = centerNode ? boxes.get(centerId) ?? getNodeLayoutBox(centerNode, centerId) : null
+  const centerPoint: Point = { x: 0, y: 0 }
+  const positions = new Map<string, Point>([[centerId, centerPoint]])
+
+  const adjacency = buildAdjacency(edges)
+  const depths = ringDepths(centerId, nodes.map((node) => node.id), adjacency)
+
+  const rings = new Map<number, string[]>()
+  for (const node of nodes) {
+    if (node.id === centerId) continue
+    const depth = depths.get(node.id) ?? 1
+    const ring = rings.get(depth) ?? []
+    ring.push(node.id)
+    rings.set(depth, ring)
+  }
+
+  const sortedRingDepths = [...rings.keys()].sort((a, b) => a - b)
+
+  for (const depth of sortedRingDepths) {
+    const ringIds = orderRingNodeIds(rings.get(depth) ?? [])
+    const ringRadius = DEFAULT_RING_RADIUS + (depth - 1) * RING_STEP
+    const ringAngles = assignRingAngles(ringIds)
+
+    for (const id of ringIds) {
+      const box = boxes.get(id) ?? getNodeLayoutBox({ id } as Node, centerId)
+      const angle = ringAngles.get(id) ?? 0
+      const direction = { x: Math.cos(angle), y: Math.sin(angle) }
+      const distance =
+        centerBox !== null
+          ? Math.max(ringRadius, radialDistance(centerBox, box, direction))
+          : ringRadius
+
+      positions.set(id, {
+        x: centerPoint.x + direction.x * distance,
+        y: centerPoint.y + direction.y * distance,
+      })
+    }
+  }
+
+  resolveCollisions(positions, boxes, centerId)
 
   return applyPositions(nodes, positions, boxes)
 }
@@ -262,12 +422,12 @@ export function layoutNodes(
   focusId: string | null = null,
 ): Node[] {
   if (viewMode === 'top') {
-    return layoutTopLayer(nodes, centerId)
+    return layoutTopLayer(nodes, edges, centerId)
   }
 
   if (focusId) {
     return layoutDetailRing(nodes, edges, focusId)
   }
 
-  return layoutTopLayer(nodes, centerId)
+  return layoutTopLayer(nodes, edges, centerId)
 }

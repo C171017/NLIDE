@@ -2,6 +2,8 @@ import type { CanvasState } from '../types/canvas'
 import { BUILD_PHASES } from '@nlide/shared'
 import { phaseToChecklistPayload } from '../lib/buildPhaseUtils'
 
+/** Legacy demo canvas — superseded by `loadSpecCanvas()` + repo `spec/*.md`. Kept for reference/tests. */
+
 const PHASE_6 = BUILD_PHASES.find((phase) => phase.id === 'phase-6-export')!
 
 export const SAMPLE_PROJECT_NAME = 'NLIDE'

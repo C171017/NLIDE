@@ -1,6 +1,6 @@
-# NLIDE Demo Project — Spec Index
+# NLIDE — Spec Index
 
-Add entry in features.md
+Natural Language IDE — an intent canvas where humans define what to build; agents execute from exported spec.
 
 ## Spec files
 
@@ -9,7 +9,7 @@ Add entry in features.md
 | `product.md` | What we are building and why — vision, goals, scope |
 | `users.md` | Target users, personas, pain points, use cases |
 | `features.md` | Feature list with acceptance criteria (F-001, …) |
-| `architecture.md` | High-level system design — no source file paths |
+| `architecture.md` | High-level system design — Frontend, Backend, components |
 | `tasks.md` | Agent-executable work items (T-001, …) |
 | `constraints.md` | Stack, patterns, non-goals, limits |
 | `decisions.md` | Resolved choices — ADR-style (D-001, …) |

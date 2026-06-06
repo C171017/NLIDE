@@ -10,7 +10,9 @@ import {
   patchCardRemote,
   submitIntent,
 } from '../lib/api'
-import { sampleCanvas, SAMPLE_PROJECT_NAME } from '../data/sampleProject'
+import { loadSpecCanvas, loadSpecProjectName } from '../lib/loadSpecCanvas'
+
+const initialSpecCanvas = loadSpecCanvas()
 
 interface CanvasStore {
   projectName: string
@@ -73,10 +75,10 @@ function isAbortError(error: unknown) {
 let chatAbortController: AbortController | null = null
 
 export const useCanvasStore = create<CanvasStore>((set, get) => ({
-  projectName: SAMPLE_PROJECT_NAME,
-  committedCards: cloneCards(sampleCanvas.cards),
-  committedEdges: cloneEdges(sampleCanvas.edges),
-  centerCardId: sampleCanvas.centerCardId,
+  projectName: loadSpecProjectName(),
+  committedCards: cloneCards(initialSpecCanvas.cards),
+  committedEdges: cloneEdges(initialSpecCanvas.edges),
+  centerCardId: initialSpecCanvas.centerCardId,
   preview: null,
   selectedCardId: null,
   drillFocusId: null,
