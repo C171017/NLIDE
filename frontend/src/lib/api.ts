@@ -130,3 +130,16 @@ export async function deleteCardRemote(
 
   await post({ action: 'delete-card', cardId, projectId })
 }
+
+export async function fetchSpecFileRemote(
+  file: string,
+  projectId = DEFAULT_PROJECT_ID,
+): Promise<{ file: string; content: string } | null> {
+  if (!functionUrl) return null
+
+  return post<{ file: string; content: string }>({
+    action: 'get-spec-file',
+    file,
+    projectId,
+  })
+}

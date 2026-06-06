@@ -19,7 +19,8 @@ import {
   prepareCommitExport,
   saveSpecSections,
 } from './export/specStore.ts'
-import { buildSectionRowsForCommit } from './_shared/translator/specExport.ts'
+import { assembleFullExportedSpec, buildSectionRowsForCommit } from './_shared/translator/specExport.ts'
+import { assembleSpecFile } from './_shared/translator/specFolderLayout.ts'
 import {
   buildIntentPreview,
   isIntentPipelineConfigured,
@@ -89,7 +90,9 @@ interface ApiRequest {
     | 'commit'
     | 'discard'
     | 'patch-card'
+    | 'get-spec-file'
   projectId?: string
+  file?: string
   message?: string
   previewId?: string
   cardId?: string
@@ -866,6 +869,29 @@ export default async function handler(req: Request): Promise<Response> {
         }
 
         return json({ card: updated })
+      }
+
+      case 'get-spec-file': {
+        if (!body.file?.trim()) {
+          return errorResponse('file is required')
+        }
+
+        const file = body.file.trim()
+        const rows = await loadSpecSections(client, projectId)
+        const projectName = await loadProjectName(client, projectId)
+
+        if (file === 'INDEX.md') {
+          const exportedSpec = assembleFullExportedSpec({ projectName, rows })
+          return json({ file, content: exportedSpec['INDEX.md'] ?? '' })
+        }
+
+        const fileRows = rows.filter((row) => row.file === file)
+        const content = assembleSpecFile(
+          file,
+          fileRows.map((row) => ({ anchor: row.anchor, content: row.content })),
+        )
+
+        return json({ file, content })
       }
 
       default:

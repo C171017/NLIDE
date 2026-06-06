@@ -32,7 +32,7 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Canvas nav (tilted layer stack — click Overview plate to return from detail; drill in via pillar double-click; fullscreen toggle; minimap detached but hidden) | `CanvasNavPanel.tsx`, `LayerStackIndicator.tsx` |
 | Card nodes + Product hub | `CardNode.tsx`, `IndexNode.tsx` (center pillar styling); long-press delete mode with trash drop zone |
 | Chat input (floating on canvas) + preview actions in side panel | `ChatBar.tsx`, `ChatSubmitButton.tsx`, `PreviewActions.tsx` — circular interpret/stop control; Enter submits |
-| TipTap card editor | `CardEditor.tsx` |
+| TipTap card editor | `CardEditor.tsx` — title/body edit + **spec MD file panel** (`SpecFilePanel.tsx`, `useSpecFileContent.ts`) |
 | Side panel | `SidePanel.tsx` — **Build plan** tab (phases + jobs) + Card editor tab |
 | **Resizable layout** | `AppShell.tsx`, `ResizeHandle.tsx`, `CornerResizeHandle.tsx`, `useResizableSize.ts` — drag borders between canvas and side panel; preview summary height in card tab; canvas nav minimap corner resize; sizes persist in `localStorage` |
 | Translator spec (shared) | `shared/translator/` — intent types, routing rules, build phases, **golden prompts** |
@@ -104,6 +104,7 @@ Run: `npm run dev` (from repo root)
 | `export-smoke` | ✅ **Implemented** — headless assemble + validation (no DB) |
 | `discard` | ✅ Deletes preview row |
 | `patch-card` | ✅ Updates card in Postgres |
+| `get-spec-file` | ✅ Assembles one spec file from `spec_sections` |
 | `get-translator-spec` | ✅ Intent types, routing rules, build phases, golden prompts |
 | `get-project` | ✅ Loads from DB (empty until commit seeds data) |
 

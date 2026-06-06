@@ -29,7 +29,7 @@ export default function BuildPhasesPanel() {
     : { done: 0, total: 0, ready: false }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="border-b border-white/10 px-4 py-3">
         <h2 className="text-sm font-semibold text-[#f3f4f6]">Translator build plan</h2>
         <p className="text-xs text-[#9aa3b2]">
@@ -72,7 +72,7 @@ export default function BuildPhasesPanel() {
         <p className="mt-2 text-[10px] text-[#6b7280]">Spec source: {source}</p>
       </div>
 
-      <div className="flex-1 space-y-2 overflow-auto p-3">
+      <div className="flex-1 space-y-2 overflow-auto p-3 pb-4">
         {phases.map((phase) => (
           <PhaseJobList
             key={phase.id}

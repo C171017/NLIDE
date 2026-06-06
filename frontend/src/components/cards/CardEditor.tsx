@@ -2,7 +2,10 @@ import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { useEffect } from 'react'
 import type { Card } from '../../types/canvas'
+import { useSpecFileContent } from '../../hooks/useSpecFileContent'
 import { cardTypeLabel } from '../../lib/cardStyles'
+import { useCanvasStore } from '../../store/canvasStore'
+import SpecFilePanel from './SpecFilePanel'
 import VizEmbed from '../viz/VizEmbed'
 
 interface CardEditorProps {
@@ -11,6 +14,15 @@ interface CardEditorProps {
 }
 
 export default function CardEditor({ card, onChange }: CardEditorProps) {
+  const projectName = useCanvasStore((state) => state.projectName)
+  const committedCards = useCanvasStore((state) => state.committedCards)
+  const preview = useCanvasStore((state) => state.preview)
+  const cards = preview?.cards ?? committedCards
+  const { content: specFileContent, isLoading: isSpecFileLoading } = useSpecFileContent(
+    card.specRef.file,
+    cards,
+    projectName,
+  )
   const editor = useEditor({
     extensions: [StarterKit],
     content: `<p>${card.body}</p>`,
@@ -50,6 +62,12 @@ export default function CardEditor({ card, onChange }: CardEditorProps) {
           <VizEmbed vizType={card.vizType} payload={card.vizPayload} />
         </div>
       )}
+
+      <SpecFilePanel
+        file={card.specRef.file}
+        content={specFileContent}
+        isLoading={isSpecFileLoading}
+      />
     </div>
   )
 }
