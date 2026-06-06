@@ -1,7 +1,7 @@
 import type { Card, CanvasEdge } from '../types/canvas'
 
 /** Zoom at or above this level reveals detail-layer cards for the selected top card. */
-export const ZOOM_DETAIL_THRESHOLD = 0.88
+export const ZOOM_DETAIL_THRESHOLD = 0.5
 
 /** Horizontal spread between top-layer pillars (Frontend · Product · Backend). */
 export const TOP_LAYER_SPREAD = 520

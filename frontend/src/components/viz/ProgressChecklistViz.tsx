@@ -35,6 +35,7 @@ export default function ProgressChecklistViz({
       )}
       onPointerDown={(event) => event.stopPropagation()}
       onMouseDown={(event) => event.stopPropagation()}
+      onClick={(event) => event.stopPropagation()}
     >
       <div className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-[#9aa3b2]">
         {data.phaseLabel}

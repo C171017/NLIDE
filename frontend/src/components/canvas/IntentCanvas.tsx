@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Background,
   MiniMap,
   Panel,
   Position,
   ReactFlow,
+  useReactFlow,
   useEdgesState,
   useNodesState,
+  useViewport,
   type Edge,
   type Node,
   type OnMove,
@@ -18,6 +20,7 @@ import {
   filterVisibleEdges,
   focusLabel,
   resolveViewMode,
+  type CanvasViewMode,
   ZOOM_DETAIL_THRESHOLD,
 } from '../../lib/canvasLayers'
 import { getNodeLayoutBox, layoutNodes } from '../../lib/layout'
@@ -35,6 +38,21 @@ const edgeTypes = {
   labeled: LabeledEdge,
 }
 
+const TRANSITION_OUT_MS = 140
+const TRANSITION_IN_MS = 260
+const MIN_ZOOM = 0.35
+const MAX_ZOOM = 1.5
+const WHEEL_ZOOM_SENSITIVITY = 0.0025
+const VIEWPORT_LERP = 0.42
+const VIEWPORT_EPSILON = 0.4
+
+type LayerTransitionPhase = 'idle' | 'leaving' | 'entering'
+
+interface DisplayedLayer {
+  mode: CanvasViewMode
+  focusId: string | null
+}
+
 const oppositePosition = {
   [Position.Top]: Position.Bottom,
   [Position.Right]: Position.Left,
@@ -46,6 +64,10 @@ function handleId(type: 'source' | 'target', position: Position) {
   return `${type}-${position}`
 }
 
+function layerKey(layer: DisplayedLayer) {
+  return `${layer.mode}:${layer.focusId ?? 'overview'}`
+}
+
 function cardsToNodes(
   cards: Card[],
   centerCardId: string,
@@ -53,6 +75,8 @@ function cardsToNodes(
   selectedCardId: string | null,
   onSelect: (cardId: string) => void,
 ): Node[] {
+  const selectionActive = selectedCardId !== null
+
   return cards.map((card) => ({
     id: card.id,
     type: card.id === centerCardId ? 'index' : 'card',
@@ -61,6 +85,7 @@ function cardsToNodes(
       card,
       isPreview: previewCardIds.has(card.id),
       isSelected: selectedCardId === card.id,
+      selectionActive,
       onSelect,
     },
     draggable: true,
@@ -155,8 +180,8 @@ function CanvasLayerPanel({
         </div>
         <div className="mt-0.5 text-[10px] text-[#7c8494]">
           {mode === 'top'
-            ? 'Select a pillar and zoom in to reveal detail cards'
-            : 'Zoom out to return to Product · Frontend · Backend'}
+            ? 'Two-finger pan · pinch zoom into a selected pillar'
+            : 'Pinch out to return to Product · Frontend · Backend'}
         </div>
         <div className="mt-1 text-[10px] tabular-nums text-[#6b7280]">
           zoom {Math.round(zoom * 100)}%
@@ -165,6 +190,154 @@ function CanvasLayerPanel({
       </div>
     </Panel>
   )
+}
+
+function normalizeWheelDelta(event: WheelEvent) {
+  const multiplier =
+    event.deltaMode === WheelEvent.DOM_DELTA_LINE
+      ? 16
+      : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+        ? window.innerHeight
+        : 1
+
+  return {
+    x: event.deltaX * multiplier,
+    y: event.deltaY * multiplier,
+  }
+}
+
+function clampZoom(value: number) {
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value))
+}
+
+function ExcalidrawStyleGestures() {
+  const reactFlow = useReactFlow()
+  const liveViewport = useViewport()
+  const rafRef = useRef<number | null>(null)
+  const targetViewportRef = useRef(reactFlow.getViewport())
+
+  useEffect(() => {
+    if (rafRef.current === null) {
+      targetViewportRef.current = liveViewport
+    }
+  }, [liveViewport])
+
+  useEffect(() => {
+    const pane = document.querySelector<HTMLElement>('.intent-canvas .react-flow__pane')
+
+    if (!pane) return undefined
+
+    const animate = () => {
+      const current = reactFlow.getViewport()
+      const target = targetViewportRef.current
+      const next = {
+        x: current.x + (target.x - current.x) * VIEWPORT_LERP,
+        y: current.y + (target.y - current.y) * VIEWPORT_LERP,
+        zoom: current.zoom + (target.zoom - current.zoom) * VIEWPORT_LERP,
+      }
+      const done =
+        Math.abs(next.x - target.x) < VIEWPORT_EPSILON &&
+        Math.abs(next.y - target.y) < VIEWPORT_EPSILON &&
+        Math.abs(next.zoom - target.zoom) < 0.001
+
+      void reactFlow.setViewport(done ? target : next, { duration: 0 })
+
+      if (done) {
+        rafRef.current = null
+        return
+      }
+
+      rafRef.current = window.requestAnimationFrame(animate)
+    }
+
+    const startAnimation = () => {
+      if (rafRef.current === null) {
+        rafRef.current = window.requestAnimationFrame(animate)
+      }
+    }
+
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault()
+
+      const rect = pane.getBoundingClientRect()
+      const delta = normalizeWheelDelta(event)
+      const current = targetViewportRef.current ?? reactFlow.getViewport()
+      const isZoomGesture = event.ctrlKey || event.metaKey
+
+      if (isZoomGesture) {
+        const pointer = {
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        }
+        const nextZoom = clampZoom(current.zoom * Math.exp(-delta.y * WHEEL_ZOOM_SENSITIVITY))
+        const flowPoint = {
+          x: (pointer.x - current.x) / current.zoom,
+          y: (pointer.y - current.y) / current.zoom,
+        }
+
+        targetViewportRef.current = {
+          x: pointer.x - flowPoint.x * nextZoom,
+          y: pointer.y - flowPoint.y * nextZoom,
+          zoom: nextZoom,
+        }
+      } else {
+        const horizontalDelta = event.shiftKey && Math.abs(delta.x) < 1 ? delta.y : delta.x
+        const verticalDelta = event.shiftKey ? 0 : delta.y
+
+        targetViewportRef.current = {
+          x: current.x - horizontalDelta,
+          y: current.y - verticalDelta,
+          zoom: current.zoom,
+        }
+      }
+
+      startAnimation()
+    }
+
+    pane.addEventListener('wheel', handleWheel, { passive: false })
+
+    return () => {
+      pane.removeEventListener('wheel', handleWheel)
+
+      if (rafRef.current !== null) {
+        window.cancelAnimationFrame(rafRef.current)
+      }
+    }
+  }, [reactFlow])
+
+  return null
+}
+
+function LayerViewportAnimator({
+  layerKeyValue,
+  transitionPhase,
+}: {
+  layerKeyValue: string
+  transitionPhase: LayerTransitionPhase
+}) {
+  const reactFlow = useReactFlow()
+  const lastLayerKeyRef = useRef(layerKeyValue)
+
+  useEffect(() => {
+    if (transitionPhase !== 'entering' || lastLayerKeyRef.current === layerKeyValue) {
+      return undefined
+    }
+
+    lastLayerKeyRef.current = layerKeyValue
+
+    const fitTimer = window.setTimeout(() => {
+      void reactFlow.fitView({
+        duration: 320,
+        padding: 0.24,
+      })
+    }, 40)
+
+    return () => {
+      window.clearTimeout(fitTimer)
+    }
+  }, [layerKeyValue, reactFlow, transitionPhase])
+
+  return null
 }
 
 export default function IntentCanvas() {
@@ -176,15 +349,62 @@ export default function IntentCanvas() {
   const selectCard = useCanvasStore((state) => state.selectCard)
   const moveCard = useCanvasStore((state) => state.moveCard)
 
+  const handleSelectCard = useCallback(
+    (cardId: string) => {
+      selectCard(selectedCardId === cardId ? null : cardId)
+    },
+    [selectedCardId, selectCard],
+  )
+
+  const handlePaneClick = useCallback(() => {
+    selectCard(null)
+  }, [selectCard])
+
   const [zoom, setZoom] = useState(1)
 
   const activeCards = preview?.cards ?? committedCards
   const activeEdges = preview?.edges ?? committedEdges
 
-  const { mode: viewMode, focusId } = useMemo(
+  const resolvedLayer = useMemo(
     () => resolveViewMode(zoom, selectedCardId, activeCards),
     [zoom, selectedCardId, activeCards],
   )
+  const [displayedLayer, setDisplayedLayer] = useState<DisplayedLayer>(resolvedLayer)
+  const [transitionPhase, setTransitionPhase] = useState<LayerTransitionPhase>('idle')
+  const pendingLayerRef = useRef<DisplayedLayer>(resolvedLayer)
+
+  useEffect(() => {
+    const nextKey = layerKey(resolvedLayer)
+    const currentKey = layerKey(displayedLayer)
+
+    pendingLayerRef.current = resolvedLayer
+
+    if (nextKey === currentKey) {
+      return undefined
+    }
+
+    const leaveFrame = window.requestAnimationFrame(() => {
+      setTransitionPhase('leaving')
+    })
+
+    const swapTimer = window.setTimeout(() => {
+      setDisplayedLayer(pendingLayerRef.current)
+      setTransitionPhase('entering')
+    }, TRANSITION_OUT_MS)
+
+    const settleTimer = window.setTimeout(() => {
+      setTransitionPhase('idle')
+    }, TRANSITION_OUT_MS + TRANSITION_IN_MS)
+
+    return () => {
+      window.cancelAnimationFrame(leaveFrame)
+      window.clearTimeout(swapTimer)
+      window.clearTimeout(settleTimer)
+    }
+  }, [displayedLayer, resolvedLayer])
+
+  const viewMode = displayedLayer.mode
+  const focusId = displayedLayer.focusId
 
   const visibleCards = useMemo(
     () => filterVisibleCards(activeCards, viewMode, focusId),
@@ -217,7 +437,7 @@ export default function IntentCanvas() {
           centerCardId,
           previewCardIds,
           selectedCardId,
-          selectCard,
+          handleSelectCard,
         ),
         visibleEdges.map((edge) => ({
           id: edge.id,
@@ -234,7 +454,7 @@ export default function IntentCanvas() {
       centerCardId,
       previewCardIds,
       selectedCardId,
-      selectCard,
+      handleSelectCard,
       viewMode,
       focusId,
     ],
@@ -252,6 +472,32 @@ export default function IntentCanvas() {
     setNodes(initialNodes)
     setEdges(initialEdges)
   }, [initialNodes, initialEdges, setNodes, setEdges])
+
+  useEffect(() => {
+    setNodes((currentNodes) =>
+      currentNodes.map((node) => {
+        const isSelected = selectedCardId === node.id
+        const selectionActive = selectedCardId !== null
+        const nodeData = node.data as {
+          isSelected?: boolean
+          selectionActive?: boolean
+        }
+
+        if (nodeData.isSelected === isSelected && nodeData.selectionActive === selectionActive) {
+          return node
+        }
+
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            isSelected,
+            selectionActive,
+          },
+        }
+      }),
+    )
+  }, [selectedCardId, setNodes])
 
   const handleNodesChange: OnNodesChange = useCallback(
     (changes) => {
@@ -271,22 +517,33 @@ export default function IntentCanvas() {
   }, [])
 
   return (
-    <div className="intent-canvas h-full w-full">
+    <div className={`intent-canvas canvas-layer-${transitionPhase} h-full w-full`}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
         onNodesChange={handleNodesChange}
         onEdgesChange={onEdgesChange}
         onMove={handleMove}
+        onPaneClick={handlePaneClick}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
+        elementsSelectable={false}
         fitView
         fitViewOptions={{ padding: 0.2 }}
-        minZoom={0.35}
-        maxZoom={1.5}
+        minZoom={MIN_ZOOM}
+        maxZoom={MAX_ZOOM}
+        panOnScroll={false}
+        zoomOnScroll={false}
+        zoomOnPinch={false}
+        zoomOnDoubleClick={false}
         proOptions={{ hideAttribution: true }}
       >
         <Background gap={20} size={1} color="#1f2433" />
+        <ExcalidrawStyleGestures />
+        <LayerViewportAnimator
+          layerKeyValue={layerKey(displayedLayer)}
+          transitionPhase={transitionPhase}
+        />
         <CanvasLayerPanel
           mode={viewMode}
           label={focusLabel(activeCards, focusId)}

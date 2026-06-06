@@ -22,6 +22,7 @@ interface Point {
 export function getNodeLayoutBox(node: Node, centerId: string): NodeBox {
   const card = (node.data as { card?: { vizType?: string } } | undefined)?.card
   const hasViz = Boolean(card?.vizType)
+  const hasProgressChecklist = card?.vizType === 'progress-checklist'
   const isHub = node.id === centerId
 
   if (isHub) {
@@ -34,8 +35,8 @@ export function getNodeLayoutBox(node: Node, centerId: string): NodeBox {
 
   return {
     id: node.id,
-    width: NODE_WIDTH,
-    height: hasViz ? 240 : NODE_HEIGHT,
+    width: hasProgressChecklist ? 300 : NODE_WIDTH,
+    height: hasProgressChecklist ? 290 : hasViz ? 250 : NODE_HEIGHT,
   }
 }
 

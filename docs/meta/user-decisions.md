@@ -76,3 +76,4 @@ When user overrides a decision, add a row here and strike through or mark supers
 | Date | Change |
 |------|--------|
 | 2026-06-06 | **Central node is Product** (not Index hub); top layer = Frontend · Product · Backend; detail layer via zoom |
+| 2026-06-06 | **Detail zoom-out threshold lowered to 0.5** (from 0.88) — detail cards stay visible until user zooms out further before returning to overview |

@@ -1,13 +1,14 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import clsx from 'clsx'
 import type { Card } from '../../../types/canvas'
-import { cardTypeLabel, cardTypeStyles } from '../../../lib/cardStyles'
+import { cardTypeLabel, cardTypeStyles, cardSelectionStyles } from '../../../lib/cardStyles'
 import VizEmbed from '../../viz/VizEmbed'
 
 export type CardNodeData = {
   card: Card
   isPreview?: boolean
   isSelected?: boolean
+  selectionActive?: boolean
   onSelect?: (cardId: string) => void
 }
 
@@ -15,17 +16,27 @@ const handlePositions = [Position.Top, Position.Right, Position.Bottom, Position
 
 export default function CardNode({ data }: NodeProps) {
   const nodeData = data as CardNodeData
-  const { card, isPreview, isSelected, onSelect } = nodeData
+  const { card, isPreview, isSelected = false, selectionActive = false, onSelect } = nodeData
   const hasInteractiveViz = card.vizType === 'progress-checklist'
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      onClick={() => onSelect?.(card.id)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onSelect?.(card.id)
+        }
+      }}
       className={clsx(
-        'rounded-2xl border px-3 py-2.5 text-left shadow-xl shadow-black/20 backdrop-blur-xl transition-colors',
+        'canvas-node-card cursor-pointer rounded-2xl border px-3 py-2.5 text-left shadow-xl shadow-black/20 backdrop-blur-xl transition-[opacity,box-shadow,border-color,filter,transform]',
         hasInteractiveViz ? 'w-[300px]' : 'w-[260px]',
         cardTypeStyles(card.type),
+        cardSelectionStyles(isSelected, selectionActive),
         isPreview && 'border-dashed opacity-80',
-        isSelected && 'ring-2 ring-sky-300/70',
+        isSelected && isPreview && 'opacity-100',
       )}
     >
       {handlePositions.map((position) => (
@@ -46,11 +57,7 @@ export default function CardNode({ data }: NodeProps) {
           className="!h-1.5 !w-1.5 !bg-[#6b7280]"
         />
       ))}
-      <button
-        type="button"
-        onClick={() => onSelect?.(card.id)}
-        className="w-full text-left"
-      >
+      <div className="w-full text-left">
         <div className="mb-1 flex flex-wrap items-center gap-2">
           <span className="text-[10px] font-medium uppercase tracking-wide text-[#9aa3b2]">
             {cardTypeLabel(card.type)}
@@ -70,7 +77,7 @@ export default function CardNode({ data }: NodeProps) {
         {!hasInteractiveViz && (
           <p className="line-clamp-2 text-xs leading-relaxed text-[#b6bcc8]">{card.body}</p>
         )}
-      </button>
+      </div>
       {hasInteractiveViz && (
         <p className="mb-2 line-clamp-2 text-xs leading-relaxed text-[#b6bcc8]">{card.body}</p>
       )}

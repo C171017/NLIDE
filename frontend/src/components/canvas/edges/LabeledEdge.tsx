@@ -45,7 +45,7 @@ export default function LabeledEdge({
       {edgeData.label && (
         <EdgeLabelRenderer>
           <div
-            className="pointer-events-none absolute rounded bg-[#1a1d27] px-1.5 py-0.5 text-[10px] text-[#9aa3b2]"
+            className="canvas-edge-label pointer-events-none absolute rounded-full border border-white/8 bg-slate-950/45 px-1.5 py-0.5 text-[10px] text-[#9aa3b2] backdrop-blur-sm"
             style={{
               transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
             }}

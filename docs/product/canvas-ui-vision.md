@@ -76,13 +76,13 @@ The canvas has **two spatial layers**, not separate pages:
 **Navigation:**
 
 1. **Overview** — user sees three pillar cards; Product is the hub (center node, amber styling).
-2. **Drill in** — user selects Frontend, Product, or Backend, then zooms in (scroll/pinch) past the detail threshold (~88%).
+2. **Drill in** — user selects Frontend, Product, or Backend, then zooms in (scroll/pinch) past the detail threshold (~50%).
 3. **Detail view** — focused pillar stays visible; its detail cards appear in a ring (Users/Features under Product; canvas tasks under Frontend; Architecture/tasks under Backend).
-4. **Zoom out** — below threshold → overview only; detail cards hidden again.
+4. **Zoom out** — below threshold → overview only; detail cards hidden again (detail persists down to ~50% zoom before returning to overview).
 
 Detail cards carry `parentCardId` pointing at their top-layer owner. Cross-links between detail cards (e.g. Features → Tasks) remain visible when both ends are in the active detail scope.
 
-**`[AI-INFERRED]`** threshold constant: `ZOOM_DETAIL_THRESHOLD = 0.88` in `frontend/src/lib/canvasLayers.ts`.
+**`[AI-INFERRED]`** threshold constant: `ZOOM_DETAIL_THRESHOLD = 0.5` in `frontend/src/lib/canvasLayers.ts` (lowered from 0.88 so detail layer stays visible at higher zoom-out levels).
 
 ### Card types (map to spec files)
 

@@ -57,6 +57,91 @@ html:-webkit-full-screen {
   stroke: #60a5fa;
 }
 
+.intent-canvas .canvas-node-card,
+.intent-canvas .react-flow__edge,
+.intent-canvas .canvas-edge-label,
+.intent-canvas .react-flow__panel {
+  transition:
+    opacity 180ms ease,
+    transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 240ms ease;
+}
+
+.intent-canvas .canvas-node-card {
+  transform-origin: center;
+}
+
+.intent-canvas.canvas-layer-leaving .canvas-node-card {
+  opacity: 0;
+  transform: scale(0.94);
+  filter: blur(2px);
+}
+
+.intent-canvas.canvas-layer-leaving .react-flow__edge {
+  opacity: 0;
+}
+
+.intent-canvas.canvas-layer-leaving .canvas-edge-label {
+  opacity: 0;
+}
+
+.intent-canvas.canvas-layer-leaving .react-flow__panel {
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
+}
+
+.intent-canvas.canvas-layer-entering .canvas-node-card {
+  animation: layer-node-enter 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.intent-canvas.canvas-layer-entering .react-flow__edge {
+  animation: layer-edge-enter 240ms ease both;
+}
+
+.intent-canvas.canvas-layer-entering .canvas-edge-label {
+  animation: layer-edge-enter 240ms ease both;
+}
+
+.intent-canvas.canvas-layer-entering .react-flow__panel {
+  animation: layer-panel-enter 220ms ease both;
+}
+
+@keyframes layer-node-enter {
+  from {
+    opacity: 0;
+    transform: scale(1.06);
+    filter: blur(2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes layer-edge-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes layer-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .intent-canvas .react-flow__minimap {
   background: rgba(18, 24, 36, 0.78);
   border: 1px solid rgba(148, 163, 184, 0.16);
