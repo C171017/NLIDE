@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 function readStoredSize(storageKey: string, defaultSize: number): number {
   try {
@@ -26,7 +26,17 @@ export function useResizableSize({
   min: number
   max: number
 }) {
-  const [size, setSizeState] = useState(() => readStoredSize(storageKey, defaultSize))
+  const [storedSize, setSizeState] = useState(() => readStoredSize(storageKey, defaultSize))
+  const size = clamp(storedSize, min, max)
+
+  useEffect(() => {
+    if (size === storedSize) return
+    try {
+      localStorage.setItem(storageKey, String(size))
+    } catch {
+      // Ignore quota / private-mode errors.
+    }
+  }, [size, storageKey, storedSize])
 
   const setSize = useCallback(
     (next: number) => {
@@ -44,7 +54,7 @@ export function useResizableSize({
   const applyDelta = useCallback(
     (delta: number) => {
       setSizeState((prev) => {
-        const clamped = clamp(prev + delta, min, max)
+        const clamped = clamp(clamp(prev, min, max) + delta, min, max)
         try {
           localStorage.setItem(storageKey, String(clamped))
         } catch {

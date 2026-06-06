@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import clsx from 'clsx'
 import { useResizableSize } from '../../hooks/useResizableSize'
 import { useCanvasStore } from '../../store/canvasStore'
@@ -15,13 +15,20 @@ type SidePanelProps = {
 }
 
 export default function SidePanel({ style }: SidePanelProps) {
-  const [tab, setTab] = useState<SideTab>('build')
+  const [manualTab, setManualTab] = useState<{
+    selectedCardId: string | null
+    tab: SideTab
+  } | null>(null)
   const committedCards = useCanvasStore((state) => state.committedCards)
   const preview = useCanvasStore((state) => state.preview)
   const selectedCardId = useCanvasStore((state) => state.selectedCardId)
   const updateCard = useCanvasStore((state) => state.updateCard)
 
   const activeCards = preview?.cards ?? committedCards
+  const tab =
+    selectedCardId && manualTab?.selectedCardId !== selectedCardId
+      ? 'card'
+      : (manualTab?.tab ?? 'build')
 
   const selectedCard = useMemo(
     () => activeCards.find((card) => card.id === selectedCardId) ?? null,
@@ -35,11 +42,9 @@ export default function SidePanel({ style }: SidePanelProps) {
     max: 320,
   })
 
-  useEffect(() => {
-    if (selectedCardId) {
-      setTab('card')
-    }
-  }, [selectedCardId])
+  const selectTab = (nextTab: SideTab) => {
+    setManualTab({ selectedCardId, tab: nextTab })
+  }
 
   return (
     <aside
@@ -47,10 +52,10 @@ export default function SidePanel({ style }: SidePanelProps) {
       style={style}
     >
       <div className="flex border-b border-white/10">
-        <SideTabButton active={tab === 'build'} onClick={() => setTab('build')}>
+        <SideTabButton active={tab === 'build'} onClick={() => selectTab('build')}>
           Build plan
         </SideTabButton>
-        <SideTabButton active={tab === 'card'} onClick={() => setTab('card')}>
+        <SideTabButton active={tab === 'card'} onClick={() => selectTab('card')}>
           Card editor
         </SideTabButton>
       </div>

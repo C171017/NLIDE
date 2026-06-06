@@ -20,7 +20,9 @@ export default function ResizeHandle({
   const lastPosition = useRef(0)
   const onResizeRef = useRef(onResize)
 
-  onResizeRef.current = onResize
+  useEffect(() => {
+    onResizeRef.current = onResize
+  }, [onResize])
 
   useEffect(() => {
     const cursorClass = direction === 'horizontal' ? 'is-resizing-x' : 'is-resizing-y'
@@ -33,6 +35,7 @@ export default function ResizeHandle({
 
     const onPointerMove = (event: PointerEvent) => {
       if (!dragging.current) return
+      event.preventDefault()
       const position = direction === 'horizontal' ? event.clientX : event.clientY
       const delta = position - lastPosition.current
       if (delta !== 0) {

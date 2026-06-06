@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import ChatBar from '../chat/ChatBar'
 import IntentCanvas from '../canvas/IntentCanvas'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
@@ -9,28 +10,53 @@ const SIDE_PANEL_WIDTH_KEY = 'nlide.layout.sidePanelWidth'
 const SIDE_PANEL_HEIGHT_KEY = 'nlide.layout.sidePanelHeight'
 const CHAT_BAR_HEIGHT_KEY = 'nlide.layout.chatBarHeight'
 
+function readWindowSize() {
+  return {
+    width: window.innerWidth,
+    height: window.innerHeight,
+  }
+}
+
+function useWindowSize() {
+  const [windowSize, setWindowSize] = useState(readWindowSize)
+
+  useEffect(() => {
+    const onResize = () => setWindowSize(readWindowSize())
+
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  return windowSize
+}
+
 export default function AppShell() {
   const isLarge = useMediaQuery('(min-width: 1024px)')
+  const windowSize = useWindowSize()
+
+  const sidePanelWidthMax = Math.max(260, Math.min(640, windowSize.width - 460))
+  const sidePanelHeightMax = Math.max(140, Math.min(360, Math.floor(windowSize.height * 0.34)))
+  const chatBarHeightMax = Math.max(108, Math.min(320, Math.floor(windowSize.height * 0.3)))
 
   const sidePanelWidth = useResizableSize({
     storageKey: SIDE_PANEL_WIDTH_KEY,
     defaultSize: 384,
     min: 260,
-    max: 640,
+    max: sidePanelWidthMax,
   })
 
   const sidePanelHeight = useResizableSize({
     storageKey: SIDE_PANEL_HEIGHT_KEY,
-    defaultSize: 220,
+    defaultSize: 200,
     min: 140,
-    max: 480,
+    max: sidePanelHeightMax,
   })
 
   const chatBarHeight = useResizableSize({
     storageKey: CHAT_BAR_HEIGHT_KEY,
     defaultSize: 148,
     min: 108,
-    max: 360,
+    max: chatBarHeightMax,
   })
 
   return (
