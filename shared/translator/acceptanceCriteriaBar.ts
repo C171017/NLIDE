@@ -1,6 +1,6 @@
 /**
  * Acceptance criteria quality bar — Phase 3 · Job 2.
- * **[AI-INFERRED]** draft for [USER] review before features writer LLM ships.
+ * **[USER]** approved 2026-06-06 before features writer LLM ships.
  *
  * Defines what "good enough" acceptance criteria look like before a feature
  * section is valid for preview/commit.

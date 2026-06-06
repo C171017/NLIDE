@@ -22,6 +22,7 @@ export const DEFAULT_COMPLETED_JOBS: Record<string, Record<string, boolean>> = {
   },
   'phase-3-features-writer': {
     'feature-md-template': true,
+    'acceptance-criteria-rules': true,
   },
 }
 
