@@ -2,9 +2,13 @@
 
 The NLIDE web app is an **intent canvas**: a visual, interactive surface where humans read and edit what they want, while **agent-executable markdown** lives underneath each card. Flow B orchestration decides how user input maps onto the graph.
 
+**`[USER]`** canvas concept · **`[AI-INFERRED]`** v0 viz subset and component choices
+
+**Agents:** UI/design changes → update this file + [user-decisions.md](../meta/user-decisions.md) or [ai-inferred-decisions.md](../meta/ai-inferred-decisions.md).
+
 **Platform:** Web app first (hackathon). Tauri/macOS native later — same React frontend.
 
-Related: [Flow B v0](../architecture/flow-b-v0.md) · [Tech stack](./tech-stack.md)
+Related: [Flow B v0](../architecture/flow-b-v0.md) · [Tech stack](./tech-stack.md) · [Current state](../implementation/current-state.md)
 
 ---
 

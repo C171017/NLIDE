@@ -1,5 +1,17 @@
 # AGENTS.md
 
+## NLIDE documentation (read first)
+
+Before changing design or code, read:
+
+1. **[docs/meta/documentation-guide.md](docs/meta/documentation-guide.md)** — update docs when user changes design or you infer new choices
+2. **[docs/meta/user-decisions.md](docs/meta/user-decisions.md)** — **[USER]** explicit decisions (do not override)
+3. **[docs/meta/ai-inferred-decisions.md](docs/meta/ai-inferred-decisions.md)** — **[AI-INFERRED]** defaults (revisable)
+4. **[docs/implementation/current-state.md](docs/implementation/current-state.md)** — what is built/deployed now
+5. **[docs/README.md](docs/README.md)** — full doc index
+
+**Rule:** Any design or implementation change → update the relevant docs in the same session. Label **[USER]** vs **[AI-INFERRED]** clearly.
+
 <!-- INSFORGE:START -->
 ## InsForge backend
 

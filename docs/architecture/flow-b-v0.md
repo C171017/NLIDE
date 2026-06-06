@@ -2,6 +2,10 @@
 
 **Current focus:** users input what they want; the platform structures it into human-readable, agent-executable markdown — **intent**, not code documentation.
 
+**`[USER]`** Flow B scope · **`[AI-INFERRED]`** schema/pipeline details unless listed in [user-decisions.md](../meta/user-decisions.md)
+
+**Agents:** update this file when intent MD schema or pipeline changes. See [documentation-guide.md](../meta/documentation-guide.md). Translator internals: [translator-internals.md](./translator-internals.md).
+
 Flows A (repo → MD) and C (MD → code) are deferred.
 
 ---

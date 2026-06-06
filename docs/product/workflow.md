@@ -1,6 +1,8 @@
 # NLIDE Workflow — Batch Intent, Not Live Execution
 
-How the product actually works. This is a **locked product decision**.
+How the product actually works. **`[USER]`** — locked product decision.
+
+**Agents:** if workflow changes, update this file + [user-decisions.md](../meta/user-decisions.md).
 
 Related: [Canvas UI](./canvas-ui-vision.md) · [Flow B](../architecture/flow-b-v0.md) · [Tech stack](./tech-stack.md)
 

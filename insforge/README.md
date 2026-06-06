@@ -3,6 +3,8 @@
 Backend: Postgres + Edge Functions + Model Gateway (Claude later).  
 Frontend calls `nlide-api` edge function.
 
+**Doc maintenance:** when URLs, migrations, or deploy steps change, also update [docs/implementation/current-state.md](../docs/implementation/current-state.md) per [docs/meta/documentation-guide.md](../docs/meta/documentation-guide.md).
+
 ## Project status (this repo)
 
 - **InsForge project:** NLIDE (`c23614f7-c822-460e-a84b-86363965b78c`)

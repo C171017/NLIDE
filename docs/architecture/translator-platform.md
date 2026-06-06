@@ -14,7 +14,7 @@ Design notes for the NLIDE core: users input **intent**; the platform produces *
 | **B. Human → MD** | ✅ **Now** | User natural language → structured intent spec for agents |
 | **C. MD → Code** | ❌ Out of scope | Execution agents (Cursor, Replicas, etc.) |
 
-See **[flow-b-v0.md](./flow-b-v0.md)** for the detailed v0 spec: output files, acceptance criteria, tasks, and pipeline.
+See **[flow-b-v0.md](./flow-b-v0.md)** for the detailed v0 spec: output files, acceptance criteria, tasks, and pipeline. Translator pipeline: **[translator-internals.md](./translator-internals.md)**. Live status: **[current-state.md](../implementation/current-state.md)**.
 
 Flow A details (deferred): **[flow-a-v0.md](./flow-a-v0.md)**
 

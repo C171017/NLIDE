@@ -2,6 +2,10 @@
 
 Solo hackathon build. All product and stack decisions are **locked** below.
 
+**Labels:** **[USER]** = explicit user choice · **[AI-INFERRED]** = agent default — see [meta/user-decisions.md](./meta/user-decisions.md) and [meta/ai-inferred-decisions.md](./meta/ai-inferred-decisions.md).  
+**Live deploy:** [implementation/current-state.md](./implementation/current-state.md)  
+**Agent doc rules:** [meta/documentation-guide.md](./meta/documentation-guide.md)
+
 See [Canvas UI](./canvas-ui-vision.md) · [Workflow](./workflow.md) · [Execution phases (future)](./execution-phases.md)
 
 ---
@@ -12,7 +16,7 @@ One developer. Minimize languages, infra, and moving parts. Web first; Tauri/mac
 
 ---
 
-## Locked product decisions
+## Locked product decisions `[USER]`
 
 | # | Decision | Choice |
 |---|----------|--------|
@@ -78,7 +82,7 @@ Custom domain: point DNS to InsForge Sites or Cloudflare Pages depending on acti
 
 ---
 
-## Locked stack
+## Locked stack `[AI-INFERRED]` unless noted in user-decisions
 
 | Area | Choice |
 |------|--------|
