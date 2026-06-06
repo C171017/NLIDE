@@ -85,6 +85,7 @@ export const ROUTING_RULES: string[] = [
   'Never create open question on every message.',
 ]
 
+/** **[USER]** locked v0 (2026-06-06) — Flow B nine spec files only; router rejects other targets. */
 export const SPEC_FILE_ALLOWLIST: string[] = [
   'INDEX.md',
   'product.md',

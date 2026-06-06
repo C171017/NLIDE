@@ -66,6 +66,7 @@ See also: [documentation-guide.md](./documentation-guide.md) · [ai-inferred-dec
 | 2026-06-06 | **v0 intent types approved** — routing policy & ten-type list | `shared/translator/intentTypes.ts`; see [router-intent-types-v0.md](../architecture/router-intent-types-v0.md) |
 | 2026-06-06 | **`intent_type` enum locked for v0** — `add_feature` … `noop` | May revise before Phase 2 router + golden tests; canonical union in `shared/translator/types.ts` |
 | 2026-06-06 | **Router output schema locked for v0** — `intent_type`, `summary`, `operations[]`, `canvas_ops[]`, `open_questions[]` | Hardcoded shape in `shared/translator/intentTypes.ts`; LLM does not invent new top-level fields |
+| 2026-06-06 | **Spec file allowlist locked for v0** — nine Flow B files (`INDEX.md` … `open-questions.md`) | `SPEC_FILE_ALLOWLIST` in `shared/translator/intentTypes.ts` |
 
 ---
 
@@ -88,4 +89,4 @@ When user overrides a decision, add a row here and strike through or mark supers
 | 2026-06-06 | **Central node is Product** (not Index hub); top layer = Frontend · Product · Backend; detail layer via pillar click |
 | 2026-06-06 | ~~**Detail zoom-out threshold lowered to 0.5**~~ — **superseded**: layer navigation is click-to-drill, not zoom threshold |
 | 2026-06-06 | **Click-to-drill layer navigation** — click a top pillar to show its sub-cards; click the same pillar again to return to overview; no zoom-based layer transition |
-| 2026-06-06 | **Router intent types + schema locked (v0)** — jobs 1–3 on Phase 1 checklist |
+| 2026-06-06 | **Router contract jobs 1–4 locked (v0)** — policy, enum, schema, allowlist |

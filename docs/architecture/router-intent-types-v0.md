@@ -109,6 +109,7 @@ Allowed `target` files (v0): `INDEX.md`, `product.md`, `users.md`, `features.md`
 - [x] **Routing policy** ticked (1/6)
 - [x] **`intent_type` enum locked** ticked (2/6)
 - [x] **Hardcoded schema fields** ticked (3/6)
+- [x] **Spec file allowlist** ticked (4/6)
 
 ---
 

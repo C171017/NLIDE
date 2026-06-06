@@ -10,6 +10,7 @@ export const DEFAULT_COMPLETED_JOBS: Record<string, Record<string, boolean>> = {
     'routing-policy': true,
     'intent-type-enum': true,
     'schema-fields': true,
+    'spec-allowlist': true,
   },
 }
 
