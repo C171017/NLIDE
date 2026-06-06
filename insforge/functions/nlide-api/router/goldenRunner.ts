@@ -3,8 +3,8 @@ import {
   GOLDEN_PASS_BAR,
   GOLDEN_PROMPTS,
   scoreGoldenRouterResults,
-} from '../../../../shared/translator/index.ts'
-import { SMOKE_CONTEXT } from '../../../../shared/translator/routerSmokeInvoke.ts'
+} from '../_shared/translator/index.ts'
+import { SMOKE_CONTEXT } from '../_shared/translator/routerSmokeInvoke.ts'
 import { routeIntent } from './routeIntent.ts'
 import type { RouterContext } from './types.ts'
 

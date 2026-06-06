@@ -32,7 +32,7 @@ export type RouteIntentErrorCode =
   | 'router_upstream_error'
 
 export type RouteIntentResult =
-  | { ok: true; plan: import('../../../../shared/translator/types.ts').RouterPlan; model: string }
+  | { ok: true; plan: import('../_shared/translator/types.ts').RouterPlan; model: string }
   | {
       ok: false
       error: {

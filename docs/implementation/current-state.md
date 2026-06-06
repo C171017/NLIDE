@@ -62,7 +62,7 @@ Run: `npm run dev` (from repo root)
 
 | Component | Path / notes |
 |-----------|----------------|
-| Edge function (bundled) | `insforge/functions/nlide-api/index.ts` |
+| Edge function (bundled) | `insforge/functions/nlide-api/index.ts` — deploy uses `bundle:api` → `dist/index.ts` (vendors `_shared/translator/`) |
 | **Router (Phase 2)** | `insforge/functions/nlide-api/router/` — `routeIntent()`, Zod, `action:route`, `action:route-golden` |
 | Translator preview | **Stub** `buildPreview()` on `action:intent` — writers not wired yet |
 | DB access | `@insforge/sdk` in edge function |

@@ -1,6 +1,6 @@
 import { z } from 'npm:zod@3.23.8'
-import { SPEC_FILE_ALLOWLIST } from '../../../../shared/translator/intentTypes.ts'
-import type { RouterPlan } from '../../../../shared/translator/types.ts'
+import { SPEC_FILE_ALLOWLIST } from '../_shared/translator/intentTypes.ts'
+import type { RouterPlan } from '../_shared/translator/types.ts'
 
 const ROUTER_INTENT_TYPE_VALUES = [
   'add_feature',

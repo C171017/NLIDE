@@ -51,7 +51,7 @@ insforge secrets list
 npm run insforge:deploy:api
 ```
 
-Function source: `insforge/functions/nlide-api/` (imports `shared/translator/`). Run `npm run sync:translator` before deploy.
+Function source: `insforge/functions/nlide-api/`. Deploy runs `npm run bundle:api` (vendors `shared/translator/` into `_shared/`, then esbuild → `dist/index.ts`).
 
 Public URL pattern: `https://{appkey}.{region}.insforge.app/functions/nlide-api`
 

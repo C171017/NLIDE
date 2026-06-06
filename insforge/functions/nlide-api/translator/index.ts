@@ -1,8 +1,8 @@
 /**
  * Bundled translator spec for nlide-api deploy.
- * Generated from shared/translator — run: npm run sync:translator
+ * Source of truth: shared/translator — run: npm run sync:translator
  */
-import { getTranslatorSpec } from '../../../shared/translator/index.ts'
+import { getTranslatorSpec } from '../_shared/translator/index.ts'
 
 export { getTranslatorSpec }
 export {
@@ -40,7 +40,7 @@ export {
   isRouterIntentType,
   isSpecFileAllowed,
   scoreGoldenRouterResults,
-} from '../../../shared/translator/index.ts'
+} from '../_shared/translator/index.ts'
 
 export type {
   AcceptanceCriteriaBar,
@@ -70,7 +70,7 @@ export type {
   TaskStatus,
   TaskWriterRules,
   TranslatorSpec,
-} from '../../../shared/translator/index.ts'
+} from '../_shared/translator/index.ts'
 
 export function handleGetTranslatorSpec() {
   return getTranslatorSpec()

@@ -1,4 +1,4 @@
-import { formatRouterPromptOutline } from '../../../../shared/translator/routerPromptOutline.ts'
+import { formatRouterPromptOutline } from '../_shared/translator/routerPromptOutline.ts'
 import { parseRouterPlanFromLlmText } from './schema.ts'
 import type { RouteIntentInput, RouteIntentResult } from './types.ts'
 

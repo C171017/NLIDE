@@ -45,7 +45,7 @@ See also: [documentation-guide.md](./documentation-guide.md)
 | Date | Decision | Rationale | Revisable? |
 |------|----------|-----------|------------|
 | 2026-06-06 | Single edge function **`nlide-api`** with `action` routing | Simpler deploy than many functions | Yes |
-| 2026-06-06 | Edge function as **single bundled `index.ts`** | InsForge deploy uploads one file; multi-file imports fail | Yes — if CLI supports bundles |
+| 2026-06-06 | Edge function deploy via **esbuild bundle** → single `--file` | InsForge Subhosting does not trace multi-file local imports; vendored `_shared/translator/` + bundle | Yes |
 | 2026-06-06 | TypeScript + Zod for structured LLM (planned) | Matches Edge Function runtime | Yes |
 | 2026-06-06 | OpenAI SDK → InsForge Model Gateway endpoint | InsForge-compatible LLM calls | Yes |
 | 2026-06-06 | Migrations in repo root **`migrations/`** | InsForge CLI convention (not `insforge/migrations/`) | Yes |
