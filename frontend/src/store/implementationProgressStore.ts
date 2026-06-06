@@ -18,6 +18,7 @@ export const DEFAULT_COMPLETED_JOBS: Record<string, Record<string, boolean>> = {
     'router-system-prompt': true,
     'golden-fixture': true,
     'failure-behavior': true,
+    'router-smoke': true,
   },
 }
 

@@ -26,6 +26,7 @@ export function getTranslatorSpec(): TranslatorSpec {
 export * from './types.ts'
 export * from './intentTypes.ts'
 export * from './buildPhases.ts'
+export * from './featuresWriterTemplate.ts'
 export * from './goldenPrompts.ts'
 export * from './goldenRouterFixture.ts'
 export * from './goldenRouterMatch.ts'

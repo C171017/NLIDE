@@ -68,7 +68,7 @@ export const BUILD_PHASES: BuildPhase[] = [
     title: 'Phase 2: Router build brief',
     plainSummary: 'Instructions for wiring Claude + golden tests.',
     agentModeGoal: 'Ship LLM router, golden test runner, tune until pass bar',
-    status: 'active',
+    status: 'done',
     checklistId: 'phase-2-router-build',
     jobs: [
       {
@@ -99,7 +99,7 @@ export const BUILD_PHASES: BuildPhase[] = [
     title: 'Phase 3: Features writer brief',
     plainSummary: 'How features.md patches should read.',
     agentModeGoal: 'Implement features.md writer from router operations',
-    status: 'upcoming',
+    status: 'active',
     checklistId: 'phase-3-features-writer',
     jobs: [
       {

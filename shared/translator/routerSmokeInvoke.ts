@@ -1,6 +1,6 @@
 /**
  * Manual router smoke invoke brief — Phase 2 · Job 4.
- * **[AI-INFERRED]** draft for [USER] review before `action:"route"` ships.
+ * **[USER]** approved 2026-06-06 before `action:"route"` ships.
  *
  * Copy-paste commands for InsForge CLI. `route` is not live until Agent mode
  * implements routeIntent() in nlide-api.

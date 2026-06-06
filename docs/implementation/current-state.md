@@ -38,11 +38,12 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Backend translator module | `insforge/functions/nlide-api/translator/` |
 | Build phases UI | `BuildPhasesPanel.tsx`, `PhaseJobList.tsx` |
 | P0 viz embeds | Mermaid, markdown table, force graph, data table, **progress-checklist** |
-| Step 1 progress card | `translator-step1` task card — **Phase 1 complete (6/6)**; Phase 2 active (3/4) |
+| Step 1 progress card | `translator-step1` task card — Phase 2 **complete (4/4)**; Phase 3 active |
 | Router prompt outline | `shared/translator/routerPromptOutline.ts` — Phase 2 · Job 1 **approved** |
 | Golden router fixture | `shared/translator/goldenRouterFixture.ts` — Phase 2 · Job 2 **approved** |
 | Router failure behavior | `shared/translator/routerFailureBehavior.ts` — Phase 2 · Job 3 **approved** |
-| Router smoke invoke | `shared/translator/routerSmokeInvoke.ts` + `npm run insforge:invoke:route-smoke` — Phase 2 · Job 4 draft |
+| Router smoke invoke | `shared/translator/routerSmokeInvoke.ts` — Phase 2 · Job 4 **approved** |
+| Features writer template | `shared/translator/featuresWriterTemplate.ts` — Phase 3 · Job 1 draft |
 | Implementation progress store | `implementationProgressStore.ts` — persists checklist ticks in localStorage |
 | Canvas state (Zustand) | `frontend/src/store/canvasStore.ts` |
 | API client + local stub | `frontend/src/lib/api.ts`, `translatorStub.ts` |

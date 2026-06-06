@@ -7,6 +7,7 @@ import { getTranslatorSpec } from '../../../shared/translator/index.ts'
 export { getTranslatorSpec }
 export {
   BUILD_PHASES,
+  FEATURES_WRITER_TEMPLATE,
   GOLDEN_PASS_BAR,
   GOLDEN_PROMPTS,
   GOLDEN_ROUTER_FIXTURE,
@@ -20,6 +21,8 @@ export {
   ROUTER_SCHEMA_FIELDS,
   buildRouteInvokePayload,
   evaluateGoldenRouterOutput,
+  formatFeatureSection,
+  formatFeaturesWriterTemplate,
   formatRouterFailureBehavior,
   formatRouterPromptOutline,
   formatRouterSmokeInvokeBrief,
@@ -33,6 +36,10 @@ export type {
   BuildPhase,
   BuildJob,
   BuildPhaseStatus,
+  FeaturePriority,
+  FeatureSectionFields,
+  FeatureStatus,
+  FeaturesWriterTemplate,
   GoldenMatchResult,
   GoldenPassBar,
   GoldenPrompt,
