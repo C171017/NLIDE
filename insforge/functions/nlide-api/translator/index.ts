@@ -66,6 +66,7 @@ export type {
   RouterFailureBehavior,
   RouterSmokeExample,
   RouterSmokeInvokeBrief,
+  TaskInstructionExample,
   TaskSectionFields,
   TaskStatus,
   TaskWriterRules,
