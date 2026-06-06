@@ -151,7 +151,7 @@ html:-webkit-full-screen {
 }
 
 .canvas-nav-panel {
-  margin: 0 12px 12px 0;
+  margin: 12px 0 0 12px;
   pointer-events: none;
 }
 

@@ -18,7 +18,7 @@ export default function CanvasNavPanel({
   onNavigateOverview,
 }: CanvasNavPanelProps) {
   return (
-    <Panel position="bottom-right" className="canvas-nav-panel">
+    <Panel position="top-left" className="canvas-nav-panel">
       <div className="canvas-nav-panel__cluster">
         <LayerStackIndicator
           mode={mode}
