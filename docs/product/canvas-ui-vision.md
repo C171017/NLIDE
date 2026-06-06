@@ -262,9 +262,7 @@ When satisfied, exported `/spec` goes to external agent (Cursor, etc.) with **fu
 ## Layout regions (web app chrome)
 
 ```
-┌────────────────────────────────────────────────────────────┐
-│  Header: project name · export spec · settings             │
-├──────────────────────────────────────┬─────────────────────┤
+┌──────────────────────────────────────┬─────────────────────┐
 │                                      │                     │
 │           CANVAS (main)              │  Side panel         │
 │           cards + links + viz        │  (optional)         │

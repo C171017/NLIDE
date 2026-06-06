@@ -87,7 +87,7 @@ npm run insforge:invoke:health
 # → { "ok": true, "hasSecrets": true, "mode": "insforge" }
 
 npm run dev
-# Header shows "InsForge" when .env.local is set
+# Canvas + chat bar; no top header chrome
 ```
 
 ---
