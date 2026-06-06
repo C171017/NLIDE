@@ -82,3 +82,33 @@ export interface GoldenPassBar {
   minPass: number
   description: string
 }
+
+/** Router operation — one spec file patch the router plans. */
+export interface RouterOperation {
+  target: string
+  action: 'add' | 'update'
+  entity_id?: string
+}
+
+/** Locked router JSON output shape (v0). */
+export interface RouterPlan {
+  intent_type: RouterIntentType
+  summary: string
+  operations: RouterOperation[]
+  canvas_ops: Record<string, unknown>[]
+  open_questions: string[]
+}
+
+/** One golden test case: chat message + canonical expected router JSON. Phase 2 · Job 2. */
+export interface GoldenRouterFixtureCase {
+  id: string
+  message: string
+  expectedPlan: RouterPlan
+  expectation: GoldenPromptExpectation
+}
+
+export interface GoldenMatchResult {
+  pass: boolean
+  promptId: string
+  failures: string[]
+}

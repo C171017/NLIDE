@@ -136,6 +136,28 @@ Allowed `target` files (v0): `INDEX.md`, `product.md`, `users.md`, `features.md`
 
 ---
 
+## Golden router fixture (Phase 2 · Job 2)
+
+Canonical expected JSON per prompt: `shared/translator/goldenRouterFixture.ts`  
+Scoring rules (intent + targets + entity IDs; summary may vary): `shared/translator/goldenRouterMatch.ts`
+
+| # | Prompt id | Expected `intent_type` | Key `operations` |
+|---|-----------|------------------------|------------------|
+| 1 | `gp-01-canvas-pan-zoom` | `update_feature` | `features.md` update **F-001** |
+| 2 | `gp-02-canvas-layout` | `update_feature` | `features.md` + `architecture.md` update **F-001** |
+| 3 | `gp-03-add-feature` | `add_feature` | `features.md` + `tasks.md` add |
+| 4 | `gp-04-no-realtime` | `add_constraint` | `constraints.md` add |
+| 5 | `gp-05-hybrid-storage` | `add_decision` | `decisions.md` add |
+| 6 | `gp-06-clarify-domains` | `clarify` | `open-questions.md` add + non-empty `open_questions[]` |
+| 7 | `gp-07-noop-infra` | `noop` | empty `operations[]` |
+| 8 | `gp-08-noop-ui-chrome` | `noop` | empty `operations[]` |
+| 9 | `gp-09-update-task` | `update_task` | `tasks.md` update **T-001** |
+| 10 | `gp-10-update-product` | `update_product` | `product.md` + `users.md` update |
+
+**[AI-INFERRED]** `canvas_ops` left empty for v0 router-only golden tests.
+
+---
+
 ## Change log
 
 | Date | Change |
