@@ -292,6 +292,7 @@ export default function IntentCanvas() {
   const drillOut = useCanvasStore((state) => state.drillOut)
   const selectCard = useCanvasStore((state) => state.selectCard)
   const moveCard = useCanvasStore((state) => state.moveCard)
+  const setCardPositions = useCanvasStore((state) => state.setCardPositions)
 
   const activeCards = preview?.cards ?? committedCards
   const activeEdges = preview?.edges ?? committedEdges
@@ -364,10 +365,34 @@ export default function IntentCanvas() {
     [committedCards, committedEdges, preview],
   )
 
-  const initialNodes = useMemo(
+  const baseNodes = useMemo(
+    () => cardsToNodes(visibleCards, centerCardId, previewCardIds),
+    [visibleCards, centerCardId, previewCardIds],
+  )
+
+  const structuralKey = useMemo(
     () =>
-      layoutNodes(
-        cardsToNodes(visibleCards, centerCardId, previewCardIds),
+      `${layerKey(displayedLayer)}|${visibleCards.map((card) => card.id).join(',')}|${[...previewCardIds].sort().join(',')}`,
+    [displayedLayer, visibleCards, previewCardIds],
+  )
+
+  const flowEdges = useMemo(
+    () => edgesToFlow(visibleEdges, previewEdgeIds, baseNodes, centerCardId),
+    [visibleEdges, centerCardId, baseNodes, previewEdgeIds],
+  )
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(baseNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(flowEdges)
+
+  const prevStructuralKeyRef = useRef('')
+
+  useEffect(() => {
+    const structureChanged = prevStructuralKeyRef.current !== structuralKey
+    prevStructuralKeyRef.current = structuralKey
+
+    if (structureChanged) {
+      const laidOutNodes = layoutNodes(
+        baseNodes,
         visibleEdges.map((edge) => ({
           id: edge.id,
           source: edge.source,
@@ -376,29 +401,33 @@ export default function IntentCanvas() {
         centerCardId,
         viewMode,
         focusId,
-      ),
-    [
-      visibleCards,
-      visibleEdges,
-      centerCardId,
-      previewCardIds,
-      viewMode,
-      focusId,
-    ],
-  )
+      )
 
-  const initialEdges = useMemo(
-    () => edgesToFlow(visibleEdges, previewEdgeIds, initialNodes, centerCardId),
-    [visibleEdges, centerCardId, initialNodes, previewEdgeIds],
-  )
+      setNodes(laidOutNodes)
+      setCardPositions(
+        laidOutNodes.map((node) => ({
+          id: node.id,
+          position: node.position,
+        })),
+      )
+      return
+    }
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
+    setNodes(baseNodes)
+  }, [
+    structuralKey,
+    baseNodes,
+    visibleEdges,
+    centerCardId,
+    viewMode,
+    focusId,
+    setNodes,
+    setCardPositions,
+  ])
 
   useEffect(() => {
-    setNodes(initialNodes)
-    setEdges(initialEdges)
-  }, [initialNodes, initialEdges, setNodes, setEdges])
+    setEdges(flowEdges)
+  }, [flowEdges, setEdges])
 
   const handleNodesChange: OnNodesChange = useCallback(
     (changes) => {

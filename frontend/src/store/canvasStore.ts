@@ -29,6 +29,7 @@ interface CanvasStore {
   drillTopLayerCard: (cardId: string) => void
   updateCard: (cardId: string, patch: Partial<Pick<Card, 'title' | 'body'>>) => void
   moveCard: (cardId: string, position: { x: number; y: number }) => void
+  setCardPositions: (updates: Array<{ id: string; position: { x: number; y: number } }>) => void
   submitChat: (message: string) => Promise<void>
   cancelChat: () => void
   commitPreview: () => Promise<void>
@@ -98,12 +99,50 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     })
   },
 
-  moveCard: (cardId, position) =>
-    set((state) => ({
-      committedCards: state.committedCards.map((card) =>
-        card.id === cardId ? { ...card, position } : card,
-      ),
-    })),
+  moveCard: (cardId, position) => {
+    set((state) => {
+      if (state.preview) {
+        return {
+          preview: {
+            ...state.preview,
+            cards: state.preview.cards.map((card) =>
+              card.id === cardId ? { ...card, position } : card,
+            ),
+          },
+        }
+      }
+
+      return {
+        committedCards: state.committedCards.map((card) =>
+          card.id === cardId ? { ...card, position } : card,
+        ),
+      }
+    })
+  },
+
+  setCardPositions: (updates) => {
+    const positionById = new Map(updates.map((update) => [update.id, update.position]))
+
+    set((state) => {
+      const mapCards = (cards: Card[]) =>
+        cards.map((card) =>
+          positionById.has(card.id)
+            ? { ...card, position: positionById.get(card.id)! }
+            : card,
+        )
+
+      if (state.preview) {
+        return {
+          preview: {
+            ...state.preview,
+            cards: mapCards(state.preview.cards),
+          },
+        }
+      }
+
+      return { committedCards: mapCards(state.committedCards) }
+    })
+  },
 
   submitChat: async (message) => {
     const trimmed = message.trim()
