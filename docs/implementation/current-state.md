@@ -34,7 +34,7 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Chat bar + preview actions | `ChatBar.tsx`, `PreviewActions.tsx` |
 | TipTap card editor | `CardEditor.tsx` |
 | Side panel | `SidePanel.tsx` — **Build plan** tab (phases + jobs) + Card editor tab |
-| **Resizable layout** | `AppShell.tsx`, `ResizeHandle.tsx`, `useResizableSize.ts` — drag borders between canvas, side panel, chat bar; preview summary height in card tab; sizes persist in `localStorage` |
+| **Resizable layout** | `AppShell.tsx`, `ResizeHandle.tsx`, `CornerResizeHandle.tsx`, `useResizableSize.ts` — drag borders between canvas, side panel, chat bar; preview summary height in card tab; canvas nav minimap corner resize; sizes persist in `localStorage` |
 | Translator spec (shared) | `shared/translator/` — intent types, routing rules, build phases, **golden prompts** |
 | Backend translator module | `insforge/functions/nlide-api/translator/` |
 | Build phases UI | `BuildPhasesPanel.tsx`, `PhaseJobList.tsx`, `PhaseExecutionPanel.tsx` — Agent / You columns |
