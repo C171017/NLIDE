@@ -18,19 +18,16 @@ Related: [Flow B v0](../architecture/flow-b-v0.md) · [Tech stack](./tech-stack.
 ┌─────────────────────────────────────────────────────────────┐
 │                     INTENT CANVAS (web)                      │
 │                                                              │
-│     ┌──────────┐         ┌──────────┐                       │
-│     │  Users   │────────►│ Features │                       │
-│     └──────────┘         └────┬─────┘                       │
-│                               │                              │
-│                    ┌──────────▼──────────┐                  │
-│                    │   INDEX (center)    │  ← central node  │
-│                    │   Project intent    │                  │
-│                    └──────────┬──────────┘                  │
-│              ┌────────────────┼────────────────┐            │
-│              ▼                ▼                ▼            │
-│        ┌──────────┐   ┌──────────┐   ┌──────────┐          │
-│        │ Product  │   │  Tasks   │   │  Arch    │  …       │
-│        └──────────┘   └──────────┘   └──────────┘          │
+│   OVERVIEW LAYER (zoom out)                                  │
+│                                                              │
+│     ┌──────────┐    ┌──────────┐    ┌──────────┐            │
+│     │ Frontend │───►│ Product  │◄───│ Backend  │            │
+│     │  (left)  │    │ (center) │    │ (right)  │            │
+│     └──────────┘    └────┬─────┘    └──────────┘            │
+│                          │                                   │
+│   DETAIL LAYER (select + zoom in past threshold)             │
+│                          ▼                                   │
+│              Users · Features · Tasks · Architecture …       │
 │                                                              │
 │  ┌─────────────────────────────────────────────────────┐    │
 │  │  Input bar / chat  →  AI orchestration  →  cards   │    │
@@ -59,18 +56,41 @@ The whole web experience is one **canvas** — an infinite or large pannable/zoo
 
 ### Properties
 
-- **Central node** — `INDEX` / project hub; every graph read starts here (mirrors `spec/INDEX.md`)
+- **Central node** — **`Product`** at the center of the overview layer (mirrors `spec/product.md` as the project anchor)
+- **Top layer (overview)** — three pillars only: **Frontend** (left), **Product** (center), **Backend** (right)
+- **Detail layer** — general and scoped cards (Users, Features, Tasks, Architecture, etc.) live under a top pillar; revealed when the user **selects** that pillar and **zooms in** past a threshold; **zoom out** returns to overview
 - **Linked cards** — edges show relationships (depends on, relates to, blocks, implements)
-- **Spatial layout** — position is meaningful but secondary to links; auto-layout + manual drag
-- **Zoom levels** — overview (whole project) → focus (single card expanded)
+- **Spatial layout** — top layer uses fixed horizontal layout; detail layer uses radial layout around the focused pillar
+- **Zoom levels** — overview (three pillars) ↔ detail (pillar + related cards)
 - **High interactivity** — drag, connect, expand, inline edit, rich embeds per card type
+
+### Layer model **`[USER]`**
+
+The canvas has **two spatial layers**, not separate pages:
+
+| Layer | `layer` field | Visible when | Contents |
+|-------|---------------|--------------|----------|
+| **Overview** | `0` | Default; zoom below detail threshold | Frontend · Product · Backend |
+| **Detail** | `1` | Selected top card + zoom ≥ threshold | Cards with matching `parentCardId` |
+
+**Navigation:**
+
+1. **Overview** — user sees three pillar cards; Product is the hub (center node, amber styling).
+2. **Drill in** — user selects Frontend, Product, or Backend, then zooms in (scroll/pinch) past the detail threshold (~88%).
+3. **Detail view** — focused pillar stays visible; its detail cards appear in a ring (Users/Features under Product; canvas tasks under Frontend; Architecture/tasks under Backend).
+4. **Zoom out** — below threshold → overview only; detail cards hidden again.
+
+Detail cards carry `parentCardId` pointing at their top-layer owner. Cross-links between detail cards (e.g. Features → Tasks) remain visible when both ends are in the active detail scope.
+
+**`[AI-INFERRED]`** threshold constant: `ZOOM_DETAIL_THRESHOLD = 0.88` in `frontend/src/lib/canvasLayers.ts`.
 
 ### Card types (map to spec files)
 
 | Card | Spec file | Human sees | Agent MD contains |
 |------|-----------|------------|-------------------|
-| **Index** | `INDEX.md` | Project name, one-line summary | Routing rules, file map |
-| **Product** | `product.md` | What & why | Goals, scope, non-goals |
+| **Product** | `product.md` | What & why (center hub) | Goals, scope, non-goals |
+| **Frontend** | `architecture.md#frontend` | UI / client surface | Components, routes, viz |
+| **Backend** | `architecture.md#backend` | API / data / translator | Services, schema, deploy |
 | **Users** | `users.md` | Who it's for | Personas, pain points |
 | **Feature** | `features.md` (one card per F-xxx) | Feature title + plain description | Acceptance criteria, priority, status |
 | **Task** | `tasks.md` (one card per T-xxx) | What needs to happen | Numbered agent instructions |
@@ -291,6 +311,8 @@ Card {
   title: string
   body: string            // human-readable
   position: { x, y }
+  layer: 0 | 1            // 0 = overview pillar, 1 = detail under parentCardId
+  parentCardId?: string   // required for layer 1 — "product" | "frontend" | "backend"
   vizType?: VizType       // mermaid | table | force-graph | …
   vizPayload?: unknown    // type-specific data
   status?: proposed | approved | in_progress | done
@@ -306,7 +328,7 @@ Edge {
 Canvas {
   cards: Card[]
   edges: Edge[]
-  centerCardId: string    // Index node
+  centerCardId: string    // Product node (overview hub)
 }
 ```
 
@@ -332,7 +354,8 @@ MD files remain **source of truth for agents**; canvas state is **source of trut
 - [ ] User can **commit or discard** preview
 - [ ] User can **edit any card individually** without triggering AI
 - [ ] Committed state exports to `/spec/*.md` (hybrid storage)
-- [ ] Central Index node anchors the graph
+- [ ] Central **Product** node anchors the overview layer (Frontend left, Backend right)
+- [ ] Zoom + selection transitions between overview and detail layers
 - [ ] P0 viz on relevant cards
 - [ ] **No** in-app execution agent in v0
 

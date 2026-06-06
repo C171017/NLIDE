@@ -15,7 +15,10 @@ See also: [documentation-guide.md](./documentation-guide.md)
 |------|----------|-----------|------------|
 | 2026-06-06 | React 18 + TypeScript + Vite | Default modern SPA stack for canvas/viz | Yes |
 | 2026-06-06 | Tailwind CSS v4 | Fast solo styling | Yes |
-| 2026-06-06 | **React Flow** (`@xyflow/react`) for main canvas | Structured graph + Index hub; not tldraw for main canvas | Yes |
+| 2026-06-06 | **React Flow** (`@xyflow/react`) for main canvas | Structured graph + layered pillars; not tldraw for main canvas | Yes |
+| 2026-06-06 | **Zoom threshold 0.88** to enter detail layer | Select top card + zoom in reveals `layer: 1` cards | Yes |
+| 2026-06-06 | Top layer fixed 3-column layout (Frontend left, Product center, Backend right) | Matches user pillar model | Yes |
+| 2026-06-06 | Detail cards use `layer: 1` + `parentCardId` | Scoped detail under Product / Frontend / Backend | Yes |
 | 2026-06-06 | **TipTap** for inline card editing | Rich text on cards without exposing MD | Yes |
 | 2026-06-06 | **Zustand** for client state | Lightweight store for canvas/preview | Yes |
 | 2026-06-06 | **dagre** for auto-layout | Layout linked cards from graph | Yes |
@@ -69,7 +72,7 @@ See also: [documentation-guide.md](./documentation-guide.md)
 | 2026-06-06 | **Local stub fallback** when env unset | Dev without InsForge | Yes |
 | 2026-06-06 | ~~Header badge: "InsForge" vs "Local stub"~~ Removed top header bar **[USER]** | Cleaner canvas-first chrome | Yes |
 | 2026-06-06 | Sample project data in `frontend/src/data/sampleProject.ts` | Canvas demo before DB seed | Yes |
-| 2026-06-06 | Card types: index, product, users, feature, task, architecture, constraint, decision, open-question | Maps to spec ontology | Yes |
+| 2026-06-06 | Card types: index, product, **frontend**, **backend**, users, feature, task, architecture, constraint, decision, open-question | Maps to spec ontology + top-layer pillars | Yes |
 
 ---
 

@@ -1,6 +1,7 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import clsx from 'clsx'
 import type { Card } from '../../../types/canvas'
+import { cardTypeLabel } from '../../../lib/cardStyles'
 import VizEmbed from '../../viz/VizEmbed'
 
 export type IndexNodeData = {
@@ -45,7 +46,7 @@ export default function IndexNode({ data }: NodeProps) {
         />
       ))}
       <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-200/80">
-        Index
+        {cardTypeLabel(card.type)}
       </div>
       <h2 className="mb-1 text-base font-semibold text-amber-50">{card.title}</h2>
       <p className="text-xs leading-relaxed text-amber-100/80">{card.body}</p>

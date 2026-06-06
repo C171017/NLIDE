@@ -28,7 +28,8 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 |-----------|----------------|
 | React + Vite + TS app | `frontend/` |
 | Intent canvas | `frontend/src/components/canvas/IntentCanvas.tsx` |
-| Card nodes + Index hub | `CardNode.tsx`, `IndexNode.tsx` |
+| **Layered canvas** (overview ↔ detail via zoom) | `canvasLayers.ts`, `layout.ts`, layer panel in `IntentCanvas.tsx` |
+| Card nodes + Product hub | `CardNode.tsx`, `IndexNode.tsx` (center pillar styling) |
 | Chat bar + preview actions | `ChatBar.tsx`, `PreviewActions.tsx` |
 | TipTap card editor | `CardEditor.tsx` |
 | Side panel | `SidePanel.tsx` |
@@ -37,7 +38,7 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Implementation progress store | `implementationProgressStore.ts` — persists checklist ticks in localStorage |
 | Canvas state (Zustand) | `frontend/src/store/canvasStore.ts` |
 | API client + local stub | `frontend/src/lib/api.ts`, `translatorStub.ts` |
-| Sample demo canvas | `frontend/src/data/sampleProject.ts` |
+| Sample demo canvas | `frontend/src/data/sampleProject.ts` — Product center, Frontend/Backend pillars, detail cards under each |
 
 Run: `npm run dev` (from repo root)
 
@@ -78,6 +79,7 @@ Deploy: `npm run insforge:deploy:api`
 | Execution phase planner | execution-phases.md (future) |
 | Flow C in-app execution | **[USER]** out of scope |
 | DB seed from sample project on first load | ai-inferred gap |
+| DB columns for `layer` / `parent_card_id` on cards | layer model in frontend only for now |
 | canvas.json export | planned in structured.md |
 
 ---

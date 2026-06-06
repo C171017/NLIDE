@@ -25,6 +25,8 @@ export function buildPreviewLocal(
     title: 'Open question (preview)',
     body: `From chat: "${message}" — which enterprise domains should be allowed for Google login?`,
     position: { x: 520, y: -40 },
+    layer: 1,
+    parentCardId: 'product',
     status: 'proposed',
   }
 

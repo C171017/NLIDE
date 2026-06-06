@@ -1,16 +1,25 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Background,
   MiniMap,
+  Panel,
   Position,
   ReactFlow,
   useEdgesState,
   useNodesState,
   type Edge,
   type Node,
+  type OnMove,
   type OnNodesChange,
 } from '@xyflow/react'
 import type { Card, CanvasEdge } from '../../types/canvas'
+import {
+  filterVisibleCards,
+  filterVisibleEdges,
+  focusLabel,
+  resolveViewMode,
+  ZOOM_DETAIL_THRESHOLD,
+} from '../../lib/canvasLayers'
 import { getNodeLayoutBox, layoutNodes } from '../../lib/layout'
 import { useCanvasStore } from '../../store/canvasStore'
 import CardNode from './nodes/CardNode'
@@ -129,6 +138,35 @@ function diffPreview(
   return { previewCardIds, previewEdgeIds }
 }
 
+function CanvasLayerPanel({
+  mode,
+  label,
+  zoom,
+}: {
+  mode: 'top' | 'detail'
+  label: string
+  zoom: number
+}) {
+  return (
+    <Panel position="top-left" className="pointer-events-none">
+      <div className="rounded-lg border border-[#2a3144] bg-[#12151c]/90 px-3 py-2 text-xs text-[#b6bcc8] shadow-lg backdrop-blur-sm">
+        <div className="font-medium text-[#e5e7eb]">
+          {mode === 'top' ? 'Overview layer' : label}
+        </div>
+        <div className="mt-0.5 text-[10px] text-[#7c8494]">
+          {mode === 'top'
+            ? 'Select a pillar and zoom in to reveal detail cards'
+            : 'Zoom out to return to Product · Frontend · Backend'}
+        </div>
+        <div className="mt-1 text-[10px] tabular-nums text-[#6b7280]">
+          zoom {Math.round(zoom * 100)}%
+          {mode === 'top' && ` · detail ≥ ${Math.round(ZOOM_DETAIL_THRESHOLD * 100)}%`}
+        </div>
+      </div>
+    </Panel>
+  )
+}
+
 export default function IntentCanvas() {
   const committedCards = useCanvasStore((state) => state.committedCards)
   const committedEdges = useCanvasStore((state) => state.committedEdges)
@@ -138,8 +176,30 @@ export default function IntentCanvas() {
   const selectCard = useCanvasStore((state) => state.selectCard)
   const moveCard = useCanvasStore((state) => state.moveCard)
 
+  const [zoom, setZoom] = useState(1)
+
   const activeCards = preview?.cards ?? committedCards
   const activeEdges = preview?.edges ?? committedEdges
+
+  const { mode: viewMode, focusId } = useMemo(
+    () => resolveViewMode(zoom, selectedCardId, activeCards),
+    [zoom, selectedCardId, activeCards],
+  )
+
+  const visibleCards = useMemo(
+    () => filterVisibleCards(activeCards, viewMode, focusId),
+    [activeCards, viewMode, focusId],
+  )
+
+  const visibleCardIds = useMemo(
+    () => new Set(visibleCards.map((card) => card.id)),
+    [visibleCards],
+  )
+
+  const visibleEdges = useMemo(
+    () => filterVisibleEdges(activeEdges, visibleCardIds, viewMode, focusId),
+    [activeEdges, visibleCardIds, viewMode, focusId],
+  )
 
   const { previewCardIds, previewEdgeIds } = useMemo(
     () =>
@@ -153,25 +213,36 @@ export default function IntentCanvas() {
     () =>
       layoutNodes(
         cardsToNodes(
-          activeCards,
+          visibleCards,
           centerCardId,
           previewCardIds,
           selectedCardId,
           selectCard,
         ),
-        activeEdges.map((edge) => ({
+        visibleEdges.map((edge) => ({
           id: edge.id,
           source: edge.source,
           target: edge.target,
         })),
         centerCardId,
+        viewMode,
+        focusId,
       ),
-    [activeCards, activeEdges, centerCardId, previewCardIds, selectedCardId, selectCard],
+    [
+      visibleCards,
+      visibleEdges,
+      centerCardId,
+      previewCardIds,
+      selectedCardId,
+      selectCard,
+      viewMode,
+      focusId,
+    ],
   )
 
   const initialEdges = useMemo(
-    () => edgesToFlow(activeEdges, previewEdgeIds, initialNodes, centerCardId),
-    [activeEdges, centerCardId, initialNodes, previewEdgeIds],
+    () => edgesToFlow(visibleEdges, previewEdgeIds, initialNodes, centerCardId),
+    [visibleEdges, centerCardId, initialNodes, previewEdgeIds],
   )
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
@@ -195,6 +266,10 @@ export default function IntentCanvas() {
     [moveCard, onNodesChange],
   )
 
+  const handleMove: OnMove = useCallback((_event, viewport) => {
+    setZoom(viewport.zoom)
+  }, [])
+
   return (
     <div className="intent-canvas h-full w-full">
       <ReactFlow
@@ -202,6 +277,7 @@ export default function IntentCanvas() {
         edges={edges}
         onNodesChange={handleNodesChange}
         onEdgesChange={onEdgesChange}
+        onMove={handleMove}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
@@ -211,6 +287,11 @@ export default function IntentCanvas() {
         proOptions={{ hideAttribution: true }}
       >
         <Background gap={20} size={1} color="#1f2433" />
+        <CanvasLayerPanel
+          mode={viewMode}
+          label={focusLabel(activeCards, focusId)}
+          zoom={zoom}
+        />
         <MiniMap
           className="hidden 2xl:block"
           nodeColor={(node) => (node.type === 'index' ? '#f59e0b' : '#374151')}

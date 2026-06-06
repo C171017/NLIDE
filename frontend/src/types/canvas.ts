@@ -1,6 +1,8 @@
 export type CardType =
   | 'index'
   | 'product'
+  | 'frontend'
+  | 'backend'
   | 'users'
   | 'feature'
   | 'task'
@@ -8,6 +10,8 @@ export type CardType =
   | 'constraint'
   | 'decision'
   | 'open-question'
+
+export type CanvasLayer = 0 | 1
 
 export type CardStatus = 'proposed' | 'approved' | 'in_progress' | 'done'
 
@@ -44,6 +48,10 @@ export interface Card {
   title: string
   body: string
   position: { x: number; y: number }
+  /** 0 = top overview (Product · Frontend · Backend); 1 = detail under a top card */
+  layer: CanvasLayer
+  /** Required for layer 1 — which top-layer card owns this detail card */
+  parentCardId?: string
   vizType?: VizType
   vizPayload?: unknown
   status?: CardStatus

@@ -14,6 +14,8 @@ interface Card {
   title: string
   body: string
   position: { x: number; y: number }
+  layer?: number
+  parentCardId?: string
   vizType?: string
   vizPayload?: unknown
   status?: string
@@ -103,6 +105,7 @@ function rowToCard(row: DbCardRow): Card {
     title: row.title,
     body: row.body,
     position: { x: row.position_x, y: row.position_y },
+    layer: 0,
     vizType: row.viz_type ?? undefined,
     vizPayload: row.viz_payload ?? undefined,
     status: row.status ?? undefined,
@@ -282,6 +285,8 @@ function buildPreview(message: string, cards: Card[], edges: CanvasEdge[]): Prev
     title: 'Open question (preview)',
     body: `From chat: "${message}" — which enterprise domains should be allowed for Google login?`,
     position: { x: 520, y: -40 },
+    layer: 1,
+    parentCardId: 'product',
     status: 'proposed',
   }
 
@@ -387,7 +392,7 @@ export default async function handler(req: Request): Promise<Response> {
           return json({
             projectId,
             projectName: 'NLIDE Demo Project',
-            centerCardId: 'index',
+            centerCardId: 'product',
             cards: [],
             edges: [],
             seeded: false,

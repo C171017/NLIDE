@@ -1,9 +1,10 @@
 import type { Edge, Node } from '@xyflow/react'
+import { TOP_LAYER_SPREAD, type CanvasViewMode } from './canvasLayers'
 
 const NODE_WIDTH = 260
 const NODE_HEIGHT = 150
-const INDEX_WIDTH = 300
-const INDEX_HEIGHT = 260
+const HUB_WIDTH = 300
+const HUB_HEIGHT = 260
 const DEFAULT_RING_RADIUS = 420
 const COLLISION_GAP = 48
 
@@ -21,13 +22,13 @@ interface Point {
 export function getNodeLayoutBox(node: Node, centerId: string): NodeBox {
   const card = (node.data as { card?: { vizType?: string } } | undefined)?.card
   const hasViz = Boolean(card?.vizType)
-  const isIndex = node.id === centerId
+  const isHub = node.id === centerId
 
-  if (isIndex) {
+  if (isHub) {
     return {
       id: node.id,
-      width: INDEX_WIDTH,
-      height: hasViz ? INDEX_HEIGHT : 170,
+      width: HUB_WIDTH,
+      height: hasViz ? HUB_HEIGHT : 170,
     }
   }
 
@@ -155,28 +156,72 @@ function resolveCollisions(
   }
 }
 
-export function layoutNodes(nodes: Node[], edges: Edge[], centerId: string): Node[] {
+function applyPositions(nodes: Node[], positions: Map<string, Point>, boxes: Map<string, NodeBox>): Node[] {
+  return nodes.map((node) => {
+    const box = boxes.get(node.id) ?? getNodeLayoutBox(node, node.id)
+    const positioned = positions.get(node.id) ?? centerOf(node, box)
+
+    return {
+      ...node,
+      position: {
+        x: positioned.x - box.width / 2,
+        y: positioned.y - box.height / 2,
+      },
+    }
+  })
+}
+
+function layoutTopLayer(nodes: Node[], centerId: string): Node[] {
+  const boxes = new Map(nodes.map((node) => [node.id, getNodeLayoutBox(node, centerId)]))
   const centerNode = nodes.find((node) => node.id === centerId)
+  const centerBox = centerNode ? boxes.get(centerId) ?? getNodeLayoutBox(centerNode, centerId) : null
+  const centerPoint = centerNode && centerBox ? centerOf(centerNode, centerBox) : { x: 0, y: 0 }
+  const positions = new Map<string, Point>()
+
+  nodes.forEach((node) => {
+    if (node.id === centerId) {
+      positions.set(node.id, centerPoint)
+      return
+    }
+
+    if (node.id === 'frontend') {
+      positions.set(node.id, { x: centerPoint.x - TOP_LAYER_SPREAD, y: centerPoint.y })
+      return
+    }
+
+    if (node.id === 'backend') {
+      positions.set(node.id, { x: centerPoint.x + TOP_LAYER_SPREAD, y: centerPoint.y })
+      return
+    }
+
+    positions.set(node.id, centerOf(node, boxes.get(node.id) ?? getNodeLayoutBox(node, centerId)))
+  })
+
+  return applyPositions(nodes, positions, boxes)
+}
+
+function layoutDetailRing(nodes: Node[], edges: Edge[], focusId: string): Node[] {
+  const centerNode = nodes.find((node) => node.id === focusId)
 
   if (!centerNode) {
     return nodes
   }
 
-  const boxes = new Map(nodes.map((node) => [node.id, getNodeLayoutBox(node, centerId)]))
-  const centerBox = boxes.get(centerId) ?? getNodeLayoutBox(centerNode, centerId)
+  const boxes = new Map(nodes.map((node) => [node.id, getNodeLayoutBox(node, focusId)]))
+  const centerBox = boxes.get(focusId) ?? getNodeLayoutBox(centerNode, focusId)
   const centerPoint = centerOf(centerNode, centerBox)
-  const centerNeighborIds = new Set(
+  const focusNeighborIds = new Set(
     edges
-      .filter((edge) => edge.source === centerId || edge.target === centerId)
-      .map((edge) => (edge.source === centerId ? edge.target : edge.source)),
+      .filter((edge) => edge.source === focusId || edge.target === focusId)
+      .map((edge) => (edge.source === focusId ? edge.target : edge.source)),
   )
-  const centerNeighbors = nodes.filter((node) => centerNeighborIds.has(node.id))
-  const positions = new Map<string, Point>([[centerId, centerPoint]])
+  const focusNeighbors = nodes.filter((node) => focusNeighborIds.has(node.id))
+  const positions = new Map<string, Point>([[focusId, centerPoint]])
 
-  centerNeighbors.forEach((node, index) => {
-    const box = boxes.get(node.id) ?? getNodeLayoutBox(node, centerId)
+  focusNeighbors.forEach((node, index) => {
+    const box = boxes.get(node.id) ?? getNodeLayoutBox(node, focusId)
     const currentCenter = centerOf(node, box)
-    const fallback = fallbackDirection(index, centerNeighbors.length)
+    const fallback = fallbackDirection(index, focusNeighbors.length)
     const direction = normalizedDirection(
       {
         x: currentCenter.x - centerPoint.x,
@@ -192,38 +237,36 @@ export function layoutNodes(nodes: Node[], edges: Edge[], centerId: string): Nod
     })
   })
 
-  const remainingNodes = nodes.filter((node) => node.id !== centerId && !centerNeighborIds.has(node.id))
+  const remainingNodes = nodes.filter((node) => node.id !== focusId && !focusNeighborIds.has(node.id))
 
   remainingNodes.forEach((node, index) => {
-    const box = boxes.get(node.id) ?? getNodeLayoutBox(node, centerId)
-    const currentCenter = centerOf(node, box)
-    const fallback = fallbackDirection(index + centerNeighbors.length, remainingNodes.length + centerNeighbors.length)
-    const direction = normalizedDirection(
-      {
-        x: currentCenter.x - centerPoint.x,
-        y: currentCenter.y - centerPoint.y,
-      },
-      fallback,
-    )
+    const fallback = fallbackDirection(index + focusNeighbors.length, remainingNodes.length + focusNeighbors.length)
 
     positions.set(node.id, {
-      x: centerPoint.x + direction.x * (DEFAULT_RING_RADIUS * 1.55),
-      y: centerPoint.y + direction.y * (DEFAULT_RING_RADIUS * 1.55),
+      x: centerPoint.x + fallback.x * (DEFAULT_RING_RADIUS * 1.35),
+      y: centerPoint.y + fallback.y * (DEFAULT_RING_RADIUS * 1.35),
     })
   })
 
-  resolveCollisions(positions, boxes, centerId)
+  resolveCollisions(positions, boxes, focusId)
 
-  return nodes.map((node) => {
-    const box = boxes.get(node.id) ?? getNodeLayoutBox(node, centerId)
-    const positioned = positions.get(node.id) ?? centerOf(node, box)
+  return applyPositions(nodes, positions, boxes)
+}
 
-    return {
-      ...node,
-      position: {
-        x: positioned.x - box.width / 2,
-        y: positioned.y - box.height / 2,
-      },
-    }
-  })
+export function layoutNodes(
+  nodes: Node[],
+  edges: Edge[],
+  centerId: string,
+  viewMode: CanvasViewMode = 'top',
+  focusId: string | null = null,
+): Node[] {
+  if (viewMode === 'top') {
+    return layoutTopLayer(nodes, centerId)
+  }
+
+  if (focusId) {
+    return layoutDetailRing(nodes, edges, focusId)
+  }
+
+  return layoutTopLayer(nodes, centerId)
 }

@@ -3,6 +3,8 @@ import type { CardType } from '../types/canvas'
 const TYPE_LABELS: Record<CardType, string> = {
   index: 'Index',
   product: 'Product',
+  frontend: 'Frontend',
+  backend: 'Backend',
   users: 'Users',
   feature: 'Feature',
   task: 'Task',
@@ -14,7 +16,9 @@ const TYPE_LABELS: Record<CardType, string> = {
 
 const TYPE_COLORS: Record<CardType, string> = {
   index: 'border-amber-500/60 bg-amber-500/10',
-  product: 'border-sky-500/50 bg-sky-500/10',
+  product: 'border-amber-500/70 bg-amber-500/15',
+  frontend: 'border-emerald-500/50 bg-emerald-500/10',
+  backend: 'border-cyan-500/50 bg-cyan-500/10',
   users: 'border-violet-500/50 bg-violet-500/10',
   feature: 'border-emerald-500/50 bg-emerald-500/10',
   task: 'border-orange-500/50 bg-orange-500/10',
