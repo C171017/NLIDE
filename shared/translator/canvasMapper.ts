@@ -28,6 +28,43 @@ const NODE_HEIGHT = 150
 const COLLISION_GAP = 48
 const SIBLING_STACK_Y = 80
 
+/** Temp v0 — translator-created entity cards appear on overview without pillar drill-in. */
+export const OVERVIEW_ORPHAN_NEW_ENTITIES = true
+
+const OVERVIEW_ORPHAN_Y = 340
+const OVERVIEW_ORPHAN_X_START = -280
+const OVERVIEW_ORPHAN_X_GAP = 300
+
+const TOP_LAYER_PILLAR_IDS = new Set(['product', 'frontend', 'backend'])
+
+function isOverviewOrphanEntityType(type: CanvasOpCardType): boolean {
+  return (
+    type === 'feature' ||
+    type === 'task' ||
+    type === 'decision' ||
+    type === 'open-question' ||
+    type === 'constraint'
+  )
+}
+
+function placeOverviewOrphanEntity(cards: CanvasCard[], newCard: CanvasCard): void {
+  const siblings = cards.filter(
+    (card) =>
+      card.id !== newCard.id &&
+      card.layer === 0 &&
+      !TOP_LAYER_PILLAR_IDS.has(card.id) &&
+      isOverviewOrphanEntityType(card.type as CanvasOpCardType),
+  )
+  const index = siblings.length
+
+  newCard.layer = 0
+  newCard.parentCardId = undefined
+  newCard.position = {
+    x: OVERVIEW_ORPHAN_X_START + index * OVERVIEW_ORPHAN_X_GAP,
+    y: OVERVIEW_ORPHAN_Y,
+  }
+}
+
 export interface WriterEntityHint {
   entityId: string
   file: string
@@ -247,7 +284,7 @@ function deriveCanvasOps(
       const aggregateTable = hasAggregateFeaturesTable(cards)
       const featureCardExists = Boolean(findCard(cards, featureId))
 
-      if (!aggregateTable || featureCardExists) {
+      if (!featureCardExists) {
         ops.push({
           action: 'create_card',
           type: 'feature',
@@ -476,6 +513,17 @@ function applyCreateCard(
     position: { x: 0, y: 0 },
     layer: 1,
     status: op.status ?? 'proposed',
+  }
+
+  const useOverviewOrphan =
+    OVERVIEW_ORPHAN_NEW_ENTITIES &&
+    isOverviewOrphanEntityType(op.type) &&
+    !committedCardIds.has(op.id)
+
+  if (useOverviewOrphan) {
+    placeOverviewOrphanEntity(cards, card)
+    cards.push(card)
+    return
   }
 
   const linkTarget = resolveLinkTarget(op.link_to, centerCardId, cards)

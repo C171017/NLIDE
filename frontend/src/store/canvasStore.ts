@@ -151,11 +151,24 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   },
 
   updateCard: (cardId, patch) => {
-    set((state) => ({
-      committedCards: state.committedCards.map((card) =>
-        card.id === cardId ? { ...card, ...patch } : card,
-      ),
-    }))
+    set((state) => {
+      if (state.preview) {
+        return {
+          preview: {
+            ...state.preview,
+            cards: state.preview.cards.map((card) =>
+              card.id === cardId ? { ...card, ...patch } : card,
+            ),
+          },
+        }
+      }
+
+      return {
+        committedCards: state.committedCards.map((card) =>
+          card.id === cardId ? { ...card, ...patch } : card,
+        ),
+      }
+    })
 
     void patchCardRemote(cardId, patch).catch((error) => {
       console.warn('patch-card sync failed (local state kept):', error)
@@ -251,8 +264,18 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   },
 
   commitPreview: async () => {
-    const { preview } = get()
+    const { preview, committedCards } = get()
     if (!preview) return
+
+    const committedIds = new Set(committedCards.map((card) => card.id))
+    const newEntityIds = preview.cards
+      .filter(
+        (card) =>
+          !committedIds.has(card.id) &&
+          card.layer === 0 &&
+          !['product', 'frontend', 'backend'].includes(card.id),
+      )
+      .map((card) => card.id)
 
     try {
       await commitPreviewRemote(preview.previewId)
@@ -260,7 +283,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
         committedCards: cloneCards(preview.cards),
         committedEdges: cloneEdges(preview.edges),
         preview: null,
-        selectedCardId: null,
+        selectedCardId: newEntityIds[0] ?? null,
         drillFocusId: null,
       })
     } catch (error) {

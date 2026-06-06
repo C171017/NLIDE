@@ -58,7 +58,7 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | spec/ folder layout | `shared/translator/specFolderLayout.ts` — Phase 6 · Job 2 **approved** |
 | Export end-to-end smoke | `shared/translator/exportEndToEndSmoke.ts` — Phase 6 · Job 3 **approved** |
 | Write spec to disk helper | `scripts/write-exported-spec.mjs` — `npm run write:spec` |
-| **Canvas mapper (Phase 5)** | `shared/translator/canvasMapper.ts` — `mapCanvasToPreview()`, placement + `canvas_ops` derivation |
+| **Canvas mapper (Phase 5)** | `shared/translator/canvasMapper.ts` — `mapCanvasToPreview()`, placement + `canvas_ops` derivation; **temp v0:** new entity cards (`F-*`, `T-*`, etc.) placed on overview (`layer: 0`, no pillar link) via `OVERVIEW_ORPHAN_NEW_ENTITIES` |
 | **Preview diff (shared)** | `shared/translator/diffPreview.ts` — ghost card/edge id diff; used by `IntentCanvas.tsx` |
 | Canvas mapper golden | `shared/translator/canvasMapperGolden.ts` — 5 cases, ≥4/5 pass bar |
 | Implementation progress store | `implementationProgressStore.ts` — persists checklist ticks in localStorage |
