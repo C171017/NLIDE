@@ -27,7 +27,7 @@ export const BUILD_PHASES: BuildPhase[] = [
     title: 'Phase 1: Router contract',
     plainSummary: 'Fixed intent types + routing rules before any LLM router code.',
     agentModeGoal: 'Implement routeIntent(), action:"route", Zod validation',
-    status: 'active',
+    status: 'done',
     checklistId: 'phase-1-router-contract',
     jobs: [
       {
@@ -68,7 +68,7 @@ export const BUILD_PHASES: BuildPhase[] = [
     title: 'Phase 2: Router build brief',
     plainSummary: 'Instructions for wiring Claude + golden tests.',
     agentModeGoal: 'Ship LLM router, golden test runner, tune until pass bar',
-    status: 'upcoming',
+    status: 'active',
     checklistId: 'phase-2-router-build',
     jobs: [
       {

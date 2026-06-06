@@ -111,7 +111,7 @@ Allowed `target` files (v0): `INDEX.md`, `product.md`, `users.md`, `features.md`
 - [x] **Hardcoded schema fields** ticked (3/6)
 - [x] **Spec file allowlist** ticked (4/6)
 - [x] **Golden prompts (10 cases)** ticked — Phase 1 · Job 5 (5/6)
-- [ ] **Pass bar** — Phase 1 · Job 6 (6/6)
+- [x] **Pass bar ≥8/10** ticked — Phase 1 · Job 6 (6/6) **complete**
 
 ---
 

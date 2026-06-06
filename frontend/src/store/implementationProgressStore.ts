@@ -12,6 +12,7 @@ export const DEFAULT_COMPLETED_JOBS: Record<string, Record<string, boolean>> = {
     'schema-fields': true,
     'spec-allowlist': true,
     'golden-prompts': true,
+    'pass-bar': true,
   },
 }
 

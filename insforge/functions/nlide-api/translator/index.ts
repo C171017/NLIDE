@@ -10,9 +10,11 @@ export {
   GOLDEN_PASS_BAR,
   GOLDEN_PROMPTS,
   ROUTER_INTENT_TYPES,
+  ROUTER_PROMPT_OUTLINE,
   ROUTING_RULES,
   SPEC_FILE_ALLOWLIST,
   ROUTER_SCHEMA_FIELDS,
+  formatRouterPromptOutline,
   isRouterIntentType,
   isSpecFileAllowed,
 } from '../../../shared/translator/index.ts'
@@ -26,6 +28,7 @@ export type {
   GoldenPromptExpectation,
   RouterIntentType,
   RouterIntentTypeDef,
+  RouterPromptOutline,
   TranslatorSpec,
 } from '../../../shared/translator/index.ts'
 

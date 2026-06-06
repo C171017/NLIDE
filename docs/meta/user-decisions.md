@@ -68,6 +68,7 @@ See also: [documentation-guide.md](./documentation-guide.md) · [ai-inferred-dec
 | 2026-06-06 | **Router output schema locked for v0** — `intent_type`, `summary`, `operations[]`, `canvas_ops[]`, `open_questions[]` | Hardcoded shape in `shared/translator/intentTypes.ts`; LLM does not invent new top-level fields |
 | 2026-06-06 | **Spec file allowlist locked for v0** — nine Flow B files (`INDEX.md` … `open-questions.md`) | `SPEC_FILE_ALLOWLIST` in `shared/translator/intentTypes.ts` |
 | 2026-06-06 | **Golden prompts approved (10 cases)** | `shared/translator/goldenPrompts.ts`; covers 9/10 intent types directly (`add_task` via add_feature co-target) |
+| 2026-06-06 | **Router golden pass bar locked: ≥8/10** | `GOLDEN_PASS_BAR` in `shared/translator/goldenPrompts.ts`; Phase 1 complete |
 
 ---
 

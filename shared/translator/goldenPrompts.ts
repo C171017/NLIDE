@@ -158,7 +158,7 @@ export const GOLDEN_PROMPTS: GoldenPrompt[] = [
   },
 ]
 
-/** **[AI-INFERRED]** Phase 1 · Job 6 — awaiting [USER] lock. */
+/** **[USER]** locked v0 (2026-06-06) — Phase 1 · Job 6; ≥8/10 before Phase 2 router ship. */
 export const GOLDEN_PASS_BAR: GoldenPassBar = {
   minPass: 8,
   description: '≥8/10 golden prompts pass via action:"route" + Zod validation',
