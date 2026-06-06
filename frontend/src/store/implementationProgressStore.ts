@@ -30,6 +30,9 @@ export const DEFAULT_COMPLETED_JOBS: Record<string, Record<string, boolean>> = {
     'validator-strictness': true,
     'remaining-writers': true,
   },
+  'phase-5-canvas-mapper': {
+    'placement-rules': true,
+  },
 }
 
 /** Human execution tasks ticked after running deploy/tests (separate from brief approval). */

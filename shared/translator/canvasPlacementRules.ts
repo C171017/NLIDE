@@ -1,6 +1,6 @@
 /**
  * Canvas card placement rules — Phase 5 · Job 1.
- * **[AI-INFERRED]** draft for [USER] review before canvas mapper ships.
+ * **[USER]** approved 2026-06-06 before canvas mapper ships.
  *
  * How new preview cards get positioned on the layered canvas — near related nodes,
  * auto-layout vs preserving user drag positions.
