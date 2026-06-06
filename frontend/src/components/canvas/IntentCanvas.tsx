@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Background,
   Position,
   ReactFlow,
   useReactFlow,
@@ -463,7 +462,6 @@ export default function IntentCanvas() {
         zoomOnDoubleClick={false}
         proOptions={{ hideAttribution: true }}
       >
-        <Background gap={20} size={1} color="#1f2433" />
         <ExcalidrawStyleGestures />
         <LayerViewportAnimator
           layerKeyValue={layerKey(displayedLayer)}

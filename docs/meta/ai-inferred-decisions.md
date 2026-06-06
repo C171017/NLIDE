@@ -25,6 +25,7 @@ See also: [documentation-guide.md](./documentation-guide.md)
 | 2026-06-06 | **dagre** for auto-layout | Layout linked cards from graph | Yes |
 | 2026-06-06 | react-markdown + remark-gfm for MD preview panel | Side panel agent MD preview | Yes |
 | 2026-06-06 | tldraw **only** inside card for viz #21 (drawing) | Not main canvas | Yes |
+| 2026-06-06 | **Milky paper canvas surface** (`#faf8f3`, plain); cards use light fills + dark text | Paper-like workspace with readable card copy; side panel stays dark glass | Yes |
 
 ---
 

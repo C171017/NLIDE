@@ -52,10 +52,10 @@ export default function AppShell() {
   return (
     <div className="flex h-full min-h-0 flex-col bg-[#0f1117] p-3">
       <div
-        className="flex min-h-0 flex-1 flex-col lg:flex-row"
+        className="flex min-h-0 flex-1 flex-col gap-1 lg:flex-row"
         style={{ minHeight: 0 }}
       >
-        <main className="glass-panel relative min-h-0 min-w-0 flex-1 overflow-hidden rounded-3xl">
+        <main className="canvas-panel relative min-h-0 min-w-0 flex-1 overflow-hidden rounded-3xl">
           <IntentCanvas />
         </main>
 

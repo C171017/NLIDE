@@ -39,7 +39,7 @@ export default function CardNode({ data }: NodeProps) {
         }
       }}
       className={clsx(
-        'canvas-node-card cursor-pointer rounded-2xl border px-3 py-2.5 text-left shadow-xl shadow-black/20 backdrop-blur-xl transition-[opacity,box-shadow,border-color,filter,transform,ring-color]',
+        'canvas-node-card cursor-pointer rounded-2xl border px-3 py-2.5 text-left shadow-md shadow-stone-300/40 transition-[opacity,box-shadow,border-color,filter,transform,ring-color]',
         hasInteractiveViz ? 'w-[300px]' : 'w-[260px]',
         cardTypeStyles(card.type),
         isPreview && 'border-dashed opacity-80',
@@ -66,27 +66,27 @@ export default function CardNode({ data }: NodeProps) {
       ))}
       <div className="w-full text-left">
         <div className="mb-1 flex flex-wrap items-center gap-2">
-          <span className="text-[10px] font-medium uppercase tracking-wide text-[#9aa3b2]">
+          <span className="text-[10px] font-medium uppercase tracking-wide text-stone-500">
             {cardTypeLabel(card.type)}
           </span>
           {card.status && (
-            <span className="rounded-full bg-slate-950/45 px-2 py-0.5 text-[10px] text-[#b8c0cf]">
+            <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] text-stone-600">
               {card.status.replace('_', ' ')}
             </span>
           )}
           {isPreview && (
-            <span className="rounded-full bg-sky-400/20 px-2 py-0.5 text-[10px] text-sky-200">
+            <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[10px] text-sky-700">
               preview
             </span>
           )}
         </div>
-        <h3 className="mb-1 text-sm font-semibold text-[#f3f4f6]">{card.title}</h3>
+        <h3 className="mb-1 text-sm font-semibold text-stone-900">{card.title}</h3>
         {!hasInteractiveViz && (
-          <p className="line-clamp-2 text-xs leading-relaxed text-[#b6bcc8]">{card.body}</p>
+          <p className="line-clamp-2 text-xs leading-relaxed text-stone-600">{card.body}</p>
         )}
       </div>
       {hasInteractiveViz && (
-        <p className="mb-2 line-clamp-2 text-xs leading-relaxed text-[#b6bcc8]">{card.body}</p>
+        <p className="mb-2 line-clamp-2 text-xs leading-relaxed text-stone-600">{card.body}</p>
       )}
       {card.vizType && card.vizPayload !== undefined && (
         <div

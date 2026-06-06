@@ -54,6 +54,8 @@ Humans never edit raw agent files directly in v0 — they edit **cards** (indivi
 
 The whole web experience is one **canvas** — an infinite or large pannable/zoomable workspace.
 
+**`[AI-INFERRED]`** Canvas surface — warm milky paper (`#faf8f3`), no grid or ruled lines. Cards use solid light backgrounds and dark text for readability; side panel and app chrome remain dark glass.
+
 ### Properties
 
 - **Central node** — **`Product`** at the center of the overview layer (mirrors `spec/product.md` as the project anchor)
