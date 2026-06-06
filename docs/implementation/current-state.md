@@ -79,7 +79,8 @@ Run: `npm run dev` (from repo root)
 | **Features writer (Phase 3)** | `insforge/functions/nlide-api/writers/` — `writeFeaturesSection()`, `action:write-features`, `action:write-features-golden` |
 | **Task + remaining writers (Phase 4)** | `taskWriter.ts`, `remainingWriter.ts`, `pipeline.ts` — `action:write-tasks`, `action:write-remaining`, `action:run-writers` |
 | **Canvas mapper (Phase 5)** | `shared/translator/canvasMapper.ts` — wired into stub `buildPreview()` on `action:intent` |
-| **Spec validator (Phase 4)** | `validator/validateSpec.ts` — `action:validate-spec`; wired into `action:run-writers` |
+| **Spec export (Phase 6)** | `shared/translator/specExport.ts`, `export/specStore.ts`, `export/exportSmoke.ts` — commit returns `exportedSpec` |
+| **Spec validator (Phase 4)** | `validator/validateSpec.ts` — `action:validate-spec`; wired into commit export |
 | Translator preview | Stub plan via `buildStubPreviewPlan()` → `mapCanvasToPreview()` — router+writers not wired to `action:intent` yet |
 | DB access | `@insforge/sdk` in edge function |
 
@@ -99,7 +100,8 @@ Run: `npm run dev` (from repo root)
 | `phase4-smoke` | ✅ **Implemented** — gp-03 writers + validator smoke |
 | `canvas-mapper-golden` | ✅ **Implemented** — 5 mapper cases, ≥4/5 pass bar |
 | `intent` | ✅ Stub preview via canvas mapper → saves to `previews` table |
-| `commit` | ✅ Applies preview to `cards` / `canvas_edges` |
+| `commit` | ✅ Applies preview to `cards` / `canvas_edges` + **`exportedSpec`** (9 files) |
+| `export-smoke` | ✅ **Implemented** — headless assemble + validation (no DB) |
 | `discard` | ✅ Deletes preview row |
 | `patch-card` | ✅ Updates card in Postgres |
 | `get-translator-spec` | ✅ Intent types, routing rules, build phases, golden prompts |
@@ -118,7 +120,7 @@ Deploy: `npm run insforge:deploy:api`
 | **Features writer LLM** | ✅ Phase 3 shipped — `action:write-features`; tune with `write-features-golden` |
 | **Full intent pipeline** | Router + writer not wired to `action:intent` yet |
 | **Full intent pipeline on canvas chat** | `action:run-writers` exists; `action:intent` still uses stub |
-| `/spec/*.md` export on commit | **[USER]** hybrid storage |
+| `/spec/*.md` export on commit | ✅ **Phase 6 shipped** — `exportedSpec` on `action:commit`; `npm run write:spec` |
 | InsForge Sites / Cloudflare deploy | **[USER]** hosting choice |
 | Auth | Out of v0 scope |
 | Flow A repo import | flow-a-v0 (deferred) |

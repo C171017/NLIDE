@@ -110,7 +110,7 @@ export const PHASE_EXECUTION: Record<string, PhaseExecutionConfig> = {
     ],
   },
   'phase-6-export': {
-    agentShipped: false,
+    agentShipped: true,
     humanTasks: [
       {
         id: 'deploy-phase6',

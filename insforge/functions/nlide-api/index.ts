@@ -12,6 +12,14 @@ import { writeRemainingSection } from './writers/remainingWriter.ts'
 import { writeTaskSection, isTaskWriterConfigured } from './writers/taskWriter.ts'
 import { validateSpec } from './validator/validateSpec.ts'
 import { runCanvasMapperGoldenTests } from './canvas/goldenRunner.ts'
+import { runExportSmoke } from './export/exportSmoke.ts'
+import {
+  loadProjectName,
+  loadSpecSections,
+  prepareCommitExport,
+  saveSpecSections,
+} from './export/specStore.ts'
+import { buildSectionRowsForCommit } from './_shared/translator/specExport.ts'
 import {
   buildStubPreviewPlan,
   mapCanvasToPreview,
@@ -75,6 +83,7 @@ interface ApiRequest {
     | 'validate-spec'
     | 'phase4-smoke'
     | 'canvas-mapper-golden'
+    | 'export-smoke'
     | 'intent'
     | 'commit'
     | 'discard'
@@ -229,7 +238,7 @@ async function deletePreview(client: InsForgeClient, previewId: string): Promise
   if (error) throw error
 }
 
-async function commitPreview(
+async function commitCanvas(
   client: InsForgeClient,
   projectId: string,
   preview: PreviewPayload,
@@ -278,6 +287,37 @@ async function commitPreview(
   await deletePreview(client, preview.previewId)
 }
 
+async function syncCardSpecSection(
+  client: InsForgeClient,
+  projectId: string,
+  card: Card,
+): Promise<void> {
+  const file = card.specRef.file
+  if (!file || file === 'INDEX.md') return
+
+  const anchor =
+    card.type === 'product' ||
+    card.type === 'users' ||
+    card.type === 'constraints' ||
+    card.type === 'architecture'
+      ? ''
+      : (card.specRef.anchor ?? card.id)
+
+  const body = card.body?.trim()
+  if (!body) return
+
+  const { error } = await client.database.from('spec_sections').upsert([
+    {
+      project_id: projectId,
+      file,
+      anchor,
+      content: body,
+    },
+  ])
+
+  if (error) throw error
+}
+
 async function patchCard(
   client: InsForgeClient,
   projectId: string,
@@ -301,7 +341,9 @@ async function patchCard(
   if (error) throw error
   if (!data) return null
 
-  return rowToCard(data as DbCardRow)
+  const card = rowToCard(data as DbCardRow)
+  await syncCardSpecSection(client, projectId, card)
+  return card
 }
 
 function finalizeStubMdPatches(
@@ -721,6 +763,14 @@ export default async function handler(req: Request): Promise<Response> {
         return json({ ok: true, ...report })
       }
 
+      case 'export-smoke': {
+        const report = runExportSmoke()
+        if (!report.ok) {
+          return json(report, 422)
+        }
+        return json({ ok: true, ...report })
+      }
+
       case 'intent': {
         if (!body.message?.trim()) {
           return errorResponse('message is required')
@@ -754,13 +804,47 @@ export default async function handler(req: Request): Promise<Response> {
           return errorResponse('Preview not found', 404)
         }
 
-        await commitPreview(client, projectId, preview)
+        const projectName = await loadProjectName(client, projectId)
+        const existingRows = await loadSpecSections(client, projectId)
+
+        const exportResult = await prepareCommitExport({
+          projectName,
+          existingRows,
+          patches: preview.mdPatches,
+          cards: preview.cards,
+        })
+
+        if (!exportResult.ok) {
+          return json(
+            {
+              ok: false,
+              error: {
+                code: exportResult.code,
+                message: 'Spec failed validation before commit',
+                issues: exportResult.issues,
+              },
+            },
+            422,
+          )
+        }
+
+        const rows = buildSectionRowsForCommit({
+          existingRows,
+          patches: preview.mdPatches,
+          cards: preview.cards,
+        })
+
+        await saveSpecSections(client, projectId, rows)
+        await commitCanvas(client, projectId, preview)
 
         return json({
           committed: true,
           previewId: body.previewId,
           cards: preview.cards,
           edges: preview.edges,
+          exportedSpec: exportResult.exportedSpec,
+          exportWarnings: exportResult.warnings,
+          sectionCount: exportResult.sectionCount,
         })
       }
 

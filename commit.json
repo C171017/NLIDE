@@ -1,0 +1,340 @@
+{
+  "committed": true,
+  "previewId": "preview-1780783280569",
+  "cards": [
+    {
+      "id": "frontend",
+      "body": "React canvas UI, card editor, chat bar, and visualization embeds — the human-facing intent surface.",
+      "type": "frontend",
+      "layer": 0,
+      "title": "Frontend",
+      "status": "in_progress",
+      "specRef": {
+        "file": "architecture.md",
+        "anchor": "frontend"
+      },
+      "position": {
+        "x": -500,
+        "y": 10
+      }
+    },
+    {
+      "id": "backend",
+      "body": "InsForge edge functions, Postgres for runtime state, translator pipeline, and spec export on commit.",
+      "type": "backend",
+      "layer": 0,
+      "title": "Backend",
+      "status": "in_progress",
+      "specRef": {
+        "file": "architecture.md",
+        "anchor": "backend"
+      },
+      "position": {
+        "x": 540,
+        "y": 10
+      }
+    },
+    {
+      "id": "product",
+      "body": "Natural Language IDE — an intent canvas where humans define what to build; agents execute from exported spec.",
+      "type": "product",
+      "layer": 0,
+      "title": "NLIDE",
+      "status": "approved",
+      "specRef": {
+        "file": "product.md"
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": "users",
+      "body": "Solo builders and small teams who want to clarify intent visually before delegating implementation to AI agents.",
+      "type": "users",
+      "layer": 0,
+      "title": "Users",
+      "status": "approved",
+      "specRef": {
+        "file": "users.md"
+      },
+      "position": {
+        "x": -313.31467174260473,
+        "y": -245.54124833599695
+      }
+    },
+    {
+      "id": "features",
+      "body": "Users arrange cards on a pannable canvas with links between intent nodes.",
+      "type": "feature",
+      "layer": 0,
+      "title": "F-001: Intent canvas",
+      "status": "in_progress",
+      "specRef": {
+        "file": "features.md",
+        "anchor": "F-001"
+      },
+      "vizType": "data-table",
+      "position": {
+        "x": -6.198880185175824,
+        "y": 379.1820829628132
+      },
+      "vizPayload": {
+        "rows": [
+          [
+            "F-001",
+            "Intent canvas",
+            "in_progress",
+            "high"
+          ],
+          [
+            "F-002",
+            "Chat → preview → commit",
+            "proposed",
+            "high"
+          ],
+          [
+            "F-003",
+            "Manual card editing",
+            "proposed",
+            "medium"
+          ],
+          [
+            "F-004",
+            "Preview adds F-004 Google login and an open question card linked from Features",
+            "proposed",
+            "high"
+          ],
+          [
+            "F-005",
+            "Preview adds F-004 Google login and an open question card linked from Features",
+            "proposed",
+            "high"
+          ],
+          [
+            "F-006",
+            "Preview adds F-004 Google login and an open question card linked from Features",
+            "proposed",
+            "high"
+          ]
+        ],
+        "columns": [
+          "ID",
+          "Title",
+          "Status",
+          "Priority"
+        ]
+      }
+    },
+    {
+      "id": "tasks",
+      "body": "Implement layered canvas with Product center, Frontend/Backend pillars, and zoom-based detail views.",
+      "type": "task",
+      "layer": 0,
+      "title": "T-001: Build React Flow canvas",
+      "status": "in_progress",
+      "specRef": {
+        "file": "tasks.md",
+        "anchor": "T-001"
+      },
+      "position": {
+        "x": -520,
+        "y": 280
+      }
+    },
+    {
+      "id": "architecture",
+      "body": "React frontend, InsForge edge functions, Postgres for runtime state, MD export on commit.",
+      "type": "architecture",
+      "layer": 0,
+      "title": "Architecture",
+      "status": "approved",
+      "specRef": {
+        "file": "architecture.md"
+      },
+      "vizType": "mermaid",
+      "position": {
+        "x": 520,
+        "y": -220
+      },
+      "vizPayload": "flowchart LR\n  User --> Chat\n  Chat --> Translator\n  Translator --> Preview\n  Preview -->|Commit| Postgres\n  Preview -->|Commit| SpecMD\n  Canvas --> Postgres"
+    },
+    {
+      "id": "translator-step1",
+      "body": "Approve export scope and spec/ layout in Build plan, then Agent mode wires commit + end-to-end pipeline.",
+      "type": "task",
+      "layer": 0,
+      "title": "Phase 6: Export on commit",
+      "status": "in_progress",
+      "specRef": {
+        "file": "tasks.md",
+        "anchor": "T-002"
+      },
+      "vizType": "progress-checklist",
+      "position": {
+        "x": 720,
+        "y": 280
+      },
+      "vizPayload": {
+        "items": [
+          {
+            "id": "export-scope",
+            "label": "Export scope on commit",
+            "detail": "Full spec/ tree vs delta files"
+          },
+          {
+            "id": "spec-folder-layout",
+            "label": "spec/ folder layout",
+            "detail": "Matches Flow B v0 file list"
+          },
+          {
+            "id": "end-to-end-smoke",
+            "label": "End-to-end smoke path",
+            "detail": "Chat → preview → commit → spec/ on disk"
+          }
+        ],
+        "phaseLabel": "Phase 6: Export on commit",
+        "readyLabel": "Ready for Agent mode — Commit writes spec/ files; replace stub end-to-end",
+        "checklistId": "phase-6-export",
+        "blockedLabel": "Finish the jobs below, then switch to Agent mode"
+      }
+    },
+    {
+      "id": "oq-1780782947552",
+      "body": "From chat: \"add a dog icon on the screen\" — which enterprise domains should be allowed for Google login?",
+      "type": "open-question",
+      "layer": 0,
+      "title": "Open question (preview)",
+      "status": "proposed",
+      "specRef": {
+        "file": "open-questions.md",
+        "anchor": "oq-1780782947552"
+      },
+      "position": {
+        "x": -471.0364039457766,
+        "y": 293.50000000000017
+      }
+    },
+    {
+      "id": "oq-1780782981840",
+      "body": "From chat: \"we want to move the layer section to bottom\" — which enterprise domains should be allowed for Google login?",
+      "type": "open-question",
+      "layer": 0,
+      "title": "Open question (preview)",
+      "status": "proposed",
+      "specRef": {
+        "file": "open-questions.md",
+        "anchor": "oq-1780782981840"
+      },
+      "position": {
+        "x": 175.80111981482418,
+        "y": 605.1820829628132
+      }
+    },
+    {
+      "id": "oq-1780783280569",
+      "body": "From chat: \"Add Google login\" — which enterprise domains should be allowed for Google login?",
+      "type": "open-question",
+      "layer": 1,
+      "title": "Open question (preview)",
+      "status": "proposed",
+      "specRef": {
+        "file": "open-questions.md",
+        "anchor": "oq-1780783280569"
+      },
+      "position": {
+        "x": 175.80111981482418,
+        "y": 845.1820829628132
+      },
+      "parentCardId": "product"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-product-frontend",
+      "label": "has",
+      "source": "product",
+      "target": "frontend"
+    },
+    {
+      "id": "e-product-backend",
+      "label": "has",
+      "source": "product",
+      "target": "backend"
+    },
+    {
+      "id": "e-frontend-backend",
+      "label": "calls",
+      "source": "frontend",
+      "target": "backend"
+    },
+    {
+      "id": "e-product-users",
+      "label": "serves",
+      "source": "product",
+      "target": "users"
+    },
+    {
+      "id": "e-product-features",
+      "label": "contains",
+      "source": "product",
+      "target": "features"
+    },
+    {
+      "id": "e-frontend-tasks",
+      "label": "implements",
+      "source": "frontend",
+      "target": "tasks"
+    },
+    {
+      "id": "e-features-tasks",
+      "label": "implements",
+      "source": "features",
+      "target": "tasks"
+    },
+    {
+      "id": "e-backend-architecture",
+      "label": "describes",
+      "source": "backend",
+      "target": "architecture"
+    },
+    {
+      "id": "e-architecture-translator-step1",
+      "label": "next build step",
+      "source": "architecture",
+      "target": "translator-step1"
+    },
+    {
+      "id": "e-features-oq-1780782947552",
+      "label": "raises",
+      "source": "features",
+      "target": "oq-1780782947552"
+    },
+    {
+      "id": "e-features-oq-1780782981840",
+      "label": "raises",
+      "source": "features",
+      "target": "oq-1780782981840"
+    },
+    {
+      "id": "e-features-oq-1780783280569",
+      "label": "raises",
+      "source": "features",
+      "target": "oq-1780783280569"
+    }
+  ],
+  "exportedSpec": {
+    "product.md": "# Product\n\nNatural Language IDE — an intent canvas where humans define what to build; agents execute from exported spec.\n",
+    "users.md": "# Users\n\nSolo builders and small teams who want to clarify intent visually before delegating implementation to AI agents.\n",
+    "features.md": "### F-004: Add entry in features.md\n\n- **Status:** proposed\n- **Priority:** medium\n- **Description:** Add entry in features.md\n- **Acceptance criteria:**\n  - User-facing behavior matches the described intent\n  - Domain and access rules are enforced when applicable\n- **Related:** —\n",
+    "architecture.md": "# Architecture\n\nReact frontend, InsForge edge functions, Postgres for runtime state, MD export on commit.\n",
+    "tasks.md": "# Tasks\n\n_(No tasks yet — add via chat when features are defined.)_\n",
+    "constraints.md": "# Constraints\n\n## Stack\n\n## Patterns\n\n## Non-goals\n",
+    "decisions.md": "# Decisions\n\n_(No recorded decisions yet.)_\n",
+    "open-questions.md": "### oq-1780783280569: Domain allowlist\n\n- **Status:** open\n- **Question:** which enterprise domains should be allowed for Google login?\n- **Context:** From translator preview\n",
+    "INDEX.md": "# NLIDE Demo Project — Spec Index\n\nAdd entry in features.md\n\n## Spec files\n\n| File | Scope |\n|------|-------|\n| `product.md` | What we are building and why — vision, goals, scope |\n| `users.md` | Target users, personas, pain points, use cases |\n| `features.md` | Feature list with acceptance criteria (F-001, …) |\n| `architecture.md` | High-level system design — no source file paths |\n| `tasks.md` | Agent-executable work items (T-001, …) |\n| `constraints.md` | Stack, patterns, non-goals, limits |\n| `decisions.md` | Resolved choices — ADR-style (D-001, …) |\n| `open-questions.md` | Unresolved decisions needing user input (OQ-001, …) |\n\n## Agent routing rules\n\n1. **Start here.** Read `constraints.md` before `architecture.md`.\n2. Tasks in `tasks.md` reference feature IDs in `features.md` — follow **Feature:** links.\n3. Unresolved items live in `open-questions.md` — do not guess; ask the user.\n4. Locked choices are in `decisions.md` — respect **Status: locked**.\n5. Intent-level spec only — no source file paths as primary requirements.\n\n_Exported 2026-06-06 — NLIDE Flow B v0_"
+  },
+  "exportWarnings": [],
+  "sectionCount": 5
+}

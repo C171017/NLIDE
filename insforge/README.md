@@ -208,28 +208,25 @@ insforge deployments create --name nlide-web --dir frontend/dist
 | `write-features` | Features.md writer — one section from router plan + message |
 | `write-features-golden` | Run 4 features writer golden cases; returns pass count vs ≥3/4 bar |
 | `intent` | Chat → preview (stored in `previews`) — **still stub** until pipeline wired |
-| `commit` | Apply preview to `cards` / `canvas_edges` |
+| `commit` | Apply preview to `cards` / `canvas_edges` + **`exportedSpec`** (9 Flow B files) |
 | `discard` | Delete preview row |
-| `patch-card` | Manual card edit sync |
-| `export-smoke` | **Planned (Phase 6 Agent mode)** — headless assemble → `exportedSpec` |
+| `patch-card` | Manual card edit sync (+ spec_sections when body is valid MD) |
+| `export-smoke` | Headless export assemble + validation (no DB) |
 
 ## Export smoke (Phase 6)
 
-After Agent mode wires commit export:
-
 ```bash
-# UI: npm run dev → chat → preview → Commit → save response JSON
-npm run write:spec -- /tmp/nlide-commit.json
-ls spec/*.md   # expect 9 files
-
-# Headless (when action:export-smoke ships):
+# Headless regression
 npm run insforge:invoke:export-smoke
+
+# UI: npm run dev → chat → preview → Commit → save response JSON
+npm run write:spec -- commit.json
+ls spec/*.md   # expect 9 files
 ```
 
 See `shared/translator/exportEndToEndSmoke.ts`.
 
 ## Next steps
 
-- Wire router + features writer into `action:intent` preview pipeline
+- Wire router + writers into `action:intent` preview pipeline
 - Seed default project cards on first load
-- Export `/spec/*.md` on commit

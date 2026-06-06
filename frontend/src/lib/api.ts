@@ -88,10 +88,14 @@ export async function submitIntent(
 export async function commitPreviewRemote(
   previewId: string,
   projectId = DEFAULT_PROJECT_ID,
-): Promise<void> {
-  if (!functionUrl) return
+): Promise<{ exportedSpec?: Record<string, string> }> {
+  if (!functionUrl) return {}
 
-  await post({ action: 'commit', previewId, projectId })
+  return post<{ committed: boolean; exportedSpec?: Record<string, string> }>({
+    action: 'commit',
+    previewId,
+    projectId,
+  })
 }
 
 export async function discardPreviewRemote(
