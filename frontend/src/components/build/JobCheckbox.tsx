@@ -7,6 +7,9 @@ interface JobCheckboxProps {
   label: ReactNode
   detail?: ReactNode
   highlighted?: boolean
+  /** brief = sky (default), human = amber, agent = violet */
+  variant?: 'brief' | 'human' | 'agent'
+  readOnly?: boolean
 }
 
 function stopBubble(event: MouseEvent) {
@@ -19,26 +22,43 @@ export default function JobCheckbox({
   label,
   detail,
   highlighted = false,
+  variant = 'brief',
+  readOnly = false,
 }: JobCheckboxProps) {
   const handleToggle = (event: MouseEvent) => {
+    if (readOnly) return
     event.preventDefault()
     event.stopPropagation()
     onToggle()
   }
 
+  const checkboxColors = {
+    brief: checked
+      ? 'border-sky-400 bg-sky-500 text-white'
+      : 'border-[#6b7280] bg-[#0f1117] text-transparent',
+    human: checked
+      ? 'border-amber-400 bg-amber-500 text-white'
+      : 'border-[#6b7280] bg-[#0f1117] text-transparent',
+    agent: checked
+      ? 'border-violet-400 bg-violet-500 text-white'
+      : 'border-[#6b7280] bg-[#0f1117] text-transparent',
+  }
+
   return (
     <div
-      role="button"
-      tabIndex={0}
+      role={readOnly ? undefined : 'button'}
+      tabIndex={readOnly ? undefined : 0}
       onClick={handleToggle}
       onKeyDown={(event) => {
+        if (readOnly) return
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault()
           onToggle()
         }
       }}
       className={clsx(
-        'nodrag nopan nowheel flex w-full cursor-pointer items-start gap-2.5 rounded-md px-1.5 py-1.5 text-left transition-colors hover:bg-[#1a1d27]',
+        'nodrag nopan nowheel flex w-full items-start gap-2.5 rounded-md px-1.5 py-1.5 text-left transition-colors',
+        readOnly ? 'cursor-default' : 'cursor-pointer hover:bg-[#1a1d27]',
         highlighted && 'bg-sky-500/10 ring-1 ring-sky-400/50',
       )}
       onPointerDown={stopBubble}
@@ -48,9 +68,7 @@ export default function JobCheckbox({
         aria-hidden
         className={clsx(
           'mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded border-2 transition-colors',
-          checked
-            ? 'border-sky-400 bg-sky-500 text-white'
-            : 'border-[#6b7280] bg-[#0f1117] text-transparent',
+          checkboxColors[variant],
         )}
       >
         {checked && (

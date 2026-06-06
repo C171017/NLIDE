@@ -37,7 +37,8 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | **Resizable layout** | `AppShell.tsx`, `ResizeHandle.tsx`, `useResizableSize.ts` — drag borders between canvas, side panel, chat bar; preview summary height in card tab; sizes persist in `localStorage` |
 | Translator spec (shared) | `shared/translator/` — intent types, routing rules, build phases, **golden prompts** |
 | Backend translator module | `insforge/functions/nlide-api/translator/` |
-| Build phases UI | `BuildPhasesPanel.tsx`, `PhaseJobList.tsx` |
+| Build phases UI | `BuildPhasesPanel.tsx`, `PhaseJobList.tsx`, `PhaseExecutionPanel.tsx` — Agent / You columns |
+| Phase execution map | `shared/translator/phaseExecution.ts` — shipped status + human task list per phase |
 | P0 viz embeds | Mermaid, markdown table, force graph, data table, **progress-checklist** |
 | Step 1 progress card | `translator-step1` task card — Phase 3 **complete (3/3)**; Phase 4 active |
 | Router prompt outline | `shared/translator/routerPromptOutline.ts` — Phase 2 · Job 1 **approved** |

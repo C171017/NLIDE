@@ -27,6 +27,9 @@ export const DEFAULT_COMPLETED_JOBS: Record<string, Record<string, boolean>> = {
   },
 }
 
+/** Human execution tasks ticked after running deploy/tests (separate from brief approval). */
+export const DEFAULT_HUMAN_EXECUTION: Record<string, Record<string, boolean>> = {}
+
 export function isItemDone(
   completed: Record<string, Record<string, boolean>>,
   checklistId: string,
@@ -45,15 +48,36 @@ export function countDone(
   return itemIds.filter((id) => isItemDone(completed, checklistId, id)).length
 }
 
+export function isHumanExecutionDone(
+  humanExecution: Record<string, Record<string, boolean>>,
+  checklistId: string,
+  taskId: string,
+): boolean {
+  const stored = humanExecution[checklistId]?.[taskId]
+  if (stored !== undefined) return stored
+  return DEFAULT_HUMAN_EXECUTION[checklistId]?.[taskId] ?? false
+}
+
+export function countHumanExecutionDone(
+  humanExecution: Record<string, Record<string, boolean>>,
+  checklistId: string,
+  taskIds: string[],
+): number {
+  return taskIds.filter((id) => isHumanExecutionDone(humanExecution, checklistId, id)).length
+}
+
 interface ImplementationProgressStore {
   completed: Record<string, Record<string, boolean>>
+  humanExecution: Record<string, Record<string, boolean>>
   toggleItem: (checklistId: string, itemId: string) => void
+  toggleHumanExecution: (checklistId: string, taskId: string) => void
 }
 
 export const useImplementationProgressStore = create<ImplementationProgressStore>()(
   persist(
     (set, get) => ({
       completed: {},
+      humanExecution: {},
 
       toggleItem: (checklistId, itemId) => {
         const current = isItemDone(get().completed, checklistId, itemId)
@@ -63,6 +87,19 @@ export const useImplementationProgressStore = create<ImplementationProgressStore
             [checklistId]: {
               ...(state.completed[checklistId] ?? {}),
               [itemId]: !current,
+            },
+          },
+        }))
+      },
+
+      toggleHumanExecution: (checklistId, taskId) => {
+        const current = isHumanExecutionDone(get().humanExecution, checklistId, taskId)
+        set((state) => ({
+          humanExecution: {
+            ...state.humanExecution,
+            [checklistId]: {
+              ...(state.humanExecution[checklistId] ?? {}),
+              [taskId]: !current,
             },
           },
         }))

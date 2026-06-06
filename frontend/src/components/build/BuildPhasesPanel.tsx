@@ -33,7 +33,8 @@ export default function BuildPhasesPanel() {
       <div className="border-b border-white/10 px-4 py-3">
         <h2 className="text-sm font-semibold text-[#f3f4f6]">Translator build plan</h2>
         <p className="text-xs text-[#9aa3b2]">
-          Tick jobs as you approve each instruction. Finish a phase → Agent mode.
+          Approve brief jobs (sky). When a phase is complete: Agent column (violet = shipped) + You
+          column (amber checkboxes for deploy/tests).
         </p>
 
         {focus && !focus.allPhasesReady && (

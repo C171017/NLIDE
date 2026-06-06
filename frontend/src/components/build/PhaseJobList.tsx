@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import type { BuildPhase } from '@nlide/shared'
+import { getPhaseExecution } from '@nlide/shared'
 import { phaseProgress, progressBarSegments } from '../../lib/buildPhaseUtils'
 import {
   countDone,
@@ -7,6 +8,7 @@ import {
   useImplementationProgressStore,
 } from '../../store/implementationProgressStore'
 import JobCheckbox from './JobCheckbox'
+import PhaseExecutionPanel from './PhaseExecutionPanel'
 
 interface PhaseJobListProps {
   phase: BuildPhase
@@ -29,6 +31,7 @@ export default function PhaseJobList({
   )
   const fraction = total > 0 ? done / total : 0
   const isCurrentPhase = phase.checklistId === currentChecklistId
+  const execution = getPhaseExecution(phase.checklistId)
 
   return (
     <details
@@ -46,7 +49,12 @@ export default function PhaseJobList({
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex flex-wrap items-center gap-2">
               <span className="text-xs font-semibold text-[#f3f4f6]">{phase.title}</span>
-              <PhaseStatusBadge status={phase.status} ready={ready} isCurrent={isCurrentPhase} />
+              <PhaseStatusBadge
+                status={phase.status}
+                ready={ready}
+                isCurrent={isCurrentPhase}
+                agentShipped={execution?.agentShipped}
+              />
             </div>
             <p className="text-[11px] leading-snug text-[#9aa3b2]">{phase.plainSummary}</p>
           </div>
@@ -98,11 +106,7 @@ export default function PhaseJobList({
           })}
         </ul>
 
-        {ready && (
-          <p className="mt-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2 py-1.5 text-[11px] leading-snug text-emerald-200">
-            Ready for Agent mode — {phase.agentModeGoal}
-          </p>
-        )}
+        <PhaseExecutionPanel phase={phase} briefsReady={ready} />
       </div>
     </details>
   )
@@ -112,11 +116,21 @@ function PhaseStatusBadge({
   status,
   ready,
   isCurrent,
+  agentShipped,
 }: {
   status: BuildPhase['status']
   ready: boolean
   isCurrent: boolean
+  agentShipped?: boolean
 }) {
+  if (ready && agentShipped) {
+    return (
+      <span className="rounded-full bg-violet-500/20 px-2 py-0.5 text-[10px] text-violet-300">
+        shipped
+      </span>
+    )
+  }
+
   if (ready) {
     return (
       <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] text-emerald-300">
