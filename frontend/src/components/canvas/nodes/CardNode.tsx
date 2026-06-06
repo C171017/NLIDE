@@ -3,7 +3,13 @@ import clsx from 'clsx'
 import type { CSSProperties } from 'react'
 import type { Card } from '../../../types/canvas'
 import { cardJiggleDelay } from '../../../lib/canDeleteCard'
-import { cardTypeLabel, cardTypeStyles, cardSelectedStyles } from '../../../lib/cardStyles'
+import {
+  cardTypeLabel,
+  cardTypeStyles,
+  cardTypeLabelStyles,
+  cardTypeHandleStyles,
+  cardSelectedStyles,
+} from '../../../lib/cardStyles'
 import { useLongPress } from '../../../hooks/useLongPress'
 import { useCanvasStore } from '../../../store/canvasStore'
 import VizEmbed from '../../viz/VizEmbed'
@@ -59,7 +65,7 @@ export default function CardNode({ data }: NodeProps) {
       onPointerLeave={longPress.onPointerLeave}
       onPointerCancel={longPress.onPointerCancel}
       className={clsx(
-        'canvas-node-card cursor-pointer rounded-2xl border px-3 py-2.5 text-left shadow-md shadow-stone-300/40 transition-[opacity,box-shadow,border-color,filter,transform,ring-color]',
+        'canvas-node-card cursor-pointer rounded-2xl border px-3 py-2.5 text-left transition-[opacity,box-shadow,border-color,filter,transform,ring-color]',
         hasInteractiveViz ? 'w-[300px]' : 'w-[260px]',
         cardTypeStyles(card.type),
         isPreview && 'border-dashed opacity-80',
@@ -73,7 +79,7 @@ export default function CardNode({ data }: NodeProps) {
           id={`target-${position}`}
           type="target"
           position={position}
-          className="!h-1.5 !w-1.5 !bg-[#6b7280]"
+          className={clsx('!h-1.5 !w-1.5', cardTypeHandleStyles(card.type))}
         />
       ))}
       {handlePositions.map((position) => (
@@ -82,16 +88,21 @@ export default function CardNode({ data }: NodeProps) {
           id={`source-${position}`}
           type="source"
           position={position}
-          className="!h-1.5 !w-1.5 !bg-[#6b7280]"
+          className={clsx('!h-1.5 !w-1.5', cardTypeHandleStyles(card.type))}
         />
       ))}
       <div className="w-full text-left">
         <div className="mb-1 flex flex-wrap items-center gap-2">
-          <span className="text-[10px] font-medium uppercase tracking-wide text-stone-500">
+          <span
+            className={clsx(
+              'text-[10px] font-semibold uppercase tracking-wide',
+              cardTypeLabelStyles(card.type),
+            )}
+          >
             {cardTypeLabel(card.type)}
           </span>
           {card.status && (
-            <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] text-stone-600">
+            <span className="rounded-full bg-white/70 px-2 py-0.5 text-[10px] text-stone-700">
               {card.status.replace('_', ' ')}
             </span>
           )}
@@ -103,11 +114,11 @@ export default function CardNode({ data }: NodeProps) {
         </div>
         <h3 className="mb-1 text-sm font-semibold text-stone-900">{card.title}</h3>
         {!hasInteractiveViz && (
-          <p className="line-clamp-2 text-xs leading-relaxed text-stone-600">{card.body}</p>
+          <p className="line-clamp-2 text-xs leading-relaxed text-stone-700">{card.body}</p>
         )}
       </div>
       {hasInteractiveViz && (
-        <p className="mb-2 line-clamp-2 text-xs leading-relaxed text-stone-600">{card.body}</p>
+        <p className="mb-2 line-clamp-2 text-xs leading-relaxed text-stone-700">{card.body}</p>
       )}
       {card.vizType && card.vizPayload !== undefined && (
         <div

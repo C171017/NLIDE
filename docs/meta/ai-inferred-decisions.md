@@ -29,6 +29,7 @@ See also: [documentation-guide.md](./documentation-guide.md)
 | 2026-06-06 | react-markdown + remark-gfm for MD preview panel | Side panel agent MD preview | Yes |
 | 2026-06-06 | tldraw **only** inside card for viz #21 (drawing) | Not main canvas | Yes |
 | 2026-06-06 | **Milky paper canvas surface** (`#faf8f3`, plain); cards use light fills + dark text | Paper-like workspace with readable card copy; side panel stays dark glass | Yes |
+| 2026-06-06 | **Distinct card-type colors** (`cardStyles.ts`) | Each type gets its own hue (amber product, emerald frontend, sky backend, violet users, teal feature, orange task, blue architecture, rose constraint, indigo decision, yellow open-question) with ~50% tint fill + colored border; title/body stay `stone-900`/`stone-700` for readability | Yes |
 
 ---
 

@@ -113,7 +113,7 @@ One spec file can spawn **many cards** (e.g. one Feature card per `F-001`, `F-00
 
 Each card is:
 
-1. **Human-readable** — short title, plain-language body, status chip
+1. **Human-readable** — short title, plain-language body, status chip; **`[AI-INFERRED]`** type-colored border + semi-transparent tint (see `cardStyles.ts`) so task, decision, feature, etc. are scannable at a glance while copy stays dark on the milky canvas
 2. **Easy to edit** — click to edit inline or side panel; no markdown syntax required on surface
 3. **Linked** — connected to related cards on canvas
 4. **Visualizable** — optional rich embed chosen per card (see [Visualization catalog](#visualization-catalog))
