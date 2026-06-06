@@ -16,7 +16,7 @@ export default function SidePanel() {
   )
 
   return (
-    <aside className="flex w-80 shrink-0 flex-col border-l border-[#2d3348] bg-[#12151d]">
+    <aside className="flex max-h-[30vh] min-h-36 w-full shrink flex-col border-t border-[#2d3348] bg-[#12151d] lg:max-h-none lg:min-h-0 lg:w-80 lg:shrink-0 lg:border-l lg:border-t-0">
       <div className="border-b border-[#2d3348] px-4 py-3">
         <h2 className="text-sm font-semibold text-[#f3f4f6]">Card editor</h2>
         <p className="text-xs text-[#9aa3b2]">Manual edits sync to underlying spec sections.</p>
@@ -36,7 +36,7 @@ export default function SidePanel() {
       </div>
 
       {preview && (
-        <div className="border-t border-[#2d3348] p-4">
+        <div className="hidden border-t border-[#2d3348] p-4 lg:block">
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#9aa3b2]">
             Preview summary
           </h3>

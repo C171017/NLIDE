@@ -8,9 +8,9 @@ export default function PreviewActions() {
   if (!preview) return null
 
   return (
-    <div className="mt-3 flex items-center justify-between rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2">
-      <p className="text-sm text-sky-100">{preview.summary}</p>
-      <div className="flex gap-2">
+    <div className="mt-3 flex flex-col gap-3 rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+      <p className="min-w-0 text-sm text-sky-100">{preview.summary}</p>
+      <div className="flex shrink-0 gap-2">
         <button
           type="button"
           onClick={() => void discardPreview()}

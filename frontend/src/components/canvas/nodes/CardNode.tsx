@@ -27,7 +27,7 @@ export default function CardNode({ data }: NodeProps) {
       )}
     >
       <Handle type="target" position={Position.Top} className="!bg-[#6b7280]" />
-      <div className="mb-1 flex items-center justify-between gap-2">
+      <div className="mb-1 flex flex-wrap items-center gap-2">
         <span className="text-[10px] font-medium uppercase tracking-wide text-[#9aa3b2]">
           {cardTypeLabel(card.type)}
         </span>
