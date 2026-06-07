@@ -1,6 +1,6 @@
 # Execution Phase Planning
 
-**v1 shipped** in Build plan tab — fresh LLM regenerate from full spec, preview → commit. Canvas Phase cards and `phases.md` export remain future.
+**v2 shipped** in Build plan tab — human-gate phases with dual checklists (agent + user). Fresh LLM regenerate from full spec, preview → commit. Canvas Phase cards and `phases.md` export remain future.
 
 Related: [Flow B v0](../architecture/flow-b-v0.md) · [Canvas UI](./canvas-ui-vision.md) · [Tech stack](./tech-stack.md)
 
@@ -8,61 +8,64 @@ Related: [Flow B v0](../architecture/flow-b-v0.md) · [Canvas UI](./canvas-ui-vi
 
 ## Purpose
 
-After intent is captured in `/spec`, an **execution planner** (AI orchestration) will:
+After intent is captured in `/spec`, an **execution planner** (AI orchestration):
 
-1. Read the full intent graph (features, tasks, constraints, architecture)
-2. **Decide how many phases** the overall execution should have
-3. **Break work into ordered phases** — each phase a coherent chunk an agent (or human) can complete before moving on
-4. Surface phases on the canvas as **Phase cards** linked to task cards
+1. Reads the full intent graph (features, tasks, constraints, architecture, open questions)
+2. **Decides how many phases** the overall execution should have
+3. **Breaks work into ordered phases** — each phase ends at a **human gate** (API keys, decisions, approvals)
+4. Surfaces phases in the **Build plan** tab with agent work + user tasks per phase
 
 This sits **between Flow B (intent MD)** and **Flow C (external agent execution)**.
 
 ```
 Intent spec (Flow B)
         ↓
-Execution phase planner  ← v1 (Build plan Regenerate)
+Execution phase planner  ← v2 (Build plan Regenerate)
         ↓
-Phase 1 → Phase 2 → Phase 3 …
+Phase 1 (agent + user) → Phase 2 → Phase 3 …
         ↓
 External agents execute per phase (Flow C)
 ```
 
 ---
 
-## What the planner produces
+## What the planner produces (v2)
 
 | Output | Description |
 |--------|-------------|
-| **Phase count** | AI-determined N (not fixed upfront) — e.g. 3 phases for a small feature, 7 for a large product |
-| **Phase cards** | Human-readable: name, goal, what’s included |
-| **Phase MD** | Agent-executable: `phases.md` or sections in `tasks.md` |
-| **Task assignment** | Each `T-xxx` mapped to exactly one phase |
-| **Dependencies** | Phase N blocks on Phase N−1; tasks within phase ordered |
-| **Exit criteria** | Per phase: “done when these acceptance criteria pass” |
+| **Phase count** | AI-determined N — minimized; vertical slices that stop at real human blockers |
+| **humanGateReason** | Plain-language why the phase ends here (user must act before next phase) |
+| **agentChecklist** | 2–6 concrete agent deliverables for this slice (implement X, wire Y, export Z) |
+| **userChecklist** | 1–4 user actions before the next phase (API key, decision, approval, config) |
+| **relatedTaskIds** | Optional T-xxx traceability for export — not UI checkboxes, not validated for coverage |
+| **Exit criteria** | Optional “done when” bullets for agent work |
+
+**Phase complete:** Both agent checklist **and** user checklist must be checked off before the next phase unlocks.
+
+**Removed in v2:** Per-T-xxx checkbox UI, requirement that every T-xxx appear in exactly one phase.
 
 ### Example
 
-**Input:** Feature F-001 (Google login) + F-002 (admin revoke) + constraints
+**Input:** Feature F-001 (Google login) + F-002 (admin revoke) + constraints + open questions
 
 **Planner output:**
 
-| Phase | Goal | Tasks |
-|-------|------|-------|
-| **Phase 1 — Foundation** | OAuth infra + domain config | T-001, T-002 |
-| **Phase 2 — User flow** | Login UI + session | T-003, T-004 |
-| **Phase 3 — Admin** | Revoke access UI + API | T-005 |
-
-Each phase becomes a **canvas card** linked to its task cards and to the previous/next phase.
+| Phase | Goal | Human gate | Agent items | User items |
+|-------|------|------------|-------------|------------|
+| **Phase 1 — OAuth foundation** | Provider + callback wired | User adds OAuth credentials | Wire callback, domain middleware | Add `GOOGLE_CLIENT_ID`, pick allowlist |
+| **Phase 2 — User login UI** | Login button + session | User approves UX | Build login page, session store | Review login flow |
+| **Phase 3 — Admin revoke** | Revoke API + UI | User approves admin deploy | Revoke endpoint + admin table | Confirm production deploy |
 
 ---
 
-## Planner behavior (v1 shipped)
+## Planner behavior (v2 shipped)
 
 ```
 action:plan-execution
-  → load agentSpec (merged full MD: repo/Postgres base + canvas overrides) + humanSynthesis (all canvas card title/body)
-  → LLM only (requires `OPENROUTER_API_KEY`): fresh phase count + grouping — no stub fallback
-  → validate: every T-xxx assigned exactly once
+  → load agentSpec (merged full MD: repo/Postgres base + canvas overrides) + humanSynthesis
+  → LLM only (requires OPENROUTER_API_KEY): human-gate phase count + dual checklists
+  → validate: structural only (phase order, duplicate IDs, empty plan)
+  → relatedTaskIds not in tasks.md → warnings only
   → save execution_plan_previews → UI preview banner
 action:commit-execution-plan → execution_plans (full replace)
 action:discard-execution-plan → delete preview
@@ -70,13 +73,18 @@ action:discard-execution-plan → delete preview
 
 **Not yet:** `phases.md` in spec export, canvas Phase cards.
 
-### Rules the planner should follow
+### Rules the planner follows
 
 - **Constraints first** — stack and non-goals bound phase design
-- **Vertical slices when possible** — prefer shippable increments over pure layer cake
-- **Minimize phase count** — don’t over-split; merge trivial tasks
-- **Explicit dependencies** — auth before admin revoke, etc.
-- **Human gate** — user approves phase plan before any Flow C execution
+- **Human gates at real blockers** — secrets, decisions, approvals, open questions
+- **Vertical slices when possible** — shippable increments over pure layer cake
+- **Minimize phase count** — don’t over-split trivial work
+- **Surface open questions** as user checklist items — don’t resolve them in the plan
+- **Optional relatedTaskIds** when an agent item clearly maps to an existing T-xxx
+
+### Legacy v1 plans
+
+Committed v1 plans (task-ID grouping) remain in Postgres but are **hidden** in the UI until the user clicks **Regenerate**, which produces v2 and replaces stored JSON.
 
 ---
 
@@ -85,7 +93,7 @@ action:discard-execution-plan → delete preview
 ```
 spec/
   phases.md          ← PHASE-001, PHASE-002, …
-  tasks.md           ← each task gains phase_id
+  tasks.md           ← each task may reference phase_id
   execution-plan.md  ← summary: N phases, rationale, risks
 ```
 
@@ -96,7 +104,10 @@ spec/
 
 - **Status:** pending
 - **Goal:** OAuth provider and domain restriction in place
-- **Tasks:** T-001, T-002
+- **Human gate:** User adds OAuth client credentials
+- **Agent checklist:** Wire callback, enforce allowlist
+- **User checklist:** Add GOOGLE_CLIENT_ID, confirm domain list
+- **Related tasks:** T-001, T-002
 - **Exit criteria:**
   - Google OAuth configured
   - Domain allowlist enforced in auth middleware
@@ -105,7 +116,7 @@ spec/
 
 ---
 
-## Canvas representation
+## Canvas representation (future)
 
 - **Phase card** — large grouping node on canvas
 - **Contains / links to** — task cards for that phase
@@ -116,20 +127,20 @@ spec/
 
 ## Relationship to Flow C
 
-- Flow C agents receive: current **phase** + **tasks in that phase only**
-- Reduces context size and ambiguity
-- Same spec → same phase plan → **more deterministic execution**
-- Planner re-runs when intent spec changes materially
+- Flow C agents receive: current **phase brief** (`phases/PHASE-xxx.md`) with agent checklist + human gate block
+- User checklist items are mandatory stops between phases
+- Optional `relatedTaskIds` link to `spec/tasks.md` sections for acceptance criteria
+- Planner re-runs when intent spec changes materially (Regenerate in Build plan)
 
 ---
 
-## v0 vs future
+## v0 vs v2
 
-| v0 (hackathon) | This feature |
+| v0 (hackathon) | v2 (current) |
 |----------------|--------------|
 | User input → intent cards + MD | After intent stable |
-| Tasks listed flat in `tasks.md` | Tasks grouped into phases |
-| Manual task order | AI proposes phase count + breakdown |
-| No execution | External agent runs phase-by-phase |
+| Tasks listed flat in `tasks.md` | Phases with agent + user checklists |
+| Manual task order | AI proposes phase count + human gates |
+| No execution | External agent runs phase-by-phase (Flow C handoff export) |
 
-Flow B loop works; phase planner v1 lives in Build plan. Next: `phases.md` + canvas Phase cards.
+Flow B loop works; phase planner v2 lives in Build plan. Next: `phases.md` + canvas Phase cards.

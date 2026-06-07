@@ -1,4 +1,5 @@
 import type { BuildPhase } from './types.ts'
+import { allPhaseJobs } from './types.ts'
 
 /**
  * Instruction-writing phases for the NLIDE translator.
@@ -204,5 +205,5 @@ export function getPhaseByChecklistId(checklistId: string): BuildPhase | undefin
 }
 
 export function countJobsInPhase(phase: BuildPhase): number {
-  return phase.jobs.length
+  return allPhaseJobs(phase).length
 }

@@ -74,7 +74,21 @@ export function buildExecutionPlanStub(
       order,
       title: `${label} work`,
       goal: `Complete ${pillarTasks.length} task(s) for ${label.toLowerCase()}`,
-      taskIds: pillarTasks.map((t) => t.id),
+      humanGateReason: `Review and approve ${label.toLowerCase()} work before agents continue to the next slice.`,
+      agentChecklist: pillarTasks.map((t, index) => ({
+        id: `A-${String(index + 1).padStart(3, '0')}`,
+        label: taskTitleFromSynthesis(t.id, synthesis, t.title),
+        detail: `Implement ${t.id} per tasks.md`,
+      })),
+      userChecklist: [
+        {
+          id: 'U-001',
+          label: `Verify ${label.toLowerCase()} acceptance criteria`,
+          detail: 'Manual test and check boxes in NLIDE Build plan',
+          kind: 'approval',
+        },
+      ],
+      relatedTaskIds: pillarTasks.map((t) => t.id),
       exitCriteria: pillarTasks.map(
         (t) =>
           `${taskTitleFromSynthesis(t.id, synthesis, t.title)} — done when criteria in tasks.md pass`,

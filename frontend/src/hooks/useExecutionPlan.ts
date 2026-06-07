@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
+  buildExecutionHandoffBundle,
   executionPlanToBuildPhases,
+  isLegacyExecutionPlan,
   isPlanDisplayable,
   type ExecutionPlan,
   type ExecutionPlanPreviewPayload,
@@ -18,6 +20,7 @@ import {
   regenerateExecutionPlan,
 } from '../lib/api'
 import { assembleExecutionPlanInput } from '../lib/assembleExecutionPlanInput'
+import { downloadHandoffZip } from '../lib/downloadHandoffZip'
 import { loadSpecProjectName } from '../lib/loadSpecCanvas'
 import type { BuildPhase } from '@nlide/shared'
 
@@ -102,6 +105,8 @@ export function useExecutionPlan() {
   const [warnings, setWarnings] = useState<ExecutionPlanValidationIssue[]>([])
   const [specSource, setSpecSource] = useState<ExecutionSpecSource>('local')
   const [tasksMd, setTasksMd] = useState('')
+  const [isExporting, setIsExporting] = useState(false)
+  const [exportMessage, setExportMessage] = useState<string | null>(null)
 
   const canonicalTasksMd = useMemo(
     () => assembleTasksMd(committedCards),
@@ -159,23 +164,16 @@ export function useExecutionPlan() {
   }, [loadState])
 
   const activePlan = previewPlan?.plan ?? committedPlan
-  const activePlanTasksMd = previewPlan?.tasksMd ?? committedTasksMd
-
-  const specDrift = Boolean(
-    activePlan &&
-      activePlanTasksMd &&
-      activePlanTasksMd.trim() !== canonicalTasksMd.trim(),
-  )
 
   const visibleActivePlan = useMemo(() => {
     if (error) return null
     if (!activePlan) return null
-    if (specDrift) return null
+    if (isLegacyExecutionPlan(activePlan)) return null
     if (!isPlanDisplayable(activePlan, tasksMd)) return null
     return activePlan
-  }, [error, activePlan, specDrift, tasksMd])
+  }, [error, activePlan, tasksMd])
 
-  const planStale = specDrift
+  const planStale = Boolean(activePlan && isLegacyExecutionPlan(activePlan))
 
   const phases: BuildPhase[] = useMemo(() => {
     if (!visibleActivePlan) return []
@@ -317,6 +315,42 @@ export function useExecutionPlan() {
     }
   }, [previewPlan])
 
+  const exportHandoff = useCallback(async () => {
+    if (!visibleActivePlan) return
+
+    setIsExporting(true)
+    setExportMessage(null)
+    setError(null)
+
+    try {
+      const projectName = loadSpecProjectName()
+      const { input, source } = assembleExecutionPlanInput(committedCards, projectName)
+      const exportedAt = new Date().toISOString()
+      const exportTasksMd = tasksMd || committedTasksMd || canonicalTasksMd
+      const bundle = buildExecutionHandoffBundle({
+        projectName,
+        spec: input.spec,
+        synthesis: input.synthesis,
+        plan: visibleActivePlan,
+        tasksMd: exportTasksMd,
+        specSource: specSource === 'local' ? source : specSource,
+        progress: completed,
+        exportedAt,
+      })
+
+      await downloadHandoffZip(bundle, exportedAt)
+      setExportMessage('Handoff bundle saved.')
+    } catch (err) {
+      setError({
+        message: err instanceof Error ? err.message : 'Export failed',
+        issues: [],
+        zodIssues: [],
+      })
+    } finally {
+      setIsExporting(false)
+    }
+  }, [visibleActivePlan, committedCards, tasksMd, committedTasksMd, canonicalTasksMd, specSource, completed])
+
   return {
     phases,
     committedPlan,
@@ -325,7 +359,10 @@ export function useExecutionPlan() {
     regenerate,
     commit,
     discard,
+    exportHandoff,
     isLoading,
+    isExporting,
+    exportMessage,
     isBootstrapping,
     error,
     warnings,

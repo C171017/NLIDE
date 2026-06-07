@@ -13,11 +13,24 @@ export interface BuildPhase {
   order: number
   title: string
   plainSummary: string
-  /** What to tell Agent mode to implement when this phase's jobs are complete. */
+  /** What to tell Agent mode to implement when this phase's checklists are complete. */
   agentModeGoal: string
   status: BuildPhaseStatus
   checklistId: string
-  jobs: BuildJob[]
+  agentJobs?: BuildJob[]
+  userJobs?: BuildJob[]
+  humanGateReason?: string
+  /** @deprecated translator BUILD_PHASES only — execution plan uses agentJobs + userJobs */
+  jobs?: BuildJob[]
+}
+
+export function allPhaseJobs(phase: BuildPhase): BuildJob[] {
+  const agent = phase.agentJobs ?? []
+  const user = phase.userJobs ?? []
+  if (agent.length > 0 || user.length > 0) {
+    return [...agent, ...user]
+  }
+  return phase.jobs ?? []
 }
 
 /** **[USER]** locked v0 (2026-06-06) — ten router buckets; may revise before Phase 2 router ship. */

@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { allPhaseJobs } from '@nlide/shared'
 import { useExecutionPlan } from '../../hooks/useExecutionPlan'
 import { phaseProgress, progressBarSegments, resolveBuildFocus } from '../../lib/buildPhaseUtils'
 import {
@@ -17,7 +18,10 @@ export default function BuildPhasesPanel() {
     regenerate,
     commit,
     discard,
+    exportHandoff,
     isLoading,
+    isExporting,
+    exportMessage,
     isBootstrapping,
     error,
     warnings,
@@ -53,19 +57,40 @@ export default function BuildPhasesPanel() {
           <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9aa3b2]">
             Execution plan
           </p>
-          <button
-            type="button"
-            onClick={() => void regenerate()}
-            disabled={isLoading || isBootstrapping}
-            className="rounded-lg border border-white/15 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-[#e5e7eb] hover:bg-white/10 disabled:opacity-50"
-          >
-            {isLoading ? 'Regenerating…' : 'Regenerate'}
-          </button>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => void exportHandoff()}
+              disabled={isLoading || isBootstrapping || isExporting || !hasPlan}
+              title={
+                hasPlan
+                  ? 'Download execution handoff zip (spec, synthesis, phased agent briefs)'
+                  : 'Regenerate and commit a plan first'
+              }
+              className="rounded-lg border border-white/15 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-[#e5e7eb] hover:bg-white/10 disabled:opacity-50"
+            >
+              {isExporting ? 'Exporting…' : 'Export'}
+            </button>
+            <button
+              type="button"
+              onClick={() => void regenerate()}
+              disabled={isLoading || isBootstrapping || isExporting}
+              className="rounded-lg border border-white/15 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-[#e5e7eb] hover:bg-white/10 disabled:opacity-50"
+            >
+              {isLoading ? 'Regenerating…' : 'Regenerate'}
+            </button>
+          </div>
         </div>
+
+        {exportMessage && (
+          <p className="mt-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-2 text-xs text-emerald-200">
+            {exportMessage}
+          </p>
+        )}
 
         {warnings.length > 0 && (
           <div className="mt-2 rounded-lg border border-amber-400/30 bg-amber-500/10 px-2.5 py-2 text-xs text-amber-100">
-            <p className="font-medium text-amber-50">Plan covers some tasks only</p>
+            <p className="font-medium text-amber-50">Planner notes</p>
             <ul className="mt-1 list-inside list-disc space-y-0.5 text-[11px] text-amber-100/90">
               {warnings.map((issue) => (
                 <li key={`${issue.ruleId}-${issue.message}`}>{issue.message}</li>
@@ -116,12 +141,16 @@ export default function BuildPhasesPanel() {
               {!focus.phaseReady && focus.nextJobIndex >= 0 && (
                 <span className="text-sky-200">
                   {' '}
-                  · Task {focus.nextJobIndex + 1}/{focus.phase.jobs.length}
+                  · {focus.nextSection === 'user' ? 'Your task' : 'Agent'}{' '}
+                  {focus.nextJobIndex + 1}/{allPhaseJobs(focus.phase).length}
                 </span>
               )}
             </p>
             {focus.nextJob ? (
-              <p className="mt-1 text-xs text-[#d1d5db]">{focus.nextJob.label}</p>
+              <p className="mt-1 text-xs text-[#d1d5db]">
+                {focus.nextSection === 'user' ? 'You: ' : 'Agent: '}
+                {focus.nextJob.label}
+              </p>
             ) : (
               <p className="mt-1 text-xs text-emerald-200">Phase complete — move to next phase.</p>
             )}
@@ -134,29 +163,31 @@ export default function BuildPhasesPanel() {
 
         {focus?.allPhasesReady && (
           <p className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200">
-            All execution phases complete. Export spec and hand off to external agents.
+            All execution phases complete. Click <span className="font-medium">Export</span> to
+            download the handoff bundle for external agents.
           </p>
         )}
 
         <p className="mt-2 text-[10px] text-[#6b7280]">
           Plan input: synthesis + full MD ({specSource})
-          {activePlan?.model ? ` · planner: ${activePlan.model}` : ''}
+          {activePlan?.version === 'v2' ? ' · planner v2' : ''}
+          {activePlan?.model ? ` · ${activePlan.model}` : ''}
         </p>
       </div>
 
       <div className="flex-1 space-y-2 overflow-auto p-3 pb-4">
         {!hasPlan && !isBootstrapping && !error && planStale && (
           <p className="rounded-xl border border-amber-400/25 bg-amber-500/10 px-3 py-4 text-center text-xs text-amber-100/90">
-            Stored plan was built from a different <span className="font-mono">tasks.md</span>. Click{' '}
-            <span className="font-medium text-amber-50">Regenerate</span> to refresh from current spec.
+            Stored plan uses the older v1 format. Click{' '}
+            <span className="font-medium text-amber-50">Regenerate</span> for human-gate phases (v2).
           </p>
         )}
 
         {!hasPlan && !isBootstrapping && !planStale && (
           <p className="rounded-xl border border-white/10 bg-[#141824]/60 px-3 py-4 text-center text-xs text-[#9aa3b2]">
-            Add tasks to <span className="font-mono text-[#d1d5db]">tasks.md</span>, then click{' '}
-            <span className="font-medium text-[#e5e7eb]">Regenerate</span> to build an execution
-            plan from your spec.
+            Define intent in your spec, then click{' '}
+            <span className="font-medium text-[#e5e7eb]">Regenerate</span> to build human-gate
+            execution phases from your spec.
           </p>
         )}
 

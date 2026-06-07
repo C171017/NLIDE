@@ -13,7 +13,6 @@ interface PhaseJobListProps {
   defaultExpanded?: boolean
   currentChecklistId?: string
   currentJobId?: string
-  showExecutionPanel?: boolean
 }
 
 export default function PhaseJobList({
@@ -30,6 +29,9 @@ export default function PhaseJobList({
   )
   const fraction = total > 0 ? done / total : 0
   const isCurrentPhase = phase.checklistId === currentChecklistId
+
+  const agentJobs = phase.agentJobs ?? phase.jobs ?? []
+  const userJobs = phase.userJobs ?? []
 
   return (
     <details
@@ -50,6 +52,11 @@ export default function PhaseJobList({
               <PhaseStatusBadge status={phase.status} ready={ready} isCurrent={isCurrentPhase} />
             </div>
             <p className="text-[11px] leading-snug text-[#9aa3b2]">{phase.plainSummary}</p>
+            {phase.humanGateReason ? (
+              <p className="mt-1 text-[10px] leading-snug text-amber-200/80">
+                Gate: {phase.humanGateReason}
+              </p>
+            ) : null}
           </div>
           <span className="shrink-0 text-xs tabular-nums text-[#9aa3b2]">
             {done}/{total}
@@ -66,40 +73,100 @@ export default function PhaseJobList({
       </summary>
 
       <div
-        className="nodrag nopan nowheel border-t border-white/10 px-3 py-2"
+        className="nodrag nopan nowheel space-y-3 border-t border-white/10 px-3 py-2"
         onPointerDown={(event) => event.stopPropagation()}
       >
-        <ul className="space-y-1">
-          {phase.jobs.map((job, index) => {
-            const checked = isItemDone(completed, phase.checklistId, job.id)
-            const highlighted =
-              isCurrentPhase && !ready && job.id === currentJobId && !checked
+        {agentJobs.length > 0 && (
+          <ChecklistSection
+            title="Agent work"
+            jobs={agentJobs}
+            phase={phase}
+            completed={completed}
+            toggleItem={toggleItem}
+            isCurrentPhase={isCurrentPhase}
+            ready={ready}
+            currentJobId={currentJobId}
+            accent="sky"
+          />
+        )}
 
-            return (
-              <li key={job.id}>
-                <JobCheckbox
-                  checked={checked}
-                  onToggle={() => toggleItem(phase.checklistId, job.id)}
-                  highlighted={highlighted}
-                  label={
-                    <>
-                      {index + 1}. {job.label}
-                    </>
-                  }
-                  detail={
-                    job.detail ? (
-                      <span className="mt-0.5 block text-[10px] leading-snug text-[#6b7280]">
-                        {job.detail}
-                      </span>
-                    ) : undefined
-                  }
-                />
-              </li>
-            )
-          })}
-        </ul>
+        {userJobs.length > 0 && (
+          <ChecklistSection
+            title="Your tasks"
+            jobs={userJobs}
+            phase={phase}
+            completed={completed}
+            toggleItem={toggleItem}
+            isCurrentPhase={isCurrentPhase}
+            ready={ready}
+            currentJobId={currentJobId}
+            accent="amber"
+          />
+        )}
       </div>
     </details>
+  )
+}
+
+function ChecklistSection({
+  title,
+  jobs,
+  phase,
+  completed,
+  toggleItem,
+  isCurrentPhase,
+  ready,
+  currentJobId,
+  accent,
+}: {
+  title: string
+  jobs: BuildPhase['agentJobs']
+  phase: BuildPhase
+  completed: Record<string, Record<string, boolean>>
+  toggleItem: (checklistId: string, itemId: string) => void
+  isCurrentPhase: boolean
+  ready: boolean
+  currentJobId?: string
+  accent: 'sky' | 'amber'
+}) {
+  const titleClass =
+    accent === 'amber'
+      ? 'text-[10px] font-semibold uppercase tracking-wide text-amber-300/90'
+      : 'text-[10px] font-semibold uppercase tracking-wide text-sky-300/90'
+
+  return (
+    <div>
+      <p className={titleClass}>{title}</p>
+      <ul className="mt-1 space-y-1">
+        {(jobs ?? []).map((job, index) => {
+          const checked = isItemDone(completed, phase.checklistId, job.id)
+          const highlighted =
+            isCurrentPhase && !ready && job.id === currentJobId && !checked
+
+          return (
+            <li key={job.id}>
+              <JobCheckbox
+                checked={checked}
+                onToggle={() => toggleItem(phase.checklistId, job.id)}
+                highlighted={highlighted}
+                label={
+                  <>
+                    {index + 1}. {job.label}
+                  </>
+                }
+                detail={
+                  job.detail ? (
+                    <span className="mt-0.5 block text-[10px] leading-snug text-[#6b7280]">
+                      {job.detail}
+                    </span>
+                  ) : undefined
+                }
+              />
+            </li>
+          )
+        })}
+      </ul>
+    </div>
   )
 }
 

@@ -32,7 +32,7 @@ Start here. Docs are maintained by **users and agents** — see [meta/documentat
 | [product/workflow.md](./product/workflow.md) | **[USER]** batch design loop |
 | [product/canvas-ui-vision.md](./product/canvas-ui-vision.md) | **[USER]** canvas + **[AI-INFERRED]** v0 viz subset |
 | [product/tech-stack.md](./product/tech-stack.md) | **[USER]** locked + **[AI-INFERRED]** implementation |
-| [product/execution-phases.md](./product/execution-phases.md) | Future |
+| [product/execution-phases.md](./product/execution-phases.md) | v2 shipped (Build plan) |
 
 ---
 
