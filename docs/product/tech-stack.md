@@ -94,7 +94,7 @@ Custom domain: point DNS to InsForge Sites or Cloudflare Pages depending on acti
 | **MD preview** | react-markdown + remark-gfm |
 | **Backend** | InsForge Edge Functions (TypeScript) |
 | **Structured LLM** | Zod schemas + OpenAI SDK → InsForge gateway |
-| **LLM model** | Claude Sonnet (single model, v0) |
+| **LLM model** | **[AI-INFERRED]** Haiku 4.5 router + Sonnet 4 writers/planner (see `openRouter.ts`) |
 | **Persistence** | InsForge Postgres + export `/spec/*.md` on commit |
 | **Card granularity** | One card per entity (F-001, T-001); one per file for product/users/constraints |
 | **P0 viz** | Mermaid (7), TanStack Table (20), MD table (2), force graph (13) |

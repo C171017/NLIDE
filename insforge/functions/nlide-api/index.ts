@@ -88,6 +88,9 @@ interface ApiRequest {
   action:
     | 'health'
     | 'get-project'
+    | 'list-projects'
+    | 'create-project'
+    | 'update-project'
     | 'get-translator-spec'
     | 'route'
     | 'route-golden'
@@ -113,6 +116,7 @@ interface ApiRequest {
   specBundle?: Record<string, string>
   cardSynthesis?: CardSynthesisBundle
   projectName?: string
+  name?: string
   file?: string
   message?: string
   previewId?: string
@@ -142,6 +146,10 @@ interface ProjectPayload {
   edges: CanvasEdge[]
 }
 
+interface ProjectSummary extends ProjectPayload {
+  updatedAt: string
+}
+
 function getClient(): InsForgeClient {
   const baseUrl = Deno.env.get('INSFORGE_BASE_URL')
   const anonKey = Deno.env.get('ANON_KEY')
@@ -154,6 +162,7 @@ function getClient(): InsForgeClient {
 }
 
 type DbCardRow = {
+  project_id: string
   id: string
   spec_file: string
   spec_anchor: string | null
@@ -168,6 +177,7 @@ type DbCardRow = {
 }
 
 type DbEdgeRow = {
+  project_id: string
   id: string
   source_id: string
   target_id: string
@@ -228,6 +238,102 @@ async function getProject(client: InsForgeClient, projectId: string): Promise<Pr
     centerCardId: project.center_card_id,
     cards: (cards ?? []).map((row) => rowToCard(row as DbCardRow)),
     edges: (edges ?? []).map((row) => rowToEdge(row as DbEdgeRow)),
+  }
+}
+
+async function listProjects(client: InsForgeClient): Promise<ProjectSummary[]> {
+  const { data: projects, error: projectsError } = await client.database
+    .from('projects')
+    .select('id,name,center_card_id,updated_at')
+    .order('updated_at', { ascending: false })
+
+  if (projectsError) throw projectsError
+  if (!projects || projects.length === 0) return []
+
+  const projectIds = projects.map((row) => row.id as string)
+
+  const { data: cards, error: cardsError } = await client.database
+    .from('cards')
+    .select('*')
+    .in('project_id', projectIds)
+
+  if (cardsError) throw cardsError
+
+  const { data: edges, error: edgesError } = await client.database
+    .from('canvas_edges')
+    .select('*')
+    .in('project_id', projectIds)
+
+  if (edgesError) throw edgesError
+
+  const cardsByProject = new Map<string, Card[]>()
+  for (const row of cards ?? []) {
+    const typed = row as DbCardRow
+    const list = cardsByProject.get(typed.project_id) ?? []
+    list.push(rowToCard(typed))
+    cardsByProject.set(typed.project_id, list)
+  }
+
+  const edgesByProject = new Map<string, CanvasEdge[]>()
+  for (const row of edges ?? []) {
+    const typed = row as DbEdgeRow
+    const list = edgesByProject.get(typed.project_id) ?? []
+    list.push(rowToEdge(typed))
+    edgesByProject.set(typed.project_id, list)
+  }
+
+  return projects.map((row) => ({
+    projectId: row.id as string,
+    projectName: row.name as string,
+    centerCardId: row.center_card_id as string,
+    updatedAt: row.updated_at as string,
+    cards: cardsByProject.get(row.id as string) ?? [],
+    edges: edgesByProject.get(row.id as string) ?? [],
+  }))
+}
+
+async function createProject(client: InsForgeClient): Promise<ProjectPayload> {
+  const { data, error } = await client.database
+    .from('projects')
+    .insert([{ name: 'Untitled Project', center_card_id: 'product' }])
+    .select('id,name,center_card_id')
+    .single()
+
+  if (error) throw error
+  if (!data) throw new Error('Failed to create project')
+
+  return {
+    projectId: data.id as string,
+    projectName: data.name as string,
+    centerCardId: data.center_card_id as string,
+    cards: [],
+    edges: [],
+  }
+}
+
+async function updateProjectName(
+  client: InsForgeClient,
+  projectId: string,
+  name: string,
+): Promise<{ projectId: string; projectName: string }> {
+  const trimmed = name.trim()
+  if (!trimmed) {
+    throw new Error('Project name is required')
+  }
+
+  const { data, error } = await client.database
+    .from('projects')
+    .update({ name: trimmed, updated_at: new Date().toISOString() })
+    .eq('id', projectId)
+    .select('id,name')
+    .single()
+
+  if (error) throw error
+  if (!data) throw new Error('Project not found')
+
+  return {
+    projectId: data.id as string,
+    projectName: data.name as string,
   }
 }
 
@@ -528,6 +634,24 @@ export default async function handler(req: Request): Promise<Response> {
           })
         }
         return json(project)
+      }
+
+      case 'list-projects': {
+        const projects = await listProjects(client)
+        return json({ projects })
+      }
+
+      case 'create-project': {
+        const project = await createProject(client)
+        return json(project)
+      }
+
+      case 'update-project': {
+        if (!body.name?.trim()) {
+          return errorResponse('name is required')
+        }
+        const updated = await updateProjectName(client, projectId, body.name)
+        return json(updated)
       }
 
       case 'get-translator-spec': {

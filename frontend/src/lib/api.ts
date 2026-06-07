@@ -1,7 +1,18 @@
 import type { CanvasEdge, Card, PreviewPayload } from '../types/canvas'
 import { buildPreviewLocal } from './translatorStub'
+import { DEFAULT_PROJECT_ID } from './constants'
+import {
+  buildDefaultDemoProject,
+  createLocalProject,
+  getLocalProject,
+  listLocalProjects,
+  updateLocalProjectName,
+  type ProjectPayload,
+  type ProjectSummary,
+} from './localProjects'
 
-export const DEFAULT_PROJECT_ID = '00000000-0000-4000-8000-000000000001'
+export { DEFAULT_PROJECT_ID } from './constants'
+export type { ProjectPayload, ProjectSummary }
 
 const functionUrl = import.meta.env.VITE_INSFORGE_FUNCTION_URL as string | undefined
 
@@ -54,6 +65,64 @@ export async function fetchTranslatorSpec(): Promise<
   })
 
   return data.spec
+}
+
+function isUnknownProjectActionError(error: unknown): boolean {
+  return error instanceof Error && error.message.includes('Unknown action')
+}
+
+export async function fetchProjects(): Promise<ProjectSummary[]> {
+  if (!functionUrl) {
+    return listLocalProjects()
+  }
+
+  try {
+    const data = await post<{ projects: ProjectSummary[] }>({ action: 'list-projects' })
+    if (!data.projects?.length) {
+      return [buildDefaultDemoProject()]
+    }
+    return data.projects.map(enrichDemoProjectIfEmpty)
+  } catch (error) {
+    if (isUnknownProjectActionError(error)) {
+      console.warn('list-projects not deployed yet — showing default demo project')
+    } else {
+      console.warn('list-projects failed — showing default demo project', error)
+    }
+    return [buildDefaultDemoProject()]
+  }
+}
+
+export async function fetchProject(projectId: string): Promise<ProjectPayload> {
+  if (!functionUrl) {
+    const project = getLocalProject(projectId)
+    if (!project) {
+      throw new Error(`Project not found: ${projectId}`)
+    }
+    return project
+  }
+
+  return post<ProjectPayload>({ action: 'get-project', projectId })
+}
+
+export async function createProject(): Promise<ProjectPayload> {
+  if (!functionUrl) {
+    return createLocalProject()
+  }
+
+  return post<ProjectPayload>({ action: 'create-project' })
+}
+
+export async function updateProjectName(projectId: string, name: string): Promise<void> {
+  if (!functionUrl) {
+    updateLocalProjectName(projectId, name)
+    return
+  }
+
+  await post<{ projectId: string; projectName: string }>({
+    action: 'update-project',
+    projectId,
+    name,
+  })
 }
 
 export async function submitIntent(

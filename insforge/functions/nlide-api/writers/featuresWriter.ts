@@ -97,6 +97,7 @@ export async function writeFeaturesSection(input: WriteFeaturesInput): Promise<W
         'Write the features.md section for this input. Return ONLY markdown for one feature section.\n\n' +
         buildUserPayload(input),
       title: 'NLIDE Features Writer',
+      role: 'writer',
       maxTokens: 1500,
     })
   } catch (error) {

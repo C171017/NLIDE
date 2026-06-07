@@ -27,9 +27,12 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Component | Path / notes |
 |-----------|----------------|
 | React + Vite + TS app | `frontend/` |
+| **Project gallery (entry screen)** | `ProjectGalleryPage.tsx`, `ProjectTile.tsx`, `ProjectCanvasPreview.tsx` — Freeform-style tiles with mini canvas preview + inline title edit; **Create new** top-left; app opens here first |
+| **App navigation (gallery ↔ canvas)** | `appStore.ts`, `App.tsx` — Zustand view switch; exit icon in canvas nav returns to gallery |
+| **Multi-project canvas load** | `CanvasProjectLoader.tsx`, `canvasStore.loadProject()` — hydrates from `get-project`; demo project falls back to `spec/*.md` when DB empty |
 | Intent canvas | `frontend/src/components/canvas/IntentCanvas.tsx` |
 | **Layered canvas** (overview ↔ detail via pillar double-click; single-click select) | `canvasLayers.ts`, `layout.ts`, `IntentCanvas.tsx` |
-| Canvas nav (tilted layer stack — click Overview plate to return from detail; drill in via pillar double-click; fullscreen toggle; minimap detached but hidden) | `CanvasNavPanel.tsx`, `LayerStackIndicator.tsx` |
+| Canvas nav (tilted layer stack — click Overview plate to return from detail; drill in via pillar double-click; **exit-to-projects icon** top-left; fullscreen toggle top-right; minimap detached but hidden) | `CanvasNavPanel.tsx`, `LayerStackIndicator.tsx` |
 | Card nodes + Product hub | `CardNode.tsx`, `IndexNode.tsx` (center pillar styling); long-press edit mode with trash drop zone; click link + Delete/Backspace to remove edge |
 | Chat input (floating on canvas) + preview actions in side panel | `ChatBar.tsx`, `ChatSubmitButton.tsx`, `PreviewActions.tsx` — circular interpret/stop control; Enter submits |
 | TipTap card editor | `CardEditor.tsx` — title/body edit + **entity stacked MD preview** (`SpecFilePanel.tsx`, `useSpecFileContent.ts`, `specFilePreview.ts`) — Current vs Proposed `###` section on update intents; **auto-opens Card editor + canvas focus** on update preview; **compound turns focus last new card** (`previewFocus.ts`, `previewFocusCardId`, `focusCardId` on preview) |
@@ -64,8 +67,9 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | **Preview diff (shared)** | `shared/translator/diffPreview.ts` — ghost card/edge diff (new ids + in-place content changes); semi-transparent `canvas-node-card--preview` styling |
 | Canvas mapper golden | `shared/translator/canvasMapperGolden.ts` — 6 cases, ≥5/6 pass bar; includes compound mixed-type case |
 | Implementation progress store | `implementationProgressStore.ts` — per-phase agent + user checkboxes (`agent:A-001`, `user:U-001`); resets on new `planVersion` |
-| Canvas state (Zustand) | `frontend/src/store/canvasStore.ts` — **loads from `spec/*.md` on startup** via `loadSpecCanvas.ts` |
-| **Spec → canvas loader** | `shared/translator/specToCanvas.ts` — `buildCanvasFromSpec()` parses Flow B markdown into layered cards + edges; tasks link to Frontend/Backend via **Pillar:** |
+| Canvas state (Zustand) | `frontend/src/store/canvasStore.ts` — **loads active project** via `fetchProject()` / `loadProject()`; scoped `projectId` on all API calls |
+| **Local projects stub** | `frontend/src/lib/localProjects.ts` — `localStorage` key `nlide.projects.v1` when InsForge URL unset; seeds demo from `spec/*.md` |
+| **Spec → canvas loader** | `shared/translator/specToCanvas.ts` — demo fallback + local stub seed; `buildCanvasFromSpec()` parses Flow B markdown into layered cards + edges |
 | API client + local stub | `frontend/src/lib/api.ts`, `translatorStub.ts` — stub uses `mapCanvasToPreview()` |
 | Sample demo canvas | `frontend/src/data/sampleProject.ts` — **legacy reference only** (superseded by spec load) |
 | **Compound multi-card intents** | Router rule #9 + writers loop + `focusCardId` on preview; golden `gp-11`, `gp-12` |
@@ -113,6 +117,9 @@ Run: `npm run dev` (from repo root)
 | `get-spec-file` | ✅ Assembles one spec file from `spec_sections` |
 | `get-translator-spec` | ✅ Intent types, routing rules, build phases, golden prompts |
 | `get-project` | ✅ Loads from DB (empty until commit seeds data) |
+| `list-projects` | ✅ All projects with cards/edges for gallery previews |
+| `create-project` | ✅ Inserts blank project (`Untitled Project`, empty canvas) |
+| `update-project` | ✅ Rename project (`name` in body) |
 | `plan-execution` | ✅ LLM v2 — human-gate phases + dual checklists; structural validation; orphan `relatedTaskIds` = warnings |
 | `get-execution-plan` | ✅ Returns committed + preview plan (with stored `tasksMd` when available) |
 | `commit-execution-plan` | ✅ Upserts `execution_plans`, deletes preview |
@@ -128,7 +135,7 @@ Deploy: `npm run insforge:deploy:api`
 
 | Item | Doc reference |
 |------|----------------|
-| Real LLM translator (router + writers + Claude) | flow-b-v0, tech-stack |
+| Real LLM translator (Haiku 4.5 router + Sonnet 4 writers/planner) | flow-b-v0, tech-stack, `openRouter.ts` |
 | **Router LLM** | ✅ Phase 2 shipped — `action:route`; tune with `route-golden` |
 | **Features writer LLM** | ✅ Phase 3 shipped — `action:write-features`; tune with `write-features-golden` |
 | **Full intent pipeline on canvas chat** | ✅ `action:intent` wired — router + writers + validator + mapper |

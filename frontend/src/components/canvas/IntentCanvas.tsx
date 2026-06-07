@@ -22,6 +22,8 @@ import {
 } from '../../lib/canvasLayers'
 import { getNodeLayoutBox, layoutNodes } from '../../lib/layout'
 import { useCanvasStore } from '../../store/canvasStore'
+import { useAppStore } from '../../store/appStore'
+import { syncCanvasToLocalProjects } from '../projects/CanvasProjectLoader'
 import CardNode from './nodes/CardNode'
 import IndexNode from './nodes/IndexNode'
 import LabeledEdge from './edges/LabeledEdge'
@@ -797,6 +799,10 @@ export default function IntentCanvas() {
           transitionPhase={transitionPhase}
           hidden={isDeleteMode}
           onNavigateOverview={drillOut}
+          onExitToProjects={() => {
+            syncCanvasToLocalProjects()
+            useAppStore.getState().exitToGallery()
+          }}
         />
       </ReactFlow>
       {isDeleteMode && <DeleteModeTrash ref={trashRef} isHovered={isTrashHovered} />}

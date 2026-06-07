@@ -25,7 +25,6 @@ export default function BuildPhasesPanel() {
     isBootstrapping,
     error,
     warnings,
-    specSource,
     hasPlan,
     planStale,
   } = useExecutionPlan()
@@ -167,12 +166,6 @@ export default function BuildPhasesPanel() {
             download the handoff bundle for external agents.
           </p>
         )}
-
-        <p className="mt-2 text-[10px] text-[#6b7280]">
-          Plan input: synthesis + full MD ({specSource})
-          {activePlan?.version === 'v2' ? ' · planner v2' : ''}
-          {activePlan?.model ? ` · ${activePlan.model}` : ''}
-        </p>
       </div>
 
       <div className="flex-1 space-y-2 overflow-auto p-3 pb-4">

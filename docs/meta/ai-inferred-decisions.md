@@ -31,6 +31,10 @@ See also: [documentation-guide.md](./documentation-guide.md)
 | 2026-06-06 | tldraw **only** inside card for viz #21 (drawing) | Not main canvas | Yes |
 | 2026-06-06 | **Milky paper canvas surface** (`#faf8f3`, plain); cards use light fills + dark text | Paper-like workspace with readable card copy; side panel stays dark glass | Yes |
 | 2026-06-06 | **Distinct card-type colors** (`cardStyles.ts`) | Each type gets its own hue (amber product, emerald frontend, sky backend, violet users, teal feature, orange task, blue architecture, rose constraint, indigo decision, yellow open-question) with ~50% tint fill + colored border; title/body stay `stone-900`/`stone-700` for readability | Yes |
+| 2026-06-06 | **Project gallery as app entry** | App opens on `ProjectGalleryPage`; canvas reached by tile click or Create new; exit icon returns to gallery | Yes |
+| 2026-06-06 | **Mini React Flow gallery previews** | Tile previews render read-only scaled card nodes from stored positions — no screenshot/thumbnail column in DB | Yes |
+| 2026-06-06 | **localStorage multi-project stub** | When `VITE_INSFORGE_FUNCTION_URL` unset, projects live in `nlide.projects.v1`; demo seeded from `spec/*.md` | Yes |
+| 2026-06-06 | **Demo project spec fallback** | Opening seeded demo UUID with empty DB cards hydrates once from repo `spec/*.md` | Yes |
 
 ---
 
@@ -61,6 +65,7 @@ See also: [documentation-guide.md](./documentation-guide.md)
 | 2026-06-06 | Edge function deploy via **esbuild bundle** → single `--file` | InsForge Subhosting does not trace multi-file local imports; vendored `_shared/translator/` + bundle | Yes |
 | 2026-06-06 | TypeScript + Zod for structured LLM (planned) | Matches Edge Function runtime | Yes |
 | 2026-06-06 | OpenAI SDK → InsForge Model Gateway endpoint | InsForge-compatible LLM calls | Yes |
+| 2026-06-06 | **Per-role OpenRouter models** — Haiku 4.5 router, Sonnet 4 writers + planner; `OPENROUTER_*_MODEL` secrets | Speed on every chat (router); Sonnet for prose/planning quality | Yes |
 | 2026-06-06 | Migrations in repo root **`migrations/`** | InsForge CLI convention (not `insforge/migrations/`) | Yes |
 | 2026-06-06 | Postgres tables: `projects`, `cards`, `canvas_edges`, `spec_sections`, `previews` | Supports canvas + preview → commit | Yes |
 | 2026-06-06 | Default project UUID `00000000-0000-4000-8000-000000000001` | Single demo project for hackathon | Yes |

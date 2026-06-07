@@ -25,6 +25,16 @@ function FullscreenExitIcon() {
   )
 }
 
+function ExitToProjectsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M16 17l5-5-5-5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M21 12H9" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 type LayerTransitionPhase = 'idle' | 'leaving' | 'entering'
 
 interface CanvasNavPanelProps {
@@ -32,6 +42,7 @@ interface CanvasNavPanelProps {
   transitionPhase: LayerTransitionPhase
   hidden?: boolean
   onNavigateOverview?: () => void
+  onExitToProjects?: () => void
 }
 
 export default function CanvasNavPanel({
@@ -39,6 +50,7 @@ export default function CanvasNavPanel({
   transitionPhase,
   hidden = false,
   onNavigateOverview,
+  onExitToProjects,
 }: CanvasNavPanelProps) {
   const { isFullscreen, toggleFullscreen } = useFullscreen()
 
@@ -54,7 +66,15 @@ export default function CanvasNavPanel({
       >
         <div className="canvas-nav-panel__layer-section">
           <div className="canvas-nav-panel__layer-header">
-            <span className="canvas-nav-panel__layer-title">View</span>
+            <button
+              type="button"
+              className="canvas-nav-panel__icon-btn"
+              onClick={onExitToProjects}
+              aria-label="Back to projects"
+              title="Back to projects"
+            >
+              <ExitToProjectsIcon />
+            </button>
             <button
               type="button"
               className="canvas-nav-panel__icon-btn"

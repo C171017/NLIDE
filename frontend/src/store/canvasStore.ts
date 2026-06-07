@@ -4,23 +4,23 @@ import { canDeleteCard } from '../lib/canDeleteCard'
 import { isTopLayerCard } from '../lib/canvasLayers'
 import {
   commitPreviewRemote,
-  DEFAULT_PROJECT_ID,
   deleteCardRemote,
   deleteEdgeRemote,
   discardPreviewRemote,
+  isInsForgeConfigured,
   patchCardRemote,
   submitIntent,
+  type ProjectPayload,
 } from '../lib/api'
-import { loadSpecCanvas, loadSpecProjectName } from '../lib/loadSpecCanvas'
+import { syncLocalProjectCanvas } from '../lib/localProjects'
 import {
   resolvePreviewFocusCardId,
   resolveViewStateForFocusCard,
   resolveCommitSelectionCardId,
 } from '../lib/previewFocus'
 
-const initialSpecCanvas = loadSpecCanvas()
-
 interface CanvasStore {
+  projectId: string | null
   projectName: string
   committedCards: Card[]
   committedEdges: CanvasEdge[]
@@ -35,6 +35,8 @@ interface CanvasStore {
   chatDraft: string
   isDeleteMode: boolean
 
+  loadProject: (payload: ProjectPayload) => void
+  setProjectName: (name: string) => void
   setChatDraft: (value: string) => void
   enterDeleteMode: () => void
   exitDeleteMode: () => void
@@ -85,13 +87,39 @@ function isAbortError(error: unknown) {
   return error instanceof DOMException && error.name === 'AbortError'
 }
 
+function syncLocalIfNeeded(state: {
+  projectId: string | null
+  projectName: string
+  centerCardId: string
+  committedCards: Card[]
+  committedEdges: CanvasEdge[]
+}) {
+  if (!state.projectId || isInsForgeConfigured()) return
+
+  syncLocalProjectCanvas(state.projectId, {
+    projectName: state.projectName,
+    centerCardId: state.centerCardId,
+    cards: state.committedCards,
+    edges: state.committedEdges,
+  })
+}
+
+function activeProjectId(get: () => CanvasStore): string {
+  const { projectId } = get()
+  if (!projectId) {
+    throw new Error('No active project')
+  }
+  return projectId
+}
+
 let chatAbortController: AbortController | null = null
 
 export const useCanvasStore = create<CanvasStore>((set, get) => ({
-  projectName: loadSpecProjectName(),
-  committedCards: cloneCards(initialSpecCanvas.cards),
-  committedEdges: cloneEdges(initialSpecCanvas.edges),
-  centerCardId: initialSpecCanvas.centerCardId,
+  projectId: null,
+  projectName: '',
+  committedCards: [],
+  committedEdges: [],
+  centerCardId: 'product',
   preview: null,
   previewFocusCardId: null,
   exportedSpecCache: null,
@@ -101,6 +129,26 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   isTranslating: false,
   chatDraft: '',
   isDeleteMode: false,
+
+  loadProject: (payload) =>
+    set({
+      projectId: payload.projectId,
+      projectName: payload.projectName,
+      committedCards: cloneCards(payload.cards),
+      committedEdges: cloneEdges(payload.edges),
+      centerCardId: payload.centerCardId,
+      preview: null,
+      previewFocusCardId: null,
+      exportedSpecCache: null,
+      selectedCardId: null,
+      selectedEdgeId: null,
+      drillFocusId: null,
+      isTranslating: false,
+      chatDraft: '',
+      isDeleteMode: false,
+    }),
+
+  setProjectName: (name) => set({ projectName: name }),
 
   setChatDraft: (value) => set({ chatDraft: value }),
 
@@ -137,7 +185,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       })
     }
 
-    void deleteCardRemote(cardId).catch((error) => {
+    void deleteCardRemote(cardId, activeProjectId(get)).catch((error) => {
       console.warn('delete-card sync failed (local state kept):', error)
     })
 
@@ -169,7 +217,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       })
     }
 
-    void deleteEdgeRemote(edgeId).catch((error) => {
+    void deleteEdgeRemote(edgeId, activeProjectId(get)).catch((error) => {
       console.warn('delete-edge sync failed (local state kept):', error)
     })
 
@@ -233,7 +281,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       }
     })
 
-    void patchCardRemote(cardId, patch).catch((error) => {
+    void patchCardRemote(cardId, patch, activeProjectId(get)).catch((error) => {
       console.warn('patch-card sync failed (local state kept):', error)
     })
   },
@@ -302,7 +350,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
           edges: committedEdges,
           centerCardId,
         },
-        DEFAULT_PROJECT_ID,
+        activeProjectId(get),
         controller.signal,
       )
       if (chatAbortController !== controller) return
@@ -346,7 +394,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     if (!preview) return
 
     try {
-      const result = await commitPreviewRemote(preview.previewId)
+      const result = await commitPreviewRemote(preview.previewId, activeProjectId(get))
       set({
         committedCards: cloneCards(preview.cards),
         committedEdges: cloneEdges(preview.edges),
@@ -356,6 +404,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
         selectedCardId: resolveCommitSelectionCardId(preview, committedCards) ?? get().selectedCardId,
         drillFocusId: null,
       })
+      syncLocalIfNeeded(get())
     } catch (error) {
       console.error('commitPreview failed:', error)
     }
@@ -369,7 +418,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     }
 
     try {
-      await discardPreviewRemote(preview.previewId)
+      await discardPreviewRemote(preview.previewId, activeProjectId(get))
       set({ preview: null, previewFocusCardId: null, selectedCardId: null, drillFocusId: null })
     } catch (error) {
       console.error('discardPreview failed:', error)

@@ -61,6 +61,7 @@ export async function buildExecutionPlan(input: {
         projectName: input.projectName,
       }),
       title: 'NLIDE Execution Planner',
+      role: 'planner',
       jsonMode: true,
       maxTokens: 2400,
     })

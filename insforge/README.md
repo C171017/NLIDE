@@ -88,6 +88,15 @@ Router-only classify (no preview write). Implementation: `insforge/functions/nli
 
 **Requires** function secret `OPENROUTER_API_KEY` (run `npx @insforge/cli ai setup` then `insforge secrets add OPENROUTER_API_KEY ...`).
 
+**Per-role models** (optional overrides; code defaults shown):
+
+| Secret | Default | Used for |
+|--------|---------|----------|
+| `OPENROUTER_ROUTER_MODEL` | `anthropic/claude-haiku-4.5` | Intent routing (JSON) — fast |
+| `OPENROUTER_WRITER_MODEL` | `anthropic/claude-sonnet-4` | Spec writers — quality prose |
+| `OPENROUTER_PLANNER_MODEL` | `anthropic/claude-sonnet-4` | Build execution plan |
+| `OPENROUTER_CHAT_MODEL` | — | Overrides all roles when set |
+
 Quick smoke (golden #1 — pan/zoom → `update_feature`):
 
 ```bash
@@ -203,6 +212,9 @@ insforge deployments create --name nlide-web --dir frontend/dist
 | `health` | Liveness + secrets check |
 | `get-translator-spec` | Intent types, routing rules, build phases, golden prompts |
 | `get-project` | Load cards/edges from Postgres |
+| `list-projects` | All projects with cards/edges (gallery) |
+| `create-project` | Insert blank project |
+| `update-project` | Rename project (`projectId` + `name`) |
 | `route` | Router-only classify → `RouterPlan` JSON (Claude via OpenRouter) |
 | `route-golden` | Run all 10 golden router prompts; returns pass count vs ≥8/10 bar |
 | `write-features` | Features.md writer — one section from router plan + message |

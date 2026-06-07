@@ -77,8 +77,10 @@ function writeLocalPreview(preview: ExecutionPlanPreviewPayload | null) {
   }
 }
 
-function assembleTasksMd(cards: ReturnType<typeof useCanvasStore.getState>['committedCards']): string {
-  const projectName = loadSpecProjectName()
+function assembleTasksMd(
+  cards: ReturnType<typeof useCanvasStore.getState>['committedCards'],
+  projectName: string,
+): string {
   const { input } = assembleExecutionPlanInput(cards, projectName)
   return input.spec['tasks.md'] ?? ''
 }
@@ -93,6 +95,8 @@ export interface ExecutionPlanErrorDetails {
 
 export function useExecutionPlan() {
   const committedCards = useCanvasStore((state) => state.committedCards)
+  const projectId = useCanvasStore((state) => state.projectId)
+  const projectName = useCanvasStore((state) => state.projectName)
   const completed = useImplementationProgressStore((state) => state.completed)
   const resetForPlan = useImplementationProgressStore((state) => state.resetForPlan)
 
@@ -109,8 +113,8 @@ export function useExecutionPlan() {
   const [exportMessage, setExportMessage] = useState<string | null>(null)
 
   const canonicalTasksMd = useMemo(
-    () => assembleTasksMd(committedCards),
-    [committedCards],
+    () => assembleTasksMd(committedCards, projectName || loadSpecProjectName()),
+    [committedCards, projectName],
   )
 
   const applyLoadedState = useCallback(
@@ -122,7 +126,7 @@ export function useExecutionPlan() {
       const loadedTasksMd =
         state.preview?.tasksMd ??
         state.committedTasksMd ??
-        assembleTasksMd(committedCards)
+        assembleTasksMd(committedCards, projectName || loadSpecProjectName())
 
       setTasksMd(loadedTasksMd)
       setWarnings([])
@@ -135,7 +139,7 @@ export function useExecutionPlan() {
         resetForPlan(state.committed.planVersion)
       }
     },
-    [committedCards, resetForPlan],
+    [committedCards, projectName, resetForPlan],
   )
 
   const loadState = useCallback(async () => {
@@ -143,7 +147,7 @@ export function useExecutionPlan() {
     setError(null)
     try {
       if (isInsForgeConfigured()) {
-        const state = await fetchExecutionPlan()
+        const state = await fetchExecutionPlan(projectId ?? undefined)
         applyLoadedState(state)
       } else {
         applyLoadedState(readLocalState())
@@ -157,11 +161,11 @@ export function useExecutionPlan() {
     } finally {
       setIsBootstrapping(false)
     }
-  }, [applyLoadedState])
+  }, [applyLoadedState, projectId])
 
   useEffect(() => {
     void loadState()
-  }, [loadState])
+  }, [loadState, projectId])
 
   const activePlan = previewPlan?.plan ?? committedPlan
 
@@ -191,8 +195,8 @@ export function useExecutionPlan() {
     let attemptedTasksMd = ''
 
     try {
-      const projectName = loadSpecProjectName()
-      const { input, source } = assembleExecutionPlanInput(committedCards, projectName)
+      const resolvedProjectName = projectName || loadSpecProjectName()
+      const { input, source } = assembleExecutionPlanInput(committedCards, resolvedProjectName)
       attemptedTasksMd = input.spec['tasks.md'] ?? ''
 
       if (!isInsForgeConfigured()) {
@@ -201,11 +205,14 @@ export function useExecutionPlan() {
         )
       }
 
-      const result = await regenerateExecutionPlan({
-        specBundle: input.spec,
-        cardSynthesis: input.synthesis,
-        projectName,
-      })
+      const result = await regenerateExecutionPlan(
+        {
+          specBundle: input.spec,
+          cardSynthesis: input.synthesis,
+          projectName: resolvedProjectName,
+        },
+        projectId ?? undefined,
+      )
 
       setTasksMd(result.tasksMd)
       setWarnings(
@@ -226,7 +233,7 @@ export function useExecutionPlan() {
       writeLocalPreview(null)
 
       if (stalePreviewId && isInsForgeConfigured()) {
-        void discardExecutionPlanRemote(stalePreviewId).catch(() => {})
+        void discardExecutionPlanRemote(stalePreviewId, projectId ?? undefined).catch(() => {})
       }
 
       if (err instanceof ExecutionPlanApiError) {
@@ -250,7 +257,7 @@ export function useExecutionPlan() {
     } finally {
       setIsLoading(false)
     }
-  }, [committedCards, previewPlan, canonicalTasksMd])
+  }, [committedCards, previewPlan, canonicalTasksMd, projectId, projectName])
 
   const commit = useCallback(async () => {
     if (!previewPlan) return
@@ -259,7 +266,7 @@ export function useExecutionPlan() {
 
     try {
       if (isInsForgeConfigured()) {
-        const plan = await commitExecutionPlanRemote(previewPlan.previewId)
+        const plan = await commitExecutionPlanRemote(previewPlan.previewId, projectId ?? undefined)
         setCommittedPlan(plan)
         setCommittedTasksMd(previewPlan.tasksMd ?? null)
         setPreviewPlan(null)
@@ -289,7 +296,7 @@ export function useExecutionPlan() {
     } finally {
       setIsLoading(false)
     }
-  }, [previewPlan, resetForPlan])
+  }, [previewPlan, resetForPlan, projectId])
 
   const discard = useCallback(async () => {
     if (!previewPlan) return
@@ -298,7 +305,7 @@ export function useExecutionPlan() {
 
     try {
       if (isInsForgeConfigured()) {
-        await discardExecutionPlanRemote(previewPlan.previewId)
+        await discardExecutionPlanRemote(previewPlan.previewId, projectId ?? undefined)
       } else {
         writeLocalPreview(null)
       }
@@ -313,7 +320,7 @@ export function useExecutionPlan() {
     } finally {
       setIsLoading(false)
     }
-  }, [previewPlan])
+  }, [previewPlan, projectId])
 
   const exportHandoff = useCallback(async () => {
     if (!visibleActivePlan) return
@@ -323,12 +330,12 @@ export function useExecutionPlan() {
     setError(null)
 
     try {
-      const projectName = loadSpecProjectName()
-      const { input, source } = assembleExecutionPlanInput(committedCards, projectName)
+      const resolvedProjectName = projectName || loadSpecProjectName()
+      const { input, source } = assembleExecutionPlanInput(committedCards, resolvedProjectName)
       const exportedAt = new Date().toISOString()
       const exportTasksMd = tasksMd || committedTasksMd || canonicalTasksMd
       const bundle = buildExecutionHandoffBundle({
-        projectName,
+        projectName: resolvedProjectName,
         spec: input.spec,
         synthesis: input.synthesis,
         plan: visibleActivePlan,
@@ -349,7 +356,7 @@ export function useExecutionPlan() {
     } finally {
       setIsExporting(false)
     }
-  }, [visibleActivePlan, committedCards, tasksMd, committedTasksMd, canonicalTasksMd, specSource, completed])
+  }, [visibleActivePlan, committedCards, tasksMd, committedTasksMd, canonicalTasksMd, specSource, completed, projectName])
 
   return {
     phases,

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import IntentCanvas from '../canvas/IntentCanvas'
+import CanvasProjectLoader from '../projects/CanvasProjectLoader'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { useResizableSize } from '../../hooks/useResizableSize'
 import ResizeHandle from './ResizeHandle'
@@ -50,14 +51,15 @@ export default function AppShell() {
   })
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-[#0f1117] p-3">
-      <div
-        className="flex min-h-0 flex-1 flex-col gap-1 lg:flex-row"
-        style={{ minHeight: 0 }}
-      >
-        <main className="canvas-panel relative min-h-0 min-w-0 flex-1 overflow-hidden rounded-3xl">
-          <IntentCanvas />
-        </main>
+    <CanvasProjectLoader>
+      <div className="flex h-full min-h-0 flex-col bg-[#0f1117] p-3">
+        <div
+          className="flex min-h-0 flex-1 flex-col gap-1 lg:flex-row"
+          style={{ minHeight: 0 }}
+        >
+          <main className="canvas-panel relative min-h-0 min-w-0 flex-1 overflow-hidden rounded-3xl">
+            <IntentCanvas />
+          </main>
 
         <ResizeHandle
           direction={isLarge ? 'horizontal' : 'vertical'}
@@ -80,5 +82,6 @@ export default function AppShell() {
         />
       </div>
     </div>
+    </CanvasProjectLoader>
   )
 }

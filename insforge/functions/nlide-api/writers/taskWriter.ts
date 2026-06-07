@@ -92,6 +92,7 @@ export async function writeTaskSection(input: WriteTaskInput): Promise<WriteTask
         'Write the tasks.md section for this input. Return ONLY markdown for one task section.\n\n' +
         buildUserPayload(input),
       title: 'NLIDE Task Writer',
+      role: 'writer',
       maxTokens: 1500,
     })
   } catch (error) {

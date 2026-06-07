@@ -189,6 +189,7 @@ export async function writeRemainingSection(
         `Write the ${input.targetFile} content for this input. Return ONLY markdown.\n\n` +
         JSON.stringify(buildUserPayload(input), null, 2),
       title: `NLIDE ${input.targetFile} Writer`,
+      role: 'writer',
       maxTokens: 1800,
     })
   } catch (error) {

@@ -57,7 +57,7 @@ User Commit or Discard
 | Golden router batch (`action:route-golden`) | ✅ Implemented |
 | Writer LLM(s) | ✅ Phase 3–4 implemented — features, tasks, remaining |
 | Validator | ✅ Phase 4 — `validateSpec()` on `action:run-writers` |
-| Model Gateway (Claude Sonnet) | ✅ Wired via OpenRouter when secret set |
+| Model Gateway (role-based) | ✅ Haiku 4.5 router · Sonnet 4 writers/planner via OpenRouter when secret set |
 
 **[USER]** Real translator must still use **preview → commit** — never auto-apply.
 
@@ -116,7 +116,7 @@ When each step ships, update [current-state.md](../implementation/current-state.
 React app  ──POST──►  nlide-api (Edge Function)
                            │
                            ├──► Postgres (context + previews)
-                           └──► OpenRouter (Claude Sonnet) — `action:route` when `OPENROUTER_API_KEY` set
+                           └──► OpenRouter — Haiku router / Sonnet writers when `OPENROUTER_API_KEY` set
 ```
 
 Function URL: see [insforge/README.md](../../insforge/README.md)
