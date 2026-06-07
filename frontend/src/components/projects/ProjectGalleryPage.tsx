@@ -72,18 +72,6 @@ export default function ProjectGalleryPage() {
 
       {isLoading ? (
         <p className="project-gallery__status">Loading projects…</p>
-      ) : projects.length === 0 ? (
-        <div className="project-gallery__empty">
-          <p>No projects yet.</p>
-          <button
-            type="button"
-            className="project-gallery__create-btn project-gallery__create-btn--inline"
-            onClick={() => void handleCreate()}
-            disabled={isCreating}
-          >
-            Create your first project
-          </button>
-        </div>
       ) : (
         <div className="project-gallery__grid">
           {projects.map((project) => (

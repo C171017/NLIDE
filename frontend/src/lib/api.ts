@@ -3,8 +3,8 @@ import { buildPreviewLocal } from './translatorStub'
 import { DEFAULT_PROJECT_ID } from './constants'
 import {
   buildDefaultDemoProject,
+  createLocalProject,
   enrichDemoProjectIfEmpty,
-} from './localProjects'
   getLocalProject,
   listLocalProjects,
   updateLocalProjectName,

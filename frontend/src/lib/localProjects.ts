@@ -49,7 +49,7 @@ export function buildDefaultDemoProject(): ProjectSummary {
   }
 }
 
-function enrichDemoProjectIfEmpty(project: ProjectSummary): ProjectSummary {
+export function enrichDemoProjectIfEmpty(project: ProjectSummary): ProjectSummary {
   if (project.projectId === DEFAULT_PROJECT_ID && project.cards.length === 0) {
     const demo = buildDefaultDemoProject()
     return {
@@ -73,13 +73,8 @@ function readState(): StoredState {
     // fall through to seed
   }
 
-  const spec = loadSpecCanvas()
   const seeded: StoredState = {
-    projects: [
-      {
-        ...buildDefaultDemoProject(),
-      },
-    ],
+    projects: [buildDefaultDemoProject()],
   }
 
   writeState(seeded)
