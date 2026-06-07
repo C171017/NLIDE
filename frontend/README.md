@@ -25,7 +25,7 @@ Open the local URL shown in the terminal (default `http://localhost:5173`).
 - **Header** — project name, export/settings placeholders
 - **Canvas** — React Flow graph with Index hub and linked cards
 - **Side panel** — TipTap card editor + preview diff summary
-- **Chat bar** — batch translator input with Commit / Discard preview actions
+- **Chat bar** — batch translator input with per-card Commit / Discard preview actions
 
 ## Current state (v0 scaffold)
 

@@ -28,6 +28,7 @@ See also: [documentation-guide.md](./documentation-guide.md)
 | 2026-06-06 | **dagre** for auto-layout | Layout linked cards from graph | Yes |
 | 2026-06-06 | react-markdown + remark-gfm for MD preview panel | Side panel agent MD preview | Yes |
 | 2026-06-06 | **Entity-scoped stacked MD preview** on update intents | Card editor shows committed `###` section + proposed section below (not full-file diff); baseline from repo `spec/` during preview, `exportedSpecCache` after commit | Yes |
+| 2026-06-07 | **Preview queue order** = router `canvas_ops[]` create/update order first, then any remaining preview diffs in canvas card order | Gives compound router output a stable review path; indirect diffs such as aggregate table updates still enter the queue | Yes |
 | 2026-06-06 | tldraw **only** inside card for viz #21 (drawing) | Not main canvas | Yes |
 | 2026-06-06 | **Milky paper canvas surface** (`#faf8f3`, plain); cards use light fills + dark text | Paper-like workspace with readable card copy; side panel stays dark glass | Yes |
 | 2026-06-06 | **Distinct card-type colors** (`cardStyles.ts`) | Each type gets its own hue (amber product, emerald frontend, sky backend, violet users, teal feature, orange task, blue architecture, rose constraint, indigo decision, yellow open-question) with ~50% tint fill + colored border; title/body stay `stone-900`/`stone-700` for readability | Yes |
@@ -80,9 +81,9 @@ See also: [documentation-guide.md](./documentation-guide.md)
 |------|----------|-----------|------------|
 | 2026-06-06 | **Full intent pipeline on `action:intent`** — router → writers → validator → mapper; stub removed | OpenRouter required; local frontend stub when env unset | Yes |
 | 2026-06-06 | **Canvas mapper in `shared/translator/canvasMapper.ts`** | Applies `canvas_ops[]` or derives from router plan; auto-places preview cards | No — Phase 5 shipped |
-| 2026-06-06 | **Compound multi-card turns** — one dominant `intent_type`; full `operations[]` + ordered `canvas_ops[]`; writers loop per op; preview focuses **last** `create_card` (`focusCardId`) | User asked to extract all asks from one message without schema change | Yes |
+| 2026-06-06 | **Compound multi-card turns** — one dominant `intent_type`; full `operations[]` + ordered `canvas_ops[]`; writers loop per op; preview review follows `previewCardIds` queue order | User asked to extract all asks from one message without schema change | Yes |
 | 2026-06-06 | Router golden pass bar **≥10/12** (added `gp-11`, `gp-12` compound cases) | Keeps ~83% pass rate with compound coverage | Yes |
-| 2026-06-06 | Stub adds open-question card + F-004 row on any chat message | Demo-friendly predictable preview | Yes |
+| 2026-06-06 | Stub adds Google login + dark mode feature cards and an open-question card on chat messages | Demo-friendly predictable preview with multi-card queue coverage | Yes |
 | 2026-06-06 | Router → writer → validator pipeline (designed, not fully implemented) | Documented architecture; stub skips LLM | Yes |
 
 ---

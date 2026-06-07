@@ -73,7 +73,7 @@ function finalizeStubMdPatches(
   const newOq = preview.cards.find(
     (card) => card.type === 'open-question' && !committedCardIds.has(card.id),
   )
-  const featuresPatch = preview.mdPatches.find((patch) => patch.file === 'features.md')
+  const featurePatches = preview.mdPatches.filter((patch) => patch.file === 'features.md')
 
   return {
     ...preview,
@@ -84,12 +84,12 @@ function finalizeStubMdPatches(
         anchor: newOq?.specRef.anchor ?? newOq?.id ?? 'OQ-preview',
         summary: 'Add open question about allowed Google domains',
       },
-      {
+      ...featurePatches.map((patch) => ({
         file: 'features.md',
-        action: 'add',
-        anchor: featuresPatch?.anchor ?? 'F-004',
-        summary: featuresPatch?.summary ?? 'Propose F-004 Google login feature',
-      },
+        action: 'add' as const,
+        anchor: patch.anchor,
+        summary: patch.summary,
+      })),
     ],
   }
 }

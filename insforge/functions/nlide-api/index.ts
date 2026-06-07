@@ -105,7 +105,9 @@ interface ApiRequest {
     | 'export-smoke'
     | 'intent'
     | 'commit'
+    | 'commit-preview-card'
     | 'discard'
+    | 'discard-preview-card'
     | 'patch-card'
     | 'get-spec-file'
     | 'plan-execution'
@@ -416,6 +418,192 @@ async function commitCanvas(
     .eq('id', projectId)
 
   await deletePreview(client, preview.previewId)
+}
+
+function cardToDbRow(projectId: string, card: Card) {
+  return {
+    project_id: projectId,
+    id: card.id,
+    spec_file: card.specRef.file,
+    spec_anchor: card.specRef.anchor ?? null,
+    type: card.type,
+    title: card.title,
+    body: card.body,
+    position_x: card.position.x,
+    position_y: card.position.y,
+    viz_type: card.vizType ?? null,
+    viz_payload: card.vizPayload ?? null,
+    status: card.status ?? null,
+  }
+}
+
+function edgeToDbRow(projectId: string, edge: CanvasEdge) {
+  return {
+    project_id: projectId,
+    id: edge.id,
+    source_id: edge.source,
+    target_id: edge.target,
+    label: edge.label ?? null,
+  }
+}
+
+function uniqueIds(ids: string[]): string[] {
+  return ids.filter((id, index) => ids.indexOf(id) === index)
+}
+
+function orderedPreviewCardIds(preview: PreviewPayload): string[] {
+  if (preview.previewCardIds?.length) {
+    return uniqueIds(preview.previewCardIds)
+  }
+
+  return preview.cards.map((card) => card.id)
+}
+
+function isFinalPreviewCard(preview: PreviewPayload, cardId: string): boolean {
+  const queue = orderedPreviewCardIds(preview)
+  const index = queue.indexOf(cardId)
+  if (index === -1) return queue.length <= 1
+  return index >= queue.length - 1
+}
+
+function isPatchRelatedToCard(patch: MdPatch, card: Card): boolean {
+  const anchor = card.specRef.anchor ?? card.id
+  if (patch.anchor && (patch.anchor === card.id || patch.anchor === anchor)) {
+    return true
+  }
+
+  if (!patch.anchor && patch.file === card.specRef.file) {
+    return true
+  }
+
+  if (card.vizType === 'data-table' && patch.file === card.specRef.file) {
+    return true
+  }
+
+  return false
+}
+
+function relatedMdPatches(preview: PreviewPayload, card: Card): MdPatch[] {
+  return preview.mdPatches.filter((patch) => isPatchRelatedToCard(patch, card))
+}
+
+function removeRelatedMdPatches(preview: PreviewPayload, card: Card): PreviewPayload {
+  return {
+    ...preview,
+    mdPatches: preview.mdPatches.filter((patch) => !isPatchRelatedToCard(patch, card)),
+  }
+}
+
+function discardPreviewCardPayload(
+  preview: PreviewPayload,
+  committedCards: Card[],
+  cardId: string,
+): PreviewPayload {
+  const committedCard = committedCards.find((card) => card.id === cardId)
+  const previewCard = preview.cards.find((card) => card.id === cardId)
+  const withoutPatches = previewCard ? removeRelatedMdPatches(preview, previewCard) : preview
+
+  if (committedCard) {
+    return {
+      ...withoutPatches,
+      cards: withoutPatches.cards.map((card) =>
+        card.id === cardId ? { ...committedCard } : card,
+      ),
+    }
+  }
+
+  return {
+    ...withoutPatches,
+    cards: withoutPatches.cards.filter((card) => card.id !== cardId),
+    edges: withoutPatches.edges.filter((edge) => edge.source !== cardId && edge.target !== cardId),
+  }
+}
+
+async function commitPreviewCard(
+  client: InsForgeClient,
+  projectId: string,
+  preview: PreviewPayload,
+  cardId: string,
+): Promise<{
+  preview: PreviewPayload | null
+  card: Card
+  edges: CanvasEdge[]
+  exportedSpec: Record<string, string>
+  exportWarnings: string[]
+  sectionCount: number
+}> {
+  const card = preview.cards.find((item) => item.id === cardId)
+  if (!card) {
+    throw new Error(`Preview card not found: ${cardId}`)
+  }
+
+  const unresolvedIds = new Set(orderedPreviewCardIds(preview))
+  unresolvedIds.delete(cardId)
+  const edges = preview.edges.filter((edge) => {
+    if (edge.source !== cardId && edge.target !== cardId) return false
+    return !unresolvedIds.has(edge.source) && !unresolvedIds.has(edge.target)
+  })
+
+  const projectName = await loadProjectName(client, projectId)
+  const existingRows = await loadSpecSections(client, projectId)
+  const patches = relatedMdPatches(preview, card)
+  const exportResult = await prepareCommitExport({
+    projectName,
+    existingRows,
+    patches,
+    cards: [card],
+  })
+
+  if (!exportResult.ok) {
+    throw new Error(`Spec failed validation before card commit: ${exportResult.issues.map((issue) => issue.message).join('; ')}`)
+  }
+
+  const rows = buildSectionRowsForCommit({
+    existingRows,
+    patches,
+    cards: [card],
+  })
+  await saveSpecSections(client, projectId, rows)
+
+  const { error: cardError } = await client.database.from('cards').upsert([
+    cardToDbRow(projectId, card),
+  ])
+  if (cardError) throw cardError
+
+  if (edges.length > 0) {
+    const { error: edgeError } = await client.database
+      .from('canvas_edges')
+      .upsert(edges.map((edge) => edgeToDbRow(projectId, edge)))
+    if (edgeError) throw edgeError
+  }
+
+  await client.database
+    .from('projects')
+    .update({ updated_at: new Date().toISOString() })
+    .eq('id', projectId)
+
+  const nextPreview = removeRelatedMdPatches(preview, card)
+  if (isFinalPreviewCard(preview, cardId)) {
+    await deletePreview(client, preview.previewId)
+    return {
+      preview: null,
+      card,
+      edges,
+      exportedSpec: exportResult.exportedSpec,
+      exportWarnings: exportResult.warnings,
+      sectionCount: exportResult.sectionCount,
+    }
+  }
+
+  await savePreview(client, projectId, nextPreview)
+  return {
+    preview: nextPreview,
+    card,
+    edges,
+    exportedSpec: exportResult.exportedSpec,
+    exportWarnings: exportResult.warnings,
+    sectionCount: exportResult.sectionCount,
+  }
 }
 
 async function syncCardSpecSection(
@@ -1003,6 +1191,31 @@ export default async function handler(req: Request): Promise<Response> {
         })
       }
 
+      case 'commit-preview-card': {
+        if (!body.previewId || !body.cardId) {
+          return errorResponse('previewId and cardId are required')
+        }
+
+        const preview = await loadPreview(client, body.previewId)
+        if (!preview) {
+          return errorResponse('Preview not found', 404)
+        }
+
+        const result = await commitPreviewCard(client, projectId, preview, body.cardId)
+
+        return json({
+          committed: true,
+          previewId: body.previewId,
+          cardId: body.cardId,
+          card: result.card,
+          edges: result.edges,
+          preview: result.preview,
+          exportedSpec: result.exportedSpec,
+          exportWarnings: result.exportWarnings,
+          sectionCount: result.sectionCount,
+        })
+      }
+
       case 'discard': {
         if (!body.previewId) {
           return errorResponse('previewId is required')
@@ -1010,6 +1223,43 @@ export default async function handler(req: Request): Promise<Response> {
 
         await deletePreview(client, body.previewId)
         return json({ discarded: true, previewId: body.previewId })
+      }
+
+      case 'discard-preview-card': {
+        if (!body.previewId || !body.cardId) {
+          return errorResponse('previewId and cardId are required')
+        }
+
+        const preview = await loadPreview(client, body.previewId)
+        if (!preview) {
+          return errorResponse('Preview not found', 404)
+        }
+
+        if (!preview.cards.some((card) => card.id === body.cardId)) {
+          return errorResponse('Preview card not found', 404)
+        }
+
+        const project = await getProject(client, projectId)
+        const nextPreview = discardPreviewCardPayload(preview, project?.cards ?? [], body.cardId)
+
+        if (isFinalPreviewCard(preview, body.cardId)) {
+          await deletePreview(client, body.previewId)
+          return json({
+            discarded: true,
+            previewId: body.previewId,
+            cardId: body.cardId,
+            preview: null,
+          })
+        }
+
+        await savePreview(client, projectId, nextPreview)
+
+        return json({
+          discarded: true,
+          previewId: body.previewId,
+          cardId: body.cardId,
+          preview: nextPreview,
+        })
       }
 
       case 'patch-card': {

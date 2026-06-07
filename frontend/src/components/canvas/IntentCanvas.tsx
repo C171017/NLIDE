@@ -102,6 +102,7 @@ function cardsToNodes(
   cards: Card[],
   centerCardId: string,
   previewCardIds: Set<string>,
+  currentPreviewCardId: string | null,
 ): Node[] {
   return cards.map((card) => ({
     id: card.id,
@@ -110,6 +111,7 @@ function cardsToNodes(
     data: {
       card,
       isPreview: previewCardIds.has(card.id),
+      isCurrentPreviewCard: currentPreviewCardId === card.id,
     },
     draggable: true,
   }))
@@ -325,26 +327,33 @@ function LayerViewportAnimator({
 function CardViewportAnimator({
   cardId,
   previewCardKey,
+  previewBatchKey,
   centerCardId,
   transitionPhase,
   onComplete,
 }: {
   cardId: string | null
   previewCardKey: string
+  previewBatchKey: string
   centerCardId: string
   transitionPhase: LayerTransitionPhase
   onComplete: () => void
 }) {
   const reactFlow = useReactFlow()
   const lastFocusKeyRef = useRef<string | null>(null)
+  const lastPreviewBatchKeyRef = useRef(previewBatchKey)
 
   useEffect(() => {
     const previewIds = previewCardKey ? previewCardKey.split(',').filter(Boolean) : []
+    const isNewPreviewBatch = Boolean(previewBatchKey) && lastPreviewBatchKeyRef.current !== previewBatchKey
     const focusKey =
-      previewIds.length > 0 ? `${previewCardKey}|${cardId ?? ''}` : (cardId ?? '')
+      previewIds.length > 0
+        ? `${previewBatchKey}|${previewCardKey}|${cardId ?? ''}`
+        : (cardId ?? '')
 
     if (!focusKey) {
       lastFocusKeyRef.current = null
+      lastPreviewBatchKeyRef.current = previewBatchKey
       return undefined
     }
 
@@ -353,6 +362,7 @@ function CardViewportAnimator({
     }
 
     lastFocusKeyRef.current = focusKey
+    lastPreviewBatchKeyRef.current = previewBatchKey
 
     const layerDelay =
       transitionPhase === 'leaving' || transitionPhase === 'entering'
@@ -360,7 +370,7 @@ function CardViewportAnimator({
         : 80
 
     const focusTimer = window.setTimeout(() => {
-      if (previewIds.length > 1) {
+      if (previewIds.length > 1 && isNewPreviewBatch) {
         void reactFlow.fitView({
           nodes: previewIds.map((id) => ({ id })),
           duration: FIT_VIEW_DURATION_MS,
@@ -394,7 +404,7 @@ function CardViewportAnimator({
     return () => {
       window.clearTimeout(focusTimer)
     }
-  }, [cardId, centerCardId, onComplete, previewCardKey, reactFlow, transitionPhase])
+  }, [cardId, centerCardId, onComplete, previewBatchKey, previewCardKey, reactFlow, transitionPhase])
 
   return null
 }
@@ -404,6 +414,7 @@ export default function IntentCanvas() {
   const committedEdges = useCanvasStore((state) => state.committedEdges)
   const centerCardId = useCanvasStore((state) => state.centerCardId)
   const preview = useCanvasStore((state) => state.preview)
+  const previewQueueIndex = useCanvasStore((state) => state.previewQueueIndex)
   const drillFocusId = useCanvasStore((state) => state.drillFocusId)
   const previewFocusCardId = useCanvasStore((state) => state.previewFocusCardId)
   const clearPreviewFocus = useCanvasStore((state) => state.clearPreviewFocus)
@@ -577,9 +588,14 @@ export default function IntentCanvas() {
     [previewCardIds],
   )
 
+  const currentPreviewCardId = useMemo(() => {
+    if (!preview?.previewCardIds?.length) return previewFocusCardId
+    return preview.previewCardIds[previewQueueIndex] ?? previewFocusCardId
+  }, [preview, previewFocusCardId, previewQueueIndex])
+
   const baseNodes = useMemo(
-    () => cardsToNodes(visibleCards, centerCardId, previewCardIds),
-    [visibleCards, centerCardId, previewCardIds],
+    () => cardsToNodes(visibleCards, centerCardId, previewCardIds, currentPreviewCardId),
+    [visibleCards, centerCardId, previewCardIds, currentPreviewCardId],
   )
 
   const structuralKey = useMemo(
@@ -790,6 +806,7 @@ export default function IntentCanvas() {
         <CardViewportAnimator
           cardId={previewFocusCardId}
           previewCardKey={previewCardKey}
+          previewBatchKey={preview?.previewId ?? ''}
           centerCardId={centerCardId}
           transitionPhase={transitionPhase}
           onComplete={clearPreviewFocus}

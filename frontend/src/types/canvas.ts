@@ -84,6 +84,8 @@ export interface PreviewPayload {
   edges: CanvasEdge[]
   mdPatches: MdPatch[]
   summary: string
+  /** Ordered card review queue. New/create ops keep router order; remaining diffs append in canvas order. */
+  previewCardIds?: string[]
   /** Last create_card in this preview — canvas focus for compound turns. */
   focusCardId?: string | null
 }

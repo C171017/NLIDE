@@ -189,6 +189,25 @@ export async function commitPreviewRemote(
   })
 }
 
+export async function commitPreviewCardRemote(
+  previewId: string,
+  cardId: string,
+  projectId = DEFAULT_PROJECT_ID,
+): Promise<{ preview?: PreviewPayload | null; exportedSpec?: Record<string, string> }> {
+  if (!functionUrl) return {}
+
+  return post<{
+    committed: boolean
+    preview?: PreviewPayload | null
+    exportedSpec?: Record<string, string>
+  }>({
+    action: 'commit-preview-card',
+    previewId,
+    cardId,
+    projectId,
+  })
+}
+
 export async function discardPreviewRemote(
   previewId: string,
   projectId = DEFAULT_PROJECT_ID,
@@ -196,6 +215,21 @@ export async function discardPreviewRemote(
   if (!functionUrl) return
 
   await post({ action: 'discard', previewId, projectId })
+}
+
+export async function discardPreviewCardRemote(
+  previewId: string,
+  cardId: string,
+  projectId = DEFAULT_PROJECT_ID,
+): Promise<{ preview?: PreviewPayload | null }> {
+  if (!functionUrl) return {}
+
+  return post<{ discarded: boolean; preview?: PreviewPayload | null }>({
+    action: 'discard-preview-card',
+    previewId,
+    cardId,
+    projectId,
+  })
 }
 
 export async function patchCardRemote(

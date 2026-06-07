@@ -71,8 +71,8 @@ When one chat message contains **multiple distinct spec asks** (e.g. two feature
    - Multiple `operations[]` entries — duplicate targets allowed with distinct `entity_id`
    - Ordered `canvas_ops[]` with one `create_card` per new card (preferred over empty `canvas_ops`)
 2. **Writers** loop `findAllOperations(plan, target)` — one LLM call per op; `focus_operation` in payload scopes each write
-3. **Mapper** applies all `canvas_ops` in order; sets `PreviewPayload.focusCardId` to the **last** `create_card`
-4. **Frontend** `resolvePreviewFocusCardId`: update targets win; else `focusCardId` / last new card — canvas pans once to that card
+3. **Mapper** applies all `canvas_ops` in order; writes ordered `PreviewPayload.previewCardIds` for per-card review; `focusCardId` remains a compatibility hint
+4. **Frontend** opens the Card editor on the first queued preview card, highlights the current card, and advances after each Commit/Discard
 
 Golden cases: `gp-11-multi-feature`, `gp-12-compound-mixed` in `goldenPrompts.ts` / `goldenRouterFixture.ts`. Pass bar: ≥10/12.
 

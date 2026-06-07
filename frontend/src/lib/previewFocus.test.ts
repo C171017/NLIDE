@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  resolveCurrentPreviewCardId,
   resolveCommitSelectionCardId,
+  resolvePreviewCardQueueIds,
   resolvePreviewFocusCardId,
 } from './previewFocus'
 import type { Card, PreviewPayload } from '../types/canvas'
@@ -26,19 +28,25 @@ const committedCards: Card[] = [
   },
 ]
 
-function previewWith(cards: Card[], patches: PreviewPayload['mdPatches'], focusCardId?: string): PreviewPayload {
+function previewWith(
+  cards: Card[],
+  patches: PreviewPayload['mdPatches'],
+  focusCardId?: string,
+  previewCardIds?: string[],
+): PreviewPayload {
   return {
     previewId: 'preview-test',
     cards,
     edges: [],
     mdPatches: patches,
     summary: 'Test preview',
+    previewCardIds,
     focusCardId,
   }
 }
 
 describe('resolvePreviewFocusCardId', () => {
-  it('prefers update targets over new cards', () => {
+  it('uses queued update targets over later new cards', () => {
     const preview = previewWith(
       [
         ...committedCards,
@@ -54,12 +62,13 @@ describe('resolvePreviewFocusCardId', () => {
       ],
       [{ file: 'features.md', action: 'update', anchor: 'F-001', summary: 'Update F-001' }],
       'F-002',
+      ['F-001', 'F-002'],
     )
 
     expect(resolvePreviewFocusCardId(preview, committedCards)).toBe('F-001')
   })
 
-  it('focuses explicit focusCardId for compound new-card previews', () => {
+  it('focuses the first queued card for compound new-card previews', () => {
     const preview = previewWith(
       [
         ...committedCards,
@@ -86,10 +95,41 @@ describe('resolvePreviewFocusCardId', () => {
       'D-004',
     )
 
-    expect(resolvePreviewFocusCardId(preview, committedCards)).toBe('D-004')
+    expect(resolvePreviewFocusCardId(preview, committedCards)).toBe('F-007')
   })
 
-  it('falls back to last new card when focusCardId is absent', () => {
+  it('prefers the first queued preview card when previewCardIds is present', () => {
+    const preview = previewWith(
+      [
+        ...committedCards,
+        {
+          id: 'F-007',
+          specRef: { file: 'features.md', anchor: 'F-007' },
+          type: 'feature',
+          title: 'First',
+          body: 'First',
+          position: { x: 0, y: 0 },
+          layer: 0,
+        },
+        {
+          id: 'D-004',
+          specRef: { file: 'decisions.md', anchor: 'D-004' },
+          type: 'decision',
+          title: 'Last',
+          body: 'Last',
+          position: { x: 0, y: 0 },
+          layer: 0,
+        },
+      ],
+      [],
+      'D-004',
+      ['F-007', 'D-004'],
+    )
+
+    expect(resolvePreviewFocusCardId(preview, committedCards)).toBe('F-007')
+  })
+
+  it('falls back to the first diff card when previewCardIds is absent', () => {
     const preview = previewWith(
       [
         ...committedCards,
@@ -115,12 +155,75 @@ describe('resolvePreviewFocusCardId', () => {
       [],
     )
 
-    expect(resolvePreviewFocusCardId(preview, committedCards)).toBe('C-004')
+    expect(resolvePreviewFocusCardId(preview, committedCards)).toBe('F-007')
+  })
+})
+
+describe('preview card queue helpers', () => {
+  it('uses previewCardIds order and ignores missing ids', () => {
+    const preview = previewWith(
+      [
+        ...committedCards,
+        {
+          id: 'F-007',
+          specRef: { file: 'features.md', anchor: 'F-007' },
+          type: 'feature',
+          title: 'First',
+          body: 'First',
+          position: { x: 0, y: 0 },
+          layer: 0,
+        },
+        {
+          id: 'D-004',
+          specRef: { file: 'decisions.md', anchor: 'D-004' },
+          type: 'decision',
+          title: 'Last',
+          body: 'Last',
+          position: { x: 0, y: 0 },
+          layer: 0,
+        },
+      ],
+      [],
+      undefined,
+      ['missing', 'D-004', 'F-007'],
+    )
+
+    expect(resolvePreviewCardQueueIds(preview, committedCards)).toEqual(['D-004', 'F-007'])
+    expect(resolveCurrentPreviewCardId(preview, committedCards, [], 1)).toBe('F-007')
+  })
+
+  it('falls back to diff order when previewCardIds is absent', () => {
+    const preview = previewWith(
+      [
+        ...committedCards,
+        {
+          id: 'F-007',
+          specRef: { file: 'features.md', anchor: 'F-007' },
+          type: 'feature',
+          title: 'First',
+          body: 'First',
+          position: { x: 0, y: 0 },
+          layer: 0,
+        },
+        {
+          id: 'D-004',
+          specRef: { file: 'decisions.md', anchor: 'D-004' },
+          type: 'decision',
+          title: 'Last',
+          body: 'Last',
+          position: { x: 0, y: 0 },
+          layer: 0,
+        },
+      ],
+      [],
+    )
+
+    expect(resolvePreviewCardQueueIds(preview, committedCards)).toEqual(['F-007', 'D-004'])
   })
 })
 
 describe('resolveCommitSelectionCardId', () => {
-  it('selects last new overview entity after commit', () => {
+  it('selects the first queued overview entity after batch commit', () => {
     const preview = previewWith(
       [
         ...committedCards,
@@ -147,6 +250,6 @@ describe('resolveCommitSelectionCardId', () => {
       'D-004',
     )
 
-    expect(resolveCommitSelectionCardId(preview, committedCards)).toBe('D-004')
+    expect(resolveCommitSelectionCardId(preview, committedCards)).toBe('F-007')
   })
 })

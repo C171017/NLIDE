@@ -14,6 +14,7 @@ import type {
 } from './canvasOpsMapping.ts'
 import { getDefaultEdgeLabel } from './canvasOpsMapping.ts'
 import type { CanvasCard, CanvasEdge, MdPatch, PreviewPayload } from './canvasTypes.ts'
+import { diffPreview } from './diffPreview.ts'
 import {
   allocateNextConstraintId,
   allocateNextDecisionId,
@@ -669,6 +670,15 @@ function allocateFeatureIdForTable(cards: CanvasCard[]): string {
   return allocateNextFeatureId(collectEntityIds(cards, 'F'))
 }
 
+function pushUnique(list: string[], value: string | null | undefined): void {
+  if (!value || list.includes(value)) return
+  list.push(value)
+}
+
+function resolveActualCardId(cards: CanvasCard[], idOrAnchor: string): string | null {
+  return findCard(cards, idOrAnchor)?.id ?? null
+}
+
 /** Map router plan + committed canvas → preview payload. */
 export function mapCanvasToPreview(input: MapCanvasInput): PreviewPayload {
   const {
@@ -708,20 +718,29 @@ export function mapCanvasToPreview(input: MapCanvasInput): PreviewPayload {
   }
 
   let focusCardId: string | null = null
+  const orderedPreviewCardIds: string[] = []
 
   for (const op of canvasOps) {
     if (op.action === 'create_card') {
       applyCreateCard(op, cards, edges, centerCardId, committedCardIds, routerPlan, hints, userMessage)
+      pushUnique(orderedPreviewCardIds, resolveActualCardId(cards, op.id))
       focusCardId = op.id
     } else if (op.action === 'link_to') {
       applyLinkTo(op, cards, edges, centerCardId)
     } else if (op.action === 'update_card') {
       applyUpdateCard(op, cards, hints)
+      pushUnique(orderedPreviewCardIds, resolveActualCardId(cards, op.id))
     }
   }
 
   const mdPatches =
     input.mdPatches ?? deriveMdPatches(routerPlan, hints, tableFeatureAdds)
+  const { previewCardIds } = diffPreview(committedCards, committedEdges, cards, edges)
+  for (const card of cards) {
+    if (previewCardIds.has(card.id)) {
+      pushUnique(orderedPreviewCardIds, card.id)
+    }
+  }
 
   return {
     previewId,
@@ -729,24 +748,44 @@ export function mapCanvasToPreview(input: MapCanvasInput): PreviewPayload {
     edges,
     mdPatches,
     summary: routerPlan.summary,
+    previewCardIds: orderedPreviewCardIds,
     focusCardId,
   }
 }
 
-/** Demo stub plan — matches legacy translatorStub behavior (F-004 table row + open question). */
+/** Demo stub plan — deterministic multi-card preview for local development. */
 export function buildStubPreviewPlan(message: string): RouterPlan {
   return {
-    intent_type: 'clarify',
-    summary: 'Preview adds F-004 Google login and an open question card linked from Features.',
+    intent_type: 'add_feature',
+    summary: 'Preview adds Google login, a dark mode toggle, and an open question about allowed domains.',
     operations: [
-      { target: 'open-questions.md', action: 'add' },
-      { target: 'features.md', action: 'add' },
+      { target: 'features.md', action: 'add', entity_id: 'F-901' },
+      { target: 'features.md', action: 'add', entity_id: 'F-902' },
+      { target: 'open-questions.md', action: 'add', entity_id: 'OQ-901' },
     ],
     canvas_ops: [
       {
         action: 'create_card',
+        type: 'feature',
+        id: 'F-901',
+        link_to: 'product',
+        edge_label: 'contains',
+        title: 'F-901: Google login',
+        body: 'Enterprise users can sign in with Google Workspace accounts.',
+      },
+      {
+        action: 'create_card',
+        type: 'feature',
+        id: 'F-902',
+        link_to: 'product',
+        edge_label: 'contains',
+        title: 'F-902: Dark mode toggle',
+        body: 'Users can switch the canvas between light and dark display modes.',
+      },
+      {
+        action: 'create_card',
         type: 'open-question',
-        id: `oq-${Date.now()}`,
+        id: 'OQ-901',
         link_to: 'features',
         edge_label: 'raises',
         title: 'Open question (preview)',

@@ -1,5 +1,6 @@
 import { isTopLayerCard } from './canvasLayers'
-import type { Card, PreviewPayload } from '../types/canvas'
+import { diffPreview } from '@nlide/shared/diffPreview'
+import type { CanvasEdge, Card, PreviewPayload } from '../types/canvas'
 
 /** First existing card targeted by an update patch (behavior-change previews). */
 function resolveUpdateFocusCardId(
@@ -47,13 +48,52 @@ function resolveLastNewCardId(
 export function resolvePreviewFocusCardId(
   preview: PreviewPayload,
   committedCards: Card[],
+  committedEdges: CanvasEdge[] = [],
 ): string | null {
+  const [firstQueuedCardId] = resolvePreviewCardQueueIds(preview, committedCards, committedEdges)
+  if (firstQueuedCardId) {
+    return firstQueuedCardId
+  }
+
   const updateFocus = resolveUpdateFocusCardId(preview, committedCards)
   if (updateFocus) {
     return updateFocus
   }
 
   return resolveLastNewCardId(preview, committedCards)
+}
+
+export function resolvePreviewCardQueueIds(
+  preview: PreviewPayload,
+  committedCards: Card[],
+  committedEdges: CanvasEdge[] = [],
+): string[] {
+  const previewCardsById = new Map(preview.cards.map((card) => [card.id, card]))
+  const orderedIds: string[] = []
+
+  for (const cardId of preview.previewCardIds ?? []) {
+    if (!previewCardsById.has(cardId) || orderedIds.includes(cardId)) continue
+    orderedIds.push(cardId)
+  }
+
+  if (orderedIds.length > 0) {
+    return orderedIds
+  }
+
+  const { previewCardIds } = diffPreview(committedCards, committedEdges, preview.cards, preview.edges)
+  return preview.cards
+    .filter((card) => previewCardIds.has(card.id))
+    .map((card) => card.id)
+}
+
+export function resolveCurrentPreviewCardId(
+  preview: PreviewPayload,
+  committedCards: Card[],
+  committedEdges: CanvasEdge[],
+  previewQueueIndex: number,
+): string | null {
+  const queue = resolvePreviewCardQueueIds(preview, committedCards, committedEdges)
+  return queue[previewQueueIndex] ?? null
 }
 
 /** Drill into parent pillar when the focus card lives on the detail layer. */
@@ -94,7 +134,7 @@ export function resolveViewStateForFocusCard(
   return { drillFocusId: null }
 }
 
-/** Card to select after commit — prefers preview focus, else last new overview entity. */
+/** Card to select after batch commit — follows the preview queue, then falls back to overview entities. */
 export function resolveCommitSelectionCardId(
   preview: PreviewPayload,
   committedCards: Card[],

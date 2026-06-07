@@ -71,7 +71,7 @@ export const CANVAS_OPS_MAPPING: CanvasOpsMapping = {
   policy:
     'Router `canvas_ops[]` is the primary input for new preview cards and edges. When empty (v0 router ' +
     'golden tests), the mapper derives minimal ops from `operations[]` + writer entity ids. Compound turns ' +
-    'emit ordered `canvas_ops[]` with one create_card per ask; last create_card becomes `focusCardId`. Preview-only ' +
+    'emit ordered `canvas_ops[]` with one create_card per ask; order becomes `previewCardIds`. Preview-only ' +
     'nodes get ghost styling; committed cards are never restyled.',
 
   allowedActions: [

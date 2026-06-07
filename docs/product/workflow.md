@@ -49,7 +49,7 @@ Focus: **canvas design, structure, knowledge, choices, visualization.**
 1. **Chat box** — user describes requests in natural language
 2. **Translator (batch)** — AI runs once per chat submit; reads **whole current canvas + spec** as context
 3. **Preview** — proposed cards, links, MD changes shown **before** anything is saved
-4. **Commit or discard** — user decides
+4. **Commit or discard current preview card** — user decides one proposed card at a time
 5. **Manual card editing** — user edits any card individually anytime (TipTap); direct sync to underlying MD
 6. **Repeat** — more chat, more edits, until the picture is clear
 7. **Export** — on commit, hybrid storage: Postgres + export `/spec/*.md` for agents
@@ -93,7 +93,7 @@ Execution agents run **only after** the user is satisfied with the canvas — no
 | 2 | System | Sends **full canvas state + spec** to translator (one LLM batch) |
 | 3 | System | Returns **preview** — proposed cards, edges, MD patches |
 | 4 | User | Reviews preview on canvas (ghost overlay or diff panel) |
-| 5 | User | **Commit** → writes to Postgres + exports MD — or **Discard** |
+| 5 | User | **Commit** current card → writes that card + related MD to Postgres and exports MD — or **Discard** current card |
 | 6 | User | **Edits individual cards** directly (title, body, links) — no AI required |
 | 7 | User | Repeats from step 1 when ready for next batch of AI help |
 
@@ -132,8 +132,10 @@ Preview UI should show:
 
 Actions:
 
-- **Commit** — apply preview to Postgres; export `/spec/*.md`
-- **Discard** — revert preview; canvas unchanged
+- **Commit** — apply the current preview card to Postgres; export `/spec/*.md`; advance to the next preview card
+- **Discard** — revert the current preview card; advance to the next preview card
+
+**[USER]** Multi-card previews use a per-card review queue: all unresolved preview cards remain visible on the canvas with preview styling, the current card is highlighted, and the footer shows `Card N of M`. When the queue is empty, preview mode clears.
 
 Draft state lives in memory or a `preview_*` staging table — not committed spec until user approves.
 

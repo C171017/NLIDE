@@ -17,13 +17,14 @@ import VizEmbed from '../../viz/VizEmbed'
 export type CardNodeData = {
   card: Card
   isPreview?: boolean
+  isCurrentPreviewCard?: boolean
 }
 
 const handlePositions = [Position.Top, Position.Right, Position.Bottom, Position.Left]
 
 export default function CardNode({ data }: NodeProps) {
   const nodeData = data as CardNodeData
-  const { card, isPreview } = nodeData
+  const { card, isPreview, isCurrentPreviewCard } = nodeData
   const hasInteractiveViz = card.vizType === 'progress-checklist'
   const isSelected = useCanvasStore((state) => state.selectedCardId === card.id)
   const isDeleteMode = useCanvasStore((state) => state.isDeleteMode)
@@ -69,6 +70,7 @@ export default function CardNode({ data }: NodeProps) {
         hasInteractiveViz ? 'w-[300px]' : 'w-[260px]',
         cardTypeStyles(card.type),
         isPreview && 'canvas-node-card--preview',
+        isCurrentPreviewCard && 'canvas-node-card--current-preview',
         isSelected && !isDeleteMode && cardSelectedStyles(card.type),
         isDeleteMode && 'canvas-node-card--jiggle',
       )}

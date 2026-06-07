@@ -28,6 +28,7 @@ See also: [documentation-guide.md](./documentation-guide.md) · [ai-inferred-dec
 |------|----------|---------|
 | 2026-06-06 | **Agents explain with plain reframe first** — “what we’re basically building” in one sentence, then what we need from user, then progress x/y | See [communication-style.md](./communication-style.md) |
 | 2026-06-06 | **Chat box → translator → canvas preview → user commit or discard** | Never auto-apply translator output |
+| 2026-06-07 | **Preview review is per card** — all preview cards stay visible, while Commit/Discard resolves only the current card and advances to the next | Per-card preview queue replaces whole-batch-only review for multi-card previews |
 | 2026-06-06 | **User can edit individual cards anytime** | Manual card edit is important; separate from AI chat batch |
 | 2026-06-06 | **Design loop:** define a lot → run AI once → edit canvas manually → run AI again | Not continuous agent loops |
 | 2026-06-06 | **Whole web app is a canvas** with linked cards and **central node** | Human-readable, easy to edit cards |

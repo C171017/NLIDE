@@ -44,7 +44,7 @@ export const ROUTER_PROMPT_OUTLINE: RouterPromptOutline = {
     '(4) “We decided X” → add_decision. (5) Real ambiguity → clarify, open-questions only, do not guess. ' +
     '(6) Intent wording not code. (7) Prefer update over add when ID exists. (8) Never open-question every message. ' +
     '(9) Multiple distinct asks in one message → do not collapse; emit all operations[] with entity_id per add; ' +
-    'emit ordered canvas_ops[] with one create_card per new card (last create_card is the focus target).',
+    'emit ordered canvas_ops[] with one create_card per new card (order becomes the preview review queue).',
 
   contextFormat:
     'User message is the primary input. Context JSON includes: projectName, centerCardId, cards[] (id, type, title, body, specRef, status), edges[] (source, target). ' +

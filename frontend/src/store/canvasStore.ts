@@ -3,9 +3,11 @@ import type { Card, CanvasEdge, PreviewPayload } from '../types/canvas'
 import { canDeleteCard } from '../lib/canDeleteCard'
 import { isTopLayerCard } from '../lib/canvasLayers'
 import {
+  commitPreviewCardRemote,
   commitPreviewRemote,
   deleteCardRemote,
   deleteEdgeRemote,
+  discardPreviewCardRemote,
   discardPreviewRemote,
   isInsForgeConfigured,
   patchCardRemote,
@@ -14,6 +16,7 @@ import {
 } from '../lib/api'
 import { syncLocalProjectCanvas } from '../lib/localProjects'
 import {
+  resolvePreviewCardQueueIds,
   resolvePreviewFocusCardId,
   resolveViewStateForFocusCard,
   resolveCommitSelectionCardId,
@@ -26,6 +29,7 @@ interface CanvasStore {
   committedEdges: CanvasEdge[]
   centerCardId: string
   preview: PreviewPayload | null
+  previewQueueIndex: number
   previewFocusCardId: string | null
   exportedSpecCache: Record<string, string> | null
   selectedCardId: string | null
@@ -56,6 +60,8 @@ interface CanvasStore {
   cancelChat: () => void
   commitPreview: () => Promise<void>
   discardPreview: () => Promise<void>
+  commitPreviewCard: () => Promise<void>
+  discardPreviewCard: () => Promise<void>
   clearPreviewFocus: () => void
 }
 
@@ -65,6 +71,130 @@ function cloneCards(cards: Card[]): Card[] {
 
 function cloneEdges(edges: CanvasEdge[]): CanvasEdge[] {
   return edges.map((edge) => ({ ...edge }))
+}
+
+function uniqueIds(ids: string[]): string[] {
+  return ids.filter((id, index) => ids.indexOf(id) === index)
+}
+
+function orderedPreviewCardIds(
+  preview: PreviewPayload,
+  committedCards: Card[],
+  committedEdges: CanvasEdge[],
+): string[] {
+  if (preview.previewCardIds?.length) {
+    return uniqueIds(preview.previewCardIds)
+  }
+
+  return resolvePreviewCardQueueIds(preview, committedCards, committedEdges)
+}
+
+function resolveQueuedPreviewCard(
+  preview: PreviewPayload,
+  committedCards: Card[],
+  committedEdges: CanvasEdge[],
+  queueIndex: number,
+): { cardId: string; queueIndex: number; queueLength: number } | null {
+  const queue = orderedPreviewCardIds(preview, committedCards, committedEdges)
+  const previewCardIds = new Set(preview.cards.map((card) => card.id))
+
+  for (let index = Math.max(queueIndex, 0); index < queue.length; index += 1) {
+    const cardId = queue[index]
+    if (previewCardIds.has(cardId)) {
+      return { cardId, queueIndex: index, queueLength: queue.length }
+    }
+  }
+
+  return null
+}
+
+function upsertCard(cards: Card[], nextCard: Card): Card[] {
+  if (cards.some((card) => card.id === nextCard.id)) {
+    return cards.map((card) => (card.id === nextCard.id ? { ...nextCard } : card))
+  }
+
+  return [...cards, { ...nextCard }]
+}
+
+function commitCardLocally(
+  preview: PreviewPayload,
+  committedCards: Card[],
+  committedEdges: CanvasEdge[],
+  cardId: string,
+): { committedCards: Card[]; committedEdges: CanvasEdge[] } {
+  const card = preview.cards.find((item) => item.id === cardId)
+  if (!card) {
+    return { committedCards, committedEdges }
+  }
+
+  const nextCards = upsertCard(committedCards, card)
+  const nextCardIds = new Set(nextCards.map((item) => item.id))
+  const edgeMap = new Map(committedEdges.map((edge) => [edge.id, { ...edge }]))
+
+  for (const edge of preview.edges) {
+    if (edge.source !== cardId && edge.target !== cardId) continue
+    if (!nextCardIds.has(edge.source) || !nextCardIds.has(edge.target)) continue
+    edgeMap.set(edge.id, { ...edge })
+  }
+
+  return {
+    committedCards: cloneCards(nextCards),
+    committedEdges: cloneEdges([...edgeMap.values()]),
+  }
+}
+
+function isPatchRelatedToCard(patch: PreviewPayload['mdPatches'][number], card: Card): boolean {
+  const anchor = card.specRef.anchor ?? card.id
+  if (patch.anchor && (patch.anchor === card.id || patch.anchor === anchor)) {
+    return true
+  }
+
+  if (!patch.anchor && patch.file === card.specRef.file) {
+    return true
+  }
+
+  if (card.vizType === 'data-table' && patch.file === card.specRef.file) {
+    return true
+  }
+
+  return false
+}
+
+function removeRelatedMdPatches(preview: PreviewPayload, cardId: string): PreviewPayload {
+  const card = preview.cards.find((item) => item.id === cardId)
+  if (!card) return preview
+
+  return {
+    ...preview,
+    mdPatches: preview.mdPatches.filter((patch) => !isPatchRelatedToCard(patch, card)),
+  }
+}
+
+function discardCardLocally(
+  preview: PreviewPayload,
+  committedCards: Card[],
+  cardId: string,
+): PreviewPayload {
+  const committedCard = committedCards.find((card) => card.id === cardId)
+  const nextPreview = removeRelatedMdPatches(preview, cardId)
+
+  if (committedCard) {
+    return {
+      ...nextPreview,
+      cards: nextPreview.cards.map((card) => (card.id === cardId ? { ...committedCard } : card)),
+    }
+  }
+
+  return {
+    ...nextPreview,
+    cards: nextPreview.cards.filter((card) => card.id !== cardId),
+    edges: nextPreview.edges.filter((edge) => edge.source !== cardId && edge.target !== cardId),
+  }
+}
+
+function resolveViewStateForCardId(cardId: string | null, cards: Card[]) {
+  const card = cardId ? cards.find((item) => item.id === cardId) : undefined
+  return resolveViewStateForFocusCard(card, cards)
 }
 
 function removeCardFromCanvas(
@@ -121,6 +251,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   committedEdges: [],
   centerCardId: 'product',
   preview: null,
+  previewQueueIndex: 0,
   previewFocusCardId: null,
   exportedSpecCache: null,
   selectedCardId: null,
@@ -355,7 +486,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       )
       if (chatAbortController !== controller) return
 
-      const focusCardId = resolvePreviewFocusCardId(preview, committedCards)
+      const focusCardId = resolvePreviewFocusCardId(preview, committedCards, committedEdges)
       const focusCard = focusCardId
         ? preview.cards.find((card) => card.id === focusCardId)
         : undefined
@@ -363,6 +494,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 
       set({
         preview,
+        previewQueueIndex: 0,
         isTranslating: false,
         selectedCardId: focusCardId,
         previewFocusCardId: focusCardId,
@@ -389,6 +521,131 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 
   clearPreviewFocus: () => set({ previewFocusCardId: null }),
 
+  commitPreviewCard: async () => {
+    const { preview, committedCards, committedEdges, previewQueueIndex } = get()
+    if (!preview) return
+
+    const current = resolveQueuedPreviewCard(
+      preview,
+      committedCards,
+      committedEdges,
+      previewQueueIndex,
+    )
+    if (!current) {
+      set({ preview: null, previewQueueIndex: 0, previewFocusCardId: null, selectedCardId: null, drillFocusId: null })
+      return
+    }
+
+    try {
+      const result = await commitPreviewCardRemote(preview.previewId, current.cardId)
+      const nextCommitted = commitCardLocally(preview, committedCards, committedEdges, current.cardId)
+      const nextPreview = result.preview === undefined
+        ? removeRelatedMdPatches(preview, current.cardId)
+        : result.preview
+      const nextQueueIndex = current.queueIndex + 1
+
+      if (!nextPreview || nextQueueIndex >= current.queueLength) {
+        set({
+          committedCards: nextCommitted.committedCards,
+          committedEdges: nextCommitted.committedEdges,
+          preview: null,
+          previewQueueIndex: 0,
+          previewFocusCardId: null,
+          exportedSpecCache: result.exportedSpec ?? get().exportedSpecCache,
+          selectedCardId: current.cardId,
+          drillFocusId: null,
+        })
+        return
+      }
+
+      const next = resolveQueuedPreviewCard(
+        nextPreview,
+        nextCommitted.committedCards,
+        nextCommitted.committedEdges,
+        nextQueueIndex,
+      )
+      if (!next) {
+        set({
+          committedCards: nextCommitted.committedCards,
+          committedEdges: nextCommitted.committedEdges,
+          preview: null,
+          previewQueueIndex: 0,
+          previewFocusCardId: null,
+          exportedSpecCache: result.exportedSpec ?? get().exportedSpecCache,
+          selectedCardId: current.cardId,
+          drillFocusId: null,
+        })
+        return
+      }
+
+      const nextCardId = next?.cardId ?? null
+      const viewState = resolveViewStateForCardId(nextCardId, nextPreview.cards)
+
+      set({
+        committedCards: nextCommitted.committedCards,
+        committedEdges: nextCommitted.committedEdges,
+        preview: nextPreview,
+        previewQueueIndex: next?.queueIndex ?? nextQueueIndex,
+        previewFocusCardId: nextCardId,
+        exportedSpecCache: result.exportedSpec ?? get().exportedSpecCache,
+        selectedCardId: nextCardId,
+        drillFocusId: nextCardId ? viewState.drillFocusId : null,
+      })
+    } catch (error) {
+      console.error('commitPreviewCard failed:', error)
+    }
+  },
+
+  discardPreviewCard: async () => {
+    const { preview, committedCards, committedEdges, previewQueueIndex } = get()
+    if (!preview) {
+      set({ preview: null, previewQueueIndex: 0, previewFocusCardId: null, selectedCardId: null, drillFocusId: null })
+      return
+    }
+
+    const current = resolveQueuedPreviewCard(
+      preview,
+      committedCards,
+      committedEdges,
+      previewQueueIndex,
+    )
+    if (!current) {
+      set({ preview: null, previewQueueIndex: 0, previewFocusCardId: null, selectedCardId: null, drillFocusId: null })
+      return
+    }
+
+    try {
+      const result = await discardPreviewCardRemote(preview.previewId, current.cardId)
+      const localPreview = discardCardLocally(preview, committedCards, current.cardId)
+      const nextPreview = result.preview === undefined ? localPreview : result.preview
+      const nextQueueIndex = current.queueIndex + 1
+
+      if (!nextPreview || nextQueueIndex >= current.queueLength) {
+        set({ preview: null, previewQueueIndex: 0, previewFocusCardId: null, selectedCardId: null, drillFocusId: null })
+        return
+      }
+
+      const next = resolveQueuedPreviewCard(nextPreview, committedCards, committedEdges, nextQueueIndex)
+      if (!next) {
+        set({ preview: null, previewQueueIndex: 0, previewFocusCardId: null, selectedCardId: null, drillFocusId: null })
+        return
+      }
+
+      const nextCardId = next?.cardId ?? null
+      const viewState = resolveViewStateForCardId(nextCardId, nextPreview.cards)
+
+      set({
+        preview: nextPreview,
+        previewQueueIndex: next?.queueIndex ?? nextQueueIndex,
+        previewFocusCardId: nextCardId,
+        selectedCardId: nextCardId,
+        drillFocusId: nextCardId ? viewState.drillFocusId : null,
+      })
+    } catch (error) {
+      console.error('discardPreviewCard failed:', error)
+    }
+  },
+
   commitPreview: async () => {
     const { preview, committedCards } = get()
     if (!preview) return
@@ -399,6 +656,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
         committedCards: cloneCards(preview.cards),
         committedEdges: cloneEdges(preview.edges),
         preview: null,
+        previewQueueIndex: 0,
         previewFocusCardId: null,
         exportedSpecCache: result.exportedSpec ?? null,
         selectedCardId: resolveCommitSelectionCardId(preview, committedCards) ?? get().selectedCardId,
@@ -413,13 +671,13 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   discardPreview: async () => {
     const { preview } = get()
     if (!preview) {
-      set({ preview: null, previewFocusCardId: null, selectedCardId: null, drillFocusId: null })
+      set({ preview: null, previewQueueIndex: 0, previewFocusCardId: null, selectedCardId: null, drillFocusId: null })
       return
     }
 
     try {
       await discardPreviewRemote(preview.previewId, activeProjectId(get))
-      set({ preview: null, previewFocusCardId: null, selectedCardId: null, drillFocusId: null })
+      set({ preview: null, previewQueueIndex: 0, previewFocusCardId: null, selectedCardId: null, drillFocusId: null })
     } catch (error) {
       console.error('discardPreview failed:', error)
     }
