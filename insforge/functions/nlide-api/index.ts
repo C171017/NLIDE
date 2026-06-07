@@ -313,6 +313,32 @@ async function createProject(client: InsForgeClient): Promise<ProjectPayload> {
   }
 }
 
+/** Backfill Postgres when the client created a local-only project before create-project was deployed. */
+async function ensureProjectExists(
+  client: InsForgeClient,
+  projectId: string,
+  defaults: { name: string; centerCardId: string },
+): Promise<void> {
+  const { data, error } = await client.database
+    .from('projects')
+    .select('id')
+    .eq('id', projectId)
+    .maybeSingle()
+
+  if (error) throw error
+  if (data) return
+
+  const { error: insertError } = await client.database.from('projects').insert([
+    {
+      id: projectId,
+      name: defaults.name,
+      center_card_id: defaults.centerCardId,
+    },
+  ])
+
+  if (insertError) throw insertError
+}
+
 async function updateProjectName(
   client: InsForgeClient,
   projectId: string,
@@ -1106,7 +1132,7 @@ export default async function handler(req: Request): Promise<Response> {
         let centerCardId = context?.centerCardId ?? 'product'
 
         const project = await getProject(client, projectId)
-        const projectName = project?.projectName ?? 'NLIDE Demo Project'
+        const projectName = project?.projectName ?? 'Untitled Project'
 
         if (cards.length === 0 && project && project.cards.length > 0) {
           cards = project.cards
@@ -1137,6 +1163,10 @@ export default async function handler(req: Request): Promise<Response> {
         }
 
         const preview = result.preview as PreviewPayload
+        await ensureProjectExists(client, projectId, {
+          name: projectName,
+          centerCardId,
+        })
         await savePreview(client, projectId, preview)
 
         return json({

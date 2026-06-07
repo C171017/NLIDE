@@ -101,7 +101,7 @@ function cloneEdges(edges: CanvasEdge[]): CanvasEdge[] {
 }
 
 function parseCanvasOp(raw: Record<string, unknown>): CanvasOp | null {
-  const action = raw.action
+  const action = raw.action ?? raw.op
   if (action === 'create_card') {
     if (typeof raw.type !== 'string' || typeof raw.id !== 'string') return null
     return {
@@ -390,7 +390,10 @@ function deriveCanvasOps(
   hints: WriterEntityHint[],
 ): CanvasOp[] {
   if (plan.canvas_ops.length > 0) {
-    return parseCanvasOps(plan.canvas_ops)
+    const explicit = parseCanvasOps(plan.canvas_ops)
+    if (explicit.some((op) => op.action === 'create_card' || op.action === 'update_card')) {
+      return explicit
+    }
   }
 
   const updateOps = deriveUpdateCanvasOps(plan, cards, hints)
