@@ -37,6 +37,8 @@ interface CanvasStore {
   isTranslating: boolean
   chatDraft: string
   isDeleteMode: boolean
+  isPreviewActionPending: boolean
+  previewActionError: string | null
 
   loadProject: (payload: ProjectPayload) => void
   setProjectName: (name: string) => void
@@ -259,6 +261,8 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   isTranslating: false,
   chatDraft: '',
   isDeleteMode: false,
+  isPreviewActionPending: false,
+  previewActionError: null,
 
   loadProject: (payload) =>
     set({
@@ -276,6 +280,8 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       isTranslating: false,
       chatDraft: '',
       isDeleteMode: false,
+      isPreviewActionPending: false,
+      previewActionError: null,
     }),
 
   setProjectName: (name) => set({ projectName: name }),
@@ -522,7 +528,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 
   commitPreviewCard: async () => {
     const { preview, committedCards, committedEdges, previewQueueIndex } = get()
-    if (!preview) return
+    if (!preview || get().isPreviewActionPending) return
 
     const current = resolveQueuedPreviewCard(
       preview,
@@ -535,8 +541,14 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       return
     }
 
+    set({ isPreviewActionPending: true, previewActionError: null })
+
     try {
-      const result = await commitPreviewCardRemote(preview.previewId, current.cardId)
+      const result = await commitPreviewCardRemote(
+        preview.previewId,
+        current.cardId,
+        activeProjectId(get),
+      )
       const nextCommitted = commitCardLocally(preview, committedCards, committedEdges, current.cardId)
       const nextPreview = result.preview === undefined
         ? removeRelatedMdPatches(preview, current.cardId)
@@ -553,7 +565,10 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
           exportedSpecCache: result.exportedSpec ?? get().exportedSpecCache,
           selectedCardId: current.cardId,
           drillFocusId: null,
+          isPreviewActionPending: false,
+          previewActionError: null,
         })
+        syncLocalIfNeeded(get())
         return
       }
 
@@ -573,7 +588,10 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
           exportedSpecCache: result.exportedSpec ?? get().exportedSpecCache,
           selectedCardId: current.cardId,
           drillFocusId: null,
+          isPreviewActionPending: false,
+          previewActionError: null,
         })
+        syncLocalIfNeeded(get())
         return
       }
 
@@ -589,14 +607,20 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
         exportedSpecCache: result.exportedSpec ?? get().exportedSpecCache,
         selectedCardId: nextCardId,
         drillFocusId: nextCardId ? viewState.drillFocusId : null,
+        isPreviewActionPending: false,
+        previewActionError: null,
       })
+      syncLocalIfNeeded(get())
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Commit failed'
       console.error('commitPreviewCard failed:', error)
+      set({ isPreviewActionPending: false, previewActionError: message })
     }
   },
 
   discardPreviewCard: async () => {
     const { preview, committedCards, committedEdges, previewQueueIndex } = get()
+    if (get().isPreviewActionPending) return
     if (!preview) {
       set({ preview: null, previewQueueIndex: 0, previewFocusCardId: null, selectedCardId: null, drillFocusId: null })
       return
@@ -613,20 +637,42 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       return
     }
 
+    set({ isPreviewActionPending: true, previewActionError: null })
+
     try {
-      const result = await discardPreviewCardRemote(preview.previewId, current.cardId)
+      const result = await discardPreviewCardRemote(
+        preview.previewId,
+        current.cardId,
+        activeProjectId(get),
+      )
       const localPreview = discardCardLocally(preview, committedCards, current.cardId)
       const nextPreview = result.preview === undefined ? localPreview : result.preview
       const nextQueueIndex = current.queueIndex + 1
 
       if (!nextPreview || nextQueueIndex >= current.queueLength) {
-        set({ preview: null, previewQueueIndex: 0, previewFocusCardId: null, selectedCardId: null, drillFocusId: null })
+        set({
+          preview: null,
+          previewQueueIndex: 0,
+          previewFocusCardId: null,
+          selectedCardId: null,
+          drillFocusId: null,
+          isPreviewActionPending: false,
+          previewActionError: null,
+        })
         return
       }
 
       const next = resolveQueuedPreviewCard(nextPreview, committedCards, committedEdges, nextQueueIndex)
       if (!next) {
-        set({ preview: null, previewQueueIndex: 0, previewFocusCardId: null, selectedCardId: null, drillFocusId: null })
+        set({
+          preview: null,
+          previewQueueIndex: 0,
+          previewFocusCardId: null,
+          selectedCardId: null,
+          drillFocusId: null,
+          isPreviewActionPending: false,
+          previewActionError: null,
+        })
         return
       }
 
@@ -639,9 +685,13 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
         previewFocusCardId: nextCardId,
         selectedCardId: nextCardId,
         drillFocusId: nextCardId ? viewState.drillFocusId : null,
+        isPreviewActionPending: false,
+        previewActionError: null,
       })
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Discard failed'
       console.error('discardPreviewCard failed:', error)
+      set({ isPreviewActionPending: false, previewActionError: message })
     }
   },
 

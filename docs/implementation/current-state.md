@@ -34,7 +34,7 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | **Layered canvas** (overview ↔ detail via pillar double-click; single-click select) | `canvasLayers.ts`, `layout.ts`, `IntentCanvas.tsx` |
 | Canvas nav (tilted layer stack — click Overview plate to return from detail; drill in via pillar double-click; **exit-to-projects icon** top-left; fullscreen toggle top-right; minimap detached but hidden) | `CanvasNavPanel.tsx`, `LayerStackIndicator.tsx` |
 | Card nodes + Product hub | `CardNode.tsx`, `IndexNode.tsx` (center pillar styling); long-press edit mode with trash drop zone; click link + Delete/Backspace to remove edge |
-| Chat input (floating on canvas) + preview actions in side panel | `ChatBar.tsx`, `ChatSubmitButton.tsx`, `PreviewActions.tsx` — circular interpret/stop control; Enter submits; preview footer resolves one queued card at a time |
+| Chat input (floating on canvas) + preview actions in side panel | `ChatBar.tsx`, `ChatSubmitButton.tsx`, `PreviewActions.tsx` — circular interpret/stop control; Enter submits; preview footer resolves one queued card at a time; **Commit/Discard** pass active `projectId`, show pending + error state |
 | TipTap card editor | `CardEditor.tsx` — title/body edit + **entity stacked MD preview** (`SpecFilePanel.tsx`, `useSpecFileContent.ts`, `specFilePreview.ts`) — Current vs Proposed `###` section on update intents; **auto-opens Card editor + canvas focus** on first queued preview card (`previewFocus.ts`, `previewFocusCardId`, `previewCardIds` on preview) |
 | Side panel | `SidePanel.tsx` — **Build plan** tab (LLM execution phases + jobs) + Card editor tab |
 | **Resizable layout** | `AppShell.tsx`, `ResizeHandle.tsx`, `CornerResizeHandle.tsx`, `useResizableSize.ts` — drag borders between canvas and side panel; preview summary height in card tab; canvas nav minimap corner resize; sizes persist in `localStorage` |
@@ -111,7 +111,7 @@ Run: `npm run dev` (from repo root)
 | `canvas-mapper-golden` | ✅ **Implemented** — 5 mapper cases, ≥4/5 pass bar |
 | `intent` | ✅ Router + writers + mapper → preview (needs `OPENROUTER_API_KEY`; no stub fallback) |
 | `commit` | ✅ Applies preview to `cards` / `canvas_edges` + **`exportedSpec`** (9 files) |
-| `commit-preview-card` | ✅ Applies one queued preview card + related edges/MD patches; keeps preview row until queue end |
+| `commit-preview-card` | ✅ Applies one queued preview card + related edges/MD patches; keeps preview row until queue end; validation accepts inline acceptance-criteria bullets from flattened card bodies |
 | `export-smoke` | ✅ **Implemented** — headless assemble + validation (no DB) |
 | `discard` | ✅ Deletes preview row |
 | `discard-preview-card` | ✅ Drops/reverts one queued preview card; keeps preview row until queue end |

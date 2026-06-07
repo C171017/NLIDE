@@ -555,14 +555,22 @@ async function commitPreviewCard(
   projectId: string,
   preview: PreviewPayload,
   cardId: string,
-): Promise<{
-  preview: PreviewPayload | null
-  card: Card
-  edges: CanvasEdge[]
-  exportedSpec: Record<string, string>
-  exportWarnings: string[]
-  sectionCount: number
-}> {
+): Promise<
+  | {
+      ok: true
+      preview: PreviewPayload | null
+      card: Card
+      edges: CanvasEdge[]
+      exportedSpec: Record<string, string>
+      exportWarnings: string[]
+      sectionCount: number
+    }
+  | {
+      ok: false
+      code: 'validation_failed'
+      issues: Array<{ ruleId: string; message: string; file?: string }>
+    }
+> {
   const card = preview.cards.find((item) => item.id === cardId)
   if (!card) {
     throw new Error(`Preview card not found: ${cardId}`)
@@ -586,7 +594,11 @@ async function commitPreviewCard(
   })
 
   if (!exportResult.ok) {
-    throw new Error(`Spec failed validation before card commit: ${exportResult.issues.map((issue) => issue.message).join('; ')}`)
+    return {
+      ok: false as const,
+      code: exportResult.code,
+      issues: exportResult.issues,
+    }
   }
 
   const rows = buildSectionRowsForCommit({
@@ -617,6 +629,7 @@ async function commitPreviewCard(
   if (isFinalPreviewCard(preview, cardId)) {
     await deletePreview(client, preview.previewId)
     return {
+      ok: true,
       preview: null,
       card,
       edges,
@@ -628,6 +641,7 @@ async function commitPreviewCard(
 
   await savePreview(client, projectId, nextPreview)
   return {
+    ok: true,
     preview: nextPreview,
     card,
     edges,
@@ -1242,6 +1256,20 @@ export default async function handler(req: Request): Promise<Response> {
         }
 
         const result = await commitPreviewCard(client, projectId, preview, body.cardId)
+
+        if (!result.ok) {
+          return json(
+            {
+              ok: false,
+              error: {
+                code: result.code,
+                message: 'Spec failed validation before card commit',
+                issues: result.issues,
+              },
+            },
+            422,
+          )
+        }
 
         return json({
           committed: true,

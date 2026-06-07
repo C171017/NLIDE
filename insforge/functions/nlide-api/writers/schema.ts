@@ -45,8 +45,19 @@ export function parseFeatureIdFromSection(section: string): string | null {
 
 export function countAcceptanceCriteria(section: string): number {
   const block = section.match(CRITERIA_BLOCK_RE)
-  if (!block) return 0
-  return (block[1].match(/^\s*- /gm) ?? []).length
+  if (block) {
+    return (block[1].match(/^\s*- /gm) ?? []).length
+  }
+
+  // Card bodies synced from TipTap often flatten bullets onto one line:
+  // "- **Acceptance criteria:** - Criterion one - Criterion two"
+  const inline = section.match(/- \*\*Acceptance criteria:\*\*\s*(.+)/i)
+  if (!inline?.[1]?.trim()) return 0
+
+  return inline[1]
+    .split(/\s+-\s+/)
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0).length
 }
 
 export function validateFeatureSection(

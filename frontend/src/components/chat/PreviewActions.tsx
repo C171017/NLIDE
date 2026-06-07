@@ -9,6 +9,8 @@ export default function PreviewActions() {
   const committedEdges = useCanvasStore((state) => state.committedEdges)
   const commitPreviewCard = useCanvasStore((state) => state.commitPreviewCard)
   const discardPreviewCard = useCanvasStore((state) => state.discardPreviewCard)
+  const isPreviewActionPending = useCanvasStore((state) => state.isPreviewActionPending)
+  const previewActionError = useCanvasStore((state) => state.previewActionError)
 
   const queueState = useMemo(() => {
     if (!preview) return null
@@ -48,18 +50,23 @@ export default function PreviewActions() {
         <button
           type="button"
           onClick={() => void discardPreviewCard()}
-          className="soft-button rounded-xl px-3 py-2 text-xs font-medium text-[#d1d5db]"
+          disabled={isPreviewActionPending}
+          className="soft-button rounded-xl px-3 py-2 text-xs font-medium text-[#d1d5db] disabled:cursor-not-allowed disabled:opacity-50"
         >
           Discard
         </button>
         <button
           type="button"
           onClick={() => void commitPreviewCard()}
-          className="rounded-xl border border-emerald-300/25 bg-emerald-500/85 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-400"
+          disabled={isPreviewActionPending}
+          className="rounded-xl border border-emerald-300/25 bg-emerald-500/85 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Commit
+          {isPreviewActionPending ? 'Committing…' : 'Commit'}
         </button>
       </div>
+      {previewActionError && (
+        <p className="text-xs leading-relaxed text-rose-300/90">{previewActionError}</p>
+      )}
     </div>
   )
 }
