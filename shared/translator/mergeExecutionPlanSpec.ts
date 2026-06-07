@@ -49,3 +49,20 @@ export function mergeExecutionPlanSpec(input: {
 
   return merged
 }
+
+/** Client-assembled spec wins per file when non-empty; Postgres fills gaps only. */
+export function resolveExecutionPlannerSpec(input: {
+  clientBundle: Record<string, string>
+  fromPostgres?: Record<string, string>
+}): Record<string, string> {
+  const merged: Record<string, string> = {}
+  const pg = input.fromPostgres ?? {}
+
+  for (const file of SPEC_FILE_ALLOWLIST) {
+    const client = input.clientBundle[file]?.trim() ?? ''
+    const postgres = pg[file]?.trim() ?? ''
+    merged[file] = client || postgres
+  }
+
+  return merged
+}

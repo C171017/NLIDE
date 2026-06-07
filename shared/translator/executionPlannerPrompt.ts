@@ -30,7 +30,7 @@ Use **humanSynthesis** for intent, priorities, and phase naming. Use **agentSpec
 ## Rules
 
 1. **Constraints first** — respect stack and non-goals in constraints.md and locked decisions in decisions.md.
-2. **Every task exactly once** — each T-xxx in tasks.md must appear in exactly one phase taskIds array. Do not invent task IDs.
+2. **Cover tasks when sensible** — prefer assigning every T-xxx in tasks.md across phases, but partial plans are accepted. Do not invent task IDs.
 3. **Vertical slices when possible** — prefer shippable increments over pure layer cake.
 4. **Minimize phase count** — merge trivial tasks; do not over-split.
 5. **Explicit dependencies** — order phases so foundational work precedes dependent work; use blocks for phase N blocking phase N+1.

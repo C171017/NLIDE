@@ -173,6 +173,38 @@ export interface RegenerateExecutionPlanResult {
   plan: import('@nlide/shared').ExecutionPlan
   model: string
   specSource: 'postgres' | 'client'
+  tasksMd: string
+  warnings: ExecutionPlanApiIssue[]
+}
+
+export interface ExecutionPlanApiIssue {
+  ruleId?: string
+  message: string
+  path?: string
+}
+
+export class ExecutionPlanApiError extends Error {
+  code?: string
+  issues?: ExecutionPlanApiIssue[]
+  zodIssues?: ExecutionPlanApiIssue[]
+  tasksMd?: string
+
+  constructor(
+    message: string,
+    details?: {
+      code?: string
+      issues?: ExecutionPlanApiIssue[]
+      zodIssues?: ExecutionPlanApiIssue[]
+      tasksMd?: string
+    },
+  ) {
+    super(message)
+    this.name = 'ExecutionPlanApiError'
+    this.code = details?.code
+    this.issues = details?.issues
+    this.zodIssues = details?.zodIssues
+    this.tasksMd = details?.tasksMd
+  }
 }
 
 export async function regenerateExecutionPlan(
@@ -187,23 +219,49 @@ export async function regenerateExecutionPlan(
     throw new Error('VITE_INSFORGE_FUNCTION_URL is not set')
   }
 
-  const data = await post<{
-    ok: boolean
-    previewId: string
-    plan: import('@nlide/shared').ExecutionPlan
-    model: string
-    specSource: 'postgres' | 'client'
-    error?: { message?: string }
-  }>({
-    action: 'plan-execution',
-    projectId,
-    specBundle: context.specBundle,
-    cardSynthesis: context.cardSynthesis,
-    projectName: context.projectName,
+  const response = await fetch(functionUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'plan-execution',
+      projectId,
+      specBundle: context.specBundle,
+      cardSynthesis: context.cardSynthesis,
+      projectName: context.projectName,
+    }),
   })
 
-  if (!data.ok) {
-    throw new Error(data.error?.message ?? 'Failed to regenerate execution plan')
+  const data = (await response.json()) as {
+    ok: boolean
+    previewId?: string
+    plan?: import('@nlide/shared').ExecutionPlan
+    model?: string
+    specSource?: 'postgres' | 'client'
+    tasksMd?: string
+    warnings?: ExecutionPlanApiIssue[]
+    error?: {
+      code?: string
+      message?: string
+      issues?: ExecutionPlanApiIssue[]
+      zodIssues?: ExecutionPlanApiIssue[]
+      tasksMd?: string
+    }
+  }
+
+  if (!response.ok || !data.ok) {
+    throw new ExecutionPlanApiError(
+      data.error?.message ?? `Failed to regenerate execution plan (${response.status})`,
+      {
+        code: data.error?.code,
+        issues: data.error?.issues,
+        zodIssues: data.error?.zodIssues,
+        tasksMd: data.error?.tasksMd,
+      },
+    )
+  }
+
+  if (!data.previewId || !data.plan || !data.model || !data.specSource) {
+    throw new Error('Invalid plan-execution response')
   }
 
   return {
@@ -211,6 +269,8 @@ export async function regenerateExecutionPlan(
     plan: data.plan,
     model: data.model,
     specSource: data.specSource,
+    tasksMd: data.tasksMd ?? context.specBundle['tasks.md'] ?? '',
+    warnings: data.warnings ?? [],
   }
 }
 
@@ -222,7 +282,7 @@ export async function commitExecutionPlanRemote(
     throw new Error('VITE_INSFORGE_FUNCTION_URL is not set')
   }
 
-  const data = await post<{ committed: boolean; plan: import('@nlide/shared').ExecutionPlan }>({
+  const data = await post<{ committed: boolean; plan: import('@nlide/shared').ExecutionPlan; tasksMd?: string | null }>({
     action: 'commit-execution-plan',
     previewId,
     projectId,

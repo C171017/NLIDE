@@ -27,9 +27,23 @@ export interface ExecutionPlan extends ExecutionPlanLlm {
 export interface ExecutionPlanPreviewPayload {
   previewId: string
   plan: ExecutionPlan
+  /** tasks.md used when this plan was generated — keeps labels aligned with validation. */
+  tasksMd?: string
+}
+
+/** JSONB shape in execution_plans / execution_plan_previews (legacy rows may be bare ExecutionPlan). */
+export interface ExecutionPlanStoredPayload {
+  plan: ExecutionPlan
+  tasksMd?: string
 }
 
 export interface ExecutionPlanState {
   committed: ExecutionPlan | null
+  committedTasksMd?: string | null
   preview: ExecutionPlanPreviewPayload | null
+}
+
+export interface ExecutionPlanValidationIssue {
+  ruleId: string
+  message: string
 }

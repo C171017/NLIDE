@@ -111,14 +111,14 @@ Run: `npm run dev` (from repo root)
 | `get-spec-file` | ✅ Assembles one spec file from `spec_sections` |
 | `get-translator-spec` | ✅ Intent types, routing rules, build phases, golden prompts |
 | `get-project` | ✅ Loads from DB (empty until commit seeds data) |
-| `plan-execution` | ✅ LLM only (`OPENROUTER_API_KEY`) — synthesis + full MD; no stub fallback |
-| `get-execution-plan` | ✅ Returns committed + preview plan for project |
+| `plan-execution` | ✅ LLM — client specBundle wins per file; soft validation (missing tasks = warnings) |
+| `get-execution-plan` | ✅ Returns committed + preview plan (with stored `tasksMd` when available) |
 | `commit-execution-plan` | ✅ Upserts `execution_plans`, deletes preview |
 | `discard-execution-plan` | ✅ Deletes execution plan preview |
 
 Deploy: `npm run insforge:deploy:api`
 
-**Migration:** `migrations/20260606200000_execution_plans.sql` — `execution_plans`, `execution_plan_previews`
+**Migration:** `migrations/20260606200000_execution-plans.sql` — `execution_plans`, `execution_plan_previews` (applied)
 
 ---
 

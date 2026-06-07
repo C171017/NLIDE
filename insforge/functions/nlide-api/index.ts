@@ -31,7 +31,7 @@ import {
   synthesisFromApiCards,
 } from './planner/buildExecutionPlan.ts'
 import type { CardSynthesisBundle } from './_shared/translator/cardSynthesis.ts'
-import { mergeExecutionPlanSpec } from './_shared/translator/mergeExecutionPlanSpec.ts'
+import { resolveExecutionPlannerSpec } from './_shared/translator/mergeExecutionPlanSpec.ts'
 import {
   commitExecutionPlan,
   discardExecutionPlanPreview,
@@ -381,6 +381,14 @@ function json(data: unknown, status = 200): Response {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
+}
+
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    return String((error as { message: unknown }).message)
+  }
+  return String(error)
 }
 
 function errorResponse(message: string, status = 400): Response {
@@ -941,20 +949,19 @@ export default async function handler(req: Request): Promise<Response> {
         let spec: Record<string, string>
         let specSource: 'postgres' | 'client'
 
-        if (rows.length > 0) {
-          const fromPostgres = assembleFullExportedSpec({ projectName, rows })
-          if (body.specBundle && Object.keys(body.specBundle).length > 0) {
-            spec = mergeExecutionPlanSpec({
-              fromCanvas: body.specBundle,
-              fromRepo: fromPostgres,
-            })
-          } else {
-            spec = fromPostgres
-          }
-          specSource = 'postgres'
-        } else if (body.specBundle && Object.keys(body.specBundle).length > 0) {
-          spec = body.specBundle
+        if (body.specBundle && Object.keys(body.specBundle).length > 0) {
+          const fromPostgres =
+            rows.length > 0
+              ? assembleFullExportedSpec({ projectName, rows })
+              : undefined
+          spec = resolveExecutionPlannerSpec({
+            clientBundle: body.specBundle,
+            fromPostgres,
+          })
           specSource = 'client'
+        } else if (rows.length > 0) {
+          spec = assembleFullExportedSpec({ projectName, rows })
+          specSource = 'postgres'
         } else {
           return errorResponse(
             'No spec in Postgres and no specBundle provided — assemble spec client-side',
@@ -983,6 +990,7 @@ export default async function handler(req: Request): Promise<Response> {
                 message: result.message,
                 issues: result.issues,
                 zodIssues: result.zodIssues,
+                tasksMd: spec['tasks.md'] ?? '',
               },
             },
             422,
@@ -990,7 +998,13 @@ export default async function handler(req: Request): Promise<Response> {
         }
 
         const previewId = crypto.randomUUID()
-        await saveExecutionPlanPreview(client, projectId, previewId, result.plan)
+        await saveExecutionPlanPreview(
+          client,
+          projectId,
+          previewId,
+          result.plan,
+          result.tasksMd,
+        )
 
         return json({
           ok: true,
@@ -998,6 +1012,8 @@ export default async function handler(req: Request): Promise<Response> {
           plan: result.plan,
           model: result.model,
           specSource,
+          tasksMd: result.tasksMd,
+          warnings: result.warnings ?? [],
         })
       }
 
@@ -1006,12 +1022,12 @@ export default async function handler(req: Request): Promise<Response> {
           return errorResponse('previewId is required')
         }
 
-        const plan = await commitExecutionPlan(client, projectId, body.previewId)
-        if (!plan) {
+        const committed = await commitExecutionPlan(client, projectId, body.previewId)
+        if (!committed) {
           return errorResponse('Execution plan preview not found', 404)
         }
 
-        return json({ committed: true, plan })
+        return json({ committed: true, plan: committed.plan, tasksMd: committed.tasksMd })
       }
 
       case 'discard-execution-plan': {
@@ -1031,8 +1047,8 @@ export default async function handler(req: Request): Promise<Response> {
         return errorResponse(`Unknown action: ${body.action}`)
     }
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    console.error('nlide-api error:', message)
+    const message = errorMessage(error)
+    console.error('nlide-api error:', message, error)
     return errorResponse(message, 500)
   }
 }

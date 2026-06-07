@@ -10,7 +10,13 @@ import { validateExecutionPlan } from '../_shared/translator/validateExecutionPl
 import { callOpenRouterChat, isLlmConfigured } from '../lib/openRouter.ts'
 
 export type BuildExecutionPlanResult =
-  | { ok: true; plan: ExecutionPlan; model: string }
+  | {
+      ok: true
+      plan: ExecutionPlan
+      model: string
+      tasksMd: string
+      warnings?: Array<{ ruleId: string; message: string }>
+    }
   | {
       ok: false
       code: string
@@ -92,7 +98,7 @@ export async function buildExecutionPlan(input: {
       }
     }
 
-    return { ok: true, plan, model }
+    return { ok: true, plan, model, tasksMd, warnings: validation.warnings }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown planner error'
     return {

@@ -43,6 +43,8 @@ See also: [documentation-guide.md](./documentation-guide.md)
 | 2026-06-06 | ~~Build plan = translator Phases 0–6~~ **superseded 2026-06-06** | Build plan = LLM execution phases from full spec; Regenerate → preview → commit | Yes |
 | 2026-06-06 | Execution plan storage outside Flow B allowlist v1 | JSON in `execution_plans` / `execution_plan_previews` tables; no `phases.md` yet | Yes |
 | 2026-06-06 | Execution planner input = synthesis + MD | `humanSynthesis` (card title/body) + `agentSpec` (Flow B files); task IDs still validated against tasks.md | Yes |
+| 2026-06-06 | Execution plan validation (soft) | Orphan/duplicate/structure errors fail; unassigned tasks → warnings only | Yes |
+| 2026-06-06 | Execution planner spec = client bundle first | `resolveExecutionPlannerSpec` — client MD wins per file; Postgres fills empty files only | Yes |
 | 2026-06-06 | Execution planner LLM-only | `plan-execution` requires `OPENROUTER_API_KEY`; no client or server stub fallback | Yes |
 | 2026-06-06 | Lazy-load viz libraries per `vizType` | Keep bundle smaller | Yes |
 | 2026-06-06 | Other 17 viz types → post-v0 | User listed full catalog; not all v0 | Yes |

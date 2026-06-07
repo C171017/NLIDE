@@ -20,8 +20,10 @@ export default function BuildPhasesPanel() {
     isLoading,
     isBootstrapping,
     error,
+    warnings,
     specSource,
     hasPlan,
+    planStale,
   } = useExecutionPlan()
 
   const completed = useImplementationProgressStore((state) => state.completed)
@@ -61,10 +63,38 @@ export default function BuildPhasesPanel() {
           </button>
         </div>
 
+        {warnings.length > 0 && (
+          <div className="mt-2 rounded-lg border border-amber-400/30 bg-amber-500/10 px-2.5 py-2 text-xs text-amber-100">
+            <p className="font-medium text-amber-50">Plan covers some tasks only</p>
+            <ul className="mt-1 list-inside list-disc space-y-0.5 text-[11px] text-amber-100/90">
+              {warnings.map((issue) => (
+                <li key={`${issue.ruleId}-${issue.message}`}>{issue.message}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {error && (
-          <p className="mt-2 rounded-lg border border-red-400/30 bg-red-500/10 px-2.5 py-2 text-xs text-red-200">
-            {error}
-          </p>
+          <div className="mt-2 rounded-lg border border-red-400/30 bg-red-500/10 px-2.5 py-2 text-xs text-red-200">
+            <p>{error.message}</p>
+            {error.issues.length > 0 && (
+              <ul className="mt-2 list-inside list-disc space-y-0.5 text-[11px] text-red-200/90">
+                {error.issues.map((issue) => (
+                  <li key={`${issue.ruleId}-${issue.message}`}>{issue.message}</li>
+                ))}
+              </ul>
+            )}
+            {error.zodIssues.length > 0 && (
+              <ul className="mt-2 list-inside list-disc space-y-0.5 text-[11px] text-red-200/90">
+                {error.zodIssues.map((issue) => (
+                  <li key={`${issue.path ?? 'schema'}-${issue.message}`}>
+                    {issue.path ? `${issue.path}: ` : ''}
+                    {issue.message}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
 
         {previewPlan && activePlan && (
@@ -115,7 +145,14 @@ export default function BuildPhasesPanel() {
       </div>
 
       <div className="flex-1 space-y-2 overflow-auto p-3 pb-4">
-        {!hasPlan && !isBootstrapping && (
+        {!hasPlan && !isBootstrapping && !error && planStale && (
+          <p className="rounded-xl border border-amber-400/25 bg-amber-500/10 px-3 py-4 text-center text-xs text-amber-100/90">
+            Stored plan was built from a different <span className="font-mono">tasks.md</span>. Click{' '}
+            <span className="font-medium text-amber-50">Regenerate</span> to refresh from current spec.
+          </p>
+        )}
+
+        {!hasPlan && !isBootstrapping && !planStale && (
           <p className="rounded-xl border border-white/10 bg-[#141824]/60 px-3 py-4 text-center text-xs text-[#9aa3b2]">
             Add tasks to <span className="font-mono text-[#d1d5db]">tasks.md</span>, then click{' '}
             <span className="font-medium text-[#e5e7eb]">Regenerate</span> to build an execution

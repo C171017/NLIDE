@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   executionPlanToBuildPhases,
+  isPlanDisplayable,
   type ExecutionPlan,
   type ExecutionPlanPreviewPayload,
   type ExecutionPlanState,
+  type ExecutionPlanValidationIssue,
 } from '@nlide/shared'
 import { useCanvasStore } from '../store/canvasStore'
 import { useImplementationProgressStore } from '../store/implementationProgressStore'
 import {
   commitExecutionPlanRemote,
   discardExecutionPlanRemote,
+  ExecutionPlanApiError,
   fetchExecutionPlan,
   isInsForgeConfigured,
   regenerateExecutionPlan,
@@ -21,22 +24,43 @@ import type { BuildPhase } from '@nlide/shared'
 const LOCAL_COMMITTED_KEY = 'nlide-execution-plan-committed'
 const LOCAL_PREVIEW_KEY = 'nlide-execution-plan-preview'
 
+interface LocalCommittedPayload {
+  plan: ExecutionPlan
+  tasksMd?: string
+}
+
 function readLocalState(): ExecutionPlanState {
   try {
     const committedRaw = localStorage.getItem(LOCAL_COMMITTED_KEY)
     const previewRaw = localStorage.getItem(LOCAL_PREVIEW_KEY)
+
+    let committed: ExecutionPlan | null = null
+    let committedTasksMd: string | null = null
+
+    if (committedRaw) {
+      const parsed = JSON.parse(committedRaw) as ExecutionPlan | LocalCommittedPayload
+      if (parsed && typeof parsed === 'object' && 'plan' in parsed) {
+        committed = parsed.plan
+        committedTasksMd = parsed.tasksMd ?? null
+      } else {
+        committed = parsed as ExecutionPlan
+      }
+    }
+
     return {
-      committed: committedRaw ? (JSON.parse(committedRaw) as ExecutionPlan) : null,
+      committed,
+      committedTasksMd,
       preview: previewRaw ? (JSON.parse(previewRaw) as ExecutionPlanPreviewPayload) : null,
     }
   } catch {
-    return { committed: null, preview: null }
+    return { committed: null, committedTasksMd: null, preview: null }
   }
 }
 
-function writeLocalCommitted(plan: ExecutionPlan | null) {
+function writeLocalCommitted(plan: ExecutionPlan | null, tasksMd?: string | null) {
   if (plan) {
-    localStorage.setItem(LOCAL_COMMITTED_KEY, JSON.stringify(plan))
+    const payload: LocalCommittedPayload = { plan, tasksMd: tasksMd ?? undefined }
+    localStorage.setItem(LOCAL_COMMITTED_KEY, JSON.stringify(payload))
   } else {
     localStorage.removeItem(LOCAL_COMMITTED_KEY)
   }
@@ -50,7 +74,19 @@ function writeLocalPreview(preview: ExecutionPlanPreviewPayload | null) {
   }
 }
 
-export type ExecutionSpecSource = 'postgres' | 'merged' | 'repo' | 'local'
+function assembleTasksMd(cards: ReturnType<typeof useCanvasStore.getState>['committedCards']): string {
+  const projectName = loadSpecProjectName()
+  const { input } = assembleExecutionPlanInput(cards, projectName)
+  return input.spec['tasks.md'] ?? ''
+}
+
+export type ExecutionSpecSource = 'postgres' | 'merged' | 'repo' | 'client' | 'local'
+
+export interface ExecutionPlanErrorDetails {
+  message: string
+  issues: ExecutionPlanValidationIssue[]
+  zodIssues: Array<{ path?: string; message: string }>
+}
 
 export function useExecutionPlan() {
   const committedCards = useCanvasStore((state) => state.committedCards)
@@ -58,12 +94,44 @@ export function useExecutionPlan() {
   const resetForPlan = useImplementationProgressStore((state) => state.resetForPlan)
 
   const [committedPlan, setCommittedPlan] = useState<ExecutionPlan | null>(null)
+  const [committedTasksMd, setCommittedTasksMd] = useState<string | null>(null)
   const [previewPlan, setPreviewPlan] = useState<ExecutionPlanPreviewPayload | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isBootstrapping, setIsBootstrapping] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<ExecutionPlanErrorDetails | null>(null)
+  const [warnings, setWarnings] = useState<ExecutionPlanValidationIssue[]>([])
   const [specSource, setSpecSource] = useState<ExecutionSpecSource>('local')
   const [tasksMd, setTasksMd] = useState('')
+
+  const canonicalTasksMd = useMemo(
+    () => assembleTasksMd(committedCards),
+    [committedCards],
+  )
+
+  const applyLoadedState = useCallback(
+    (state: ExecutionPlanState) => {
+      setCommittedPlan(state.committed)
+      setCommittedTasksMd(state.committedTasksMd ?? null)
+      setPreviewPlan(state.preview)
+
+      const loadedTasksMd =
+        state.preview?.tasksMd ??
+        state.committedTasksMd ??
+        assembleTasksMd(committedCards)
+
+      setTasksMd(loadedTasksMd)
+      setWarnings([])
+
+      if (state.preview?.tasksMd || state.committedTasksMd) {
+        setSpecSource('client')
+      }
+
+      if (state.committed) {
+        resetForPlan(state.committed.planVersion)
+      }
+    },
+    [committedCards, resetForPlan],
+  )
 
   const loadState = useCallback(async () => {
     setIsBootstrapping(true)
@@ -71,54 +139,63 @@ export function useExecutionPlan() {
     try {
       if (isInsForgeConfigured()) {
         const state = await fetchExecutionPlan()
-        setCommittedPlan(state.committed)
-        setPreviewPlan(state.preview)
-        if (state.committed) {
-          resetForPlan(state.committed.planVersion)
-        }
+        applyLoadedState(state)
       } else {
-        const state = readLocalState()
-        setCommittedPlan(state.committed)
-        setPreviewPlan(state.preview)
-        if (state.committed) {
-          resetForPlan(state.committed.planVersion)
-        }
+        applyLoadedState(readLocalState())
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load execution plan')
+      setError({
+        message: err instanceof Error ? err.message : 'Failed to load execution plan',
+        issues: [],
+        zodIssues: [],
+      })
     } finally {
       setIsBootstrapping(false)
     }
-  }, [resetForPlan])
+  }, [applyLoadedState])
 
   useEffect(() => {
     void loadState()
   }, [loadState])
 
   const activePlan = previewPlan?.plan ?? committedPlan
+  const activePlanTasksMd = previewPlan?.tasksMd ?? committedTasksMd
 
-  useEffect(() => {
-    if (tasksMd) return
-    const projectName = loadSpecProjectName()
-    const { input } = assembleExecutionPlanInput(committedCards, projectName)
-    setTasksMd(input.spec['tasks.md'] ?? '')
-  }, [committedCards, tasksMd])
+  const specDrift = Boolean(
+    activePlan &&
+      activePlanTasksMd &&
+      activePlanTasksMd.trim() !== canonicalTasksMd.trim(),
+  )
+
+  const visibleActivePlan = useMemo(() => {
+    if (error) return null
+    if (!activePlan) return null
+    if (specDrift) return null
+    if (!isPlanDisplayable(activePlan, tasksMd)) return null
+    return activePlan
+  }, [error, activePlan, specDrift, tasksMd])
+
+  const planStale = specDrift
 
   const phases: BuildPhase[] = useMemo(() => {
-    if (!activePlan) return []
-    return executionPlanToBuildPhases(activePlan, tasksMd, {
+    if (!visibleActivePlan) return []
+    return executionPlanToBuildPhases(visibleActivePlan, tasksMd, {
       isItemDone: (checklistId, itemId) => completed[checklistId]?.[itemId] ?? false,
     })
-  }, [activePlan, tasksMd, completed])
+  }, [visibleActivePlan, tasksMd, completed])
 
   const regenerate = useCallback(async () => {
     setIsLoading(true)
     setError(null)
+    setWarnings([])
+
+    const stalePreviewId = previewPlan?.previewId
+    let attemptedTasksMd = ''
 
     try {
       const projectName = loadSpecProjectName()
       const { input, source } = assembleExecutionPlanInput(committedCards, projectName)
-      setTasksMd(input.spec['tasks.md'] ?? '')
+      attemptedTasksMd = input.spec['tasks.md'] ?? ''
 
       if (!isInsForgeConfigured()) {
         throw new Error(
@@ -131,18 +208,51 @@ export function useExecutionPlan() {
         cardSynthesis: input.synthesis,
         projectName,
       })
+
+      setTasksMd(result.tasksMd)
+      setWarnings(
+        result.warnings.map((issue) => ({
+          ruleId: issue.ruleId ?? 'missing_task',
+          message: issue.message,
+        })),
+      )
       const preview: ExecutionPlanPreviewPayload = {
         previewId: result.previewId,
         plan: result.plan,
+        tasksMd: result.tasksMd,
       }
       setPreviewPlan(preview)
-      setSpecSource(result.specSource === 'postgres' ? 'postgres' : source)
+      setSpecSource(result.specSource === 'client' ? 'client' : source)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Regenerate failed')
+      setPreviewPlan(null)
+      writeLocalPreview(null)
+
+      if (stalePreviewId && isInsForgeConfigured()) {
+        void discardExecutionPlanRemote(stalePreviewId).catch(() => {})
+      }
+
+      if (err instanceof ExecutionPlanApiError) {
+        setError({
+          message: err.message,
+          issues: (err.issues ?? []).map((issue) => ({
+            ruleId: issue.ruleId ?? 'error',
+            message: issue.message,
+          })),
+          zodIssues: err.zodIssues ?? [],
+        })
+        setTasksMd(err.tasksMd ?? attemptedTasksMd)
+      } else {
+        setError({
+          message: err instanceof Error ? err.message : 'Regenerate failed',
+          issues: [],
+          zodIssues: [],
+        })
+        setTasksMd(attemptedTasksMd || canonicalTasksMd)
+      }
     } finally {
       setIsLoading(false)
     }
-  }, [committedCards])
+  }, [committedCards, previewPlan, canonicalTasksMd])
 
   const commit = useCallback(async () => {
     if (!previewPlan) return
@@ -153,17 +263,31 @@ export function useExecutionPlan() {
       if (isInsForgeConfigured()) {
         const plan = await commitExecutionPlanRemote(previewPlan.previewId)
         setCommittedPlan(plan)
+        setCommittedTasksMd(previewPlan.tasksMd ?? null)
         setPreviewPlan(null)
+        setWarnings([])
+        if (previewPlan.tasksMd) {
+          setTasksMd(previewPlan.tasksMd)
+        }
         resetForPlan(plan.planVersion)
       } else {
         setCommittedPlan(previewPlan.plan)
-        writeLocalCommitted(previewPlan.plan)
+        setCommittedTasksMd(previewPlan.tasksMd ?? null)
+        writeLocalCommitted(previewPlan.plan, previewPlan.tasksMd)
         setPreviewPlan(null)
         writeLocalPreview(null)
+        setWarnings([])
+        if (previewPlan.tasksMd) {
+          setTasksMd(previewPlan.tasksMd)
+        }
         resetForPlan(previewPlan.plan.planVersion)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Commit failed')
+      setError({
+        message: err instanceof Error ? err.message : 'Commit failed',
+        issues: [],
+        zodIssues: [],
+      })
     } finally {
       setIsLoading(false)
     }
@@ -181,8 +305,13 @@ export function useExecutionPlan() {
         writeLocalPreview(null)
       }
       setPreviewPlan(null)
+      setWarnings([])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Discard failed')
+      setError({
+        message: err instanceof Error ? err.message : 'Discard failed',
+        issues: [],
+        zodIssues: [],
+      })
     } finally {
       setIsLoading(false)
     }
@@ -192,15 +321,17 @@ export function useExecutionPlan() {
     phases,
     committedPlan,
     previewPlan,
-    activePlan,
+    activePlan: visibleActivePlan,
     regenerate,
     commit,
     discard,
     isLoading,
     isBootstrapping,
     error,
+    warnings,
     specSource,
-    hasPlan: Boolean(activePlan),
-    isPreview: Boolean(previewPlan),
+    hasPlan: Boolean(visibleActivePlan),
+    isPreview: Boolean(previewPlan && visibleActivePlan),
+    planStale,
   }
 }

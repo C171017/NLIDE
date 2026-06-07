@@ -3,12 +3,20 @@ import type {
   ExecutionPlan,
   ExecutionPlanPreviewPayload,
   ExecutionPlanState,
+  ExecutionPlanStoredPayload,
 } from '../_shared/translator/executionPlanTypes.ts'
+
+function parseStoredPayload(raw: unknown): ExecutionPlanStoredPayload {
+  if (raw && typeof raw === 'object' && 'plan' in raw) {
+    return raw as ExecutionPlanStoredPayload
+  }
+  return { plan: raw as ExecutionPlan }
+}
 
 export async function loadCommittedPlan(
   client: InsForgeClient,
   projectId: string,
-): Promise<ExecutionPlan | null> {
+): Promise<{ plan: ExecutionPlan | null; tasksMd: string | null }> {
   const { data, error } = await client.database
     .from('execution_plans')
     .select('payload')
@@ -16,7 +24,10 @@ export async function loadCommittedPlan(
     .maybeSingle()
 
   if (error) throw error
-  return (data?.payload as ExecutionPlan | undefined) ?? null
+  if (!data?.payload) return { plan: null, tasksMd: null }
+
+  const stored = parseStoredPayload(data.payload)
+  return { plan: stored.plan, tasksMd: stored.tasksMd ?? null }
 }
 
 export async function loadExecutionPlanPreview(
@@ -34,8 +45,12 @@ export async function loadExecutionPlanPreview(
   if (error) throw error
   if (!data) return null
 
-  const plan = data.payload as ExecutionPlan
-  return { previewId: data.id as string, plan }
+  const stored = parseStoredPayload(data.payload)
+  return {
+    previewId: data.id as string,
+    plan: stored.plan,
+    tasksMd: stored.tasksMd,
+  }
 }
 
 export async function saveExecutionPlanPreview(
@@ -43,6 +58,7 @@ export async function saveExecutionPlanPreview(
   projectId: string,
   previewId: string,
   plan: ExecutionPlan,
+  tasksMd?: string,
 ): Promise<void> {
   const { error: deleteError } = await client.database
     .from('execution_plan_previews')
@@ -51,11 +67,13 @@ export async function saveExecutionPlanPreview(
 
   if (deleteError) throw deleteError
 
+  const payload: ExecutionPlanStoredPayload = { plan, tasksMd }
+
   const { error } = await client.database.from('execution_plan_previews').insert([
     {
       id: previewId,
       project_id: projectId,
-      payload: plan,
+      payload,
     },
   ])
 
@@ -66,7 +84,7 @@ export async function commitExecutionPlan(
   client: InsForgeClient,
   projectId: string,
   previewId: string,
-): Promise<ExecutionPlan | null> {
+): Promise<{ plan: ExecutionPlan; tasksMd: string | null } | null> {
   const { data, error } = await client.database
     .from('execution_plan_previews')
     .select('payload')
@@ -77,12 +95,12 @@ export async function commitExecutionPlan(
   if (error) throw error
   if (!data) return null
 
-  const plan = data.payload as ExecutionPlan
+  const stored = parseStoredPayload(data.payload)
 
   const { error: upsertError } = await client.database.from('execution_plans').upsert([
     {
       project_id: projectId,
-      payload: plan,
+      payload: stored,
       updated_at: new Date().toISOString(),
     },
   ])
@@ -96,7 +114,7 @@ export async function commitExecutionPlan(
 
   if (deleteError) throw deleteError
 
-  return plan
+  return { plan: stored.plan, tasksMd: stored.tasksMd ?? null }
 }
 
 export async function discardExecutionPlanPreview(
@@ -122,5 +140,9 @@ export async function loadExecutionPlanState(
     loadExecutionPlanPreview(client, projectId),
   ])
 
-  return { committed, preview }
+  return {
+    committed: committed.plan,
+    committedTasksMd: committed.tasksMd,
+    preview,
+  }
 }

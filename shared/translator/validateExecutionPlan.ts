@@ -1,16 +1,29 @@
 import { extractEntityIds } from './extractEntityIds.ts'
-import type { ExecutionPlan } from './executionPlanTypes.ts'
+import type { ExecutionPlan, ExecutionPlanValidationIssue } from './executionPlanTypes.ts'
 
-export interface ExecutionPlanValidationIssue {
-  ruleId: string
-  message: string
+export type { ExecutionPlanValidationIssue }
+
+/** Plan is showable when assigned task IDs exist in tasks.md (partial coverage allowed). */
+export function isPlanDisplayable(plan: ExecutionPlan, tasksMd: string): boolean {
+  const expectedTasks = extractEntityIds(tasksMd, 'T')
+  const expectedSet = new Set(expectedTasks)
+  const assigned = plan.phases.flatMap((phase) => phase.taskIds)
+
+  if (expectedTasks.length === 0) return true
+  return assigned.every((taskId) => expectedSet.has(taskId))
+}
+
+/** @deprecated Use isPlanDisplayable — kept for callers expecting the old name. */
+export function isPlanAlignedWithTasks(plan: ExecutionPlan, tasksMd: string): boolean {
+  return isPlanDisplayable(plan, tasksMd)
 }
 
 export function validateExecutionPlan(
   plan: ExecutionPlan,
   tasksMd: string,
-): { ok: true } | { ok: false; issues: ExecutionPlanValidationIssue[] } {
+): { ok: true; warnings: ExecutionPlanValidationIssue[] } | { ok: false; issues: ExecutionPlanValidationIssue[] } {
   const issues: ExecutionPlanValidationIssue[] = []
+  const warnings: ExecutionPlanValidationIssue[] = []
   const expectedTasks = extractEntityIds(tasksMd, 'T')
   const assigned = new Map<string, string>()
 
@@ -35,7 +48,7 @@ export function validateExecutionPlan(
 
   for (const taskId of expectedTasks) {
     if (!assigned.has(taskId)) {
-      issues.push({
+      warnings.push({
         ruleId: 'missing_task',
         message: `${taskId} in tasks.md is not assigned to any phase`,
       })
@@ -70,5 +83,5 @@ export function validateExecutionPlan(
     return { ok: false, issues }
   }
 
-  return { ok: true }
+  return { ok: true, warnings }
 }
