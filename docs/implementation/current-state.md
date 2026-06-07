@@ -16,7 +16,7 @@ When code or infra changes, **update this file** (see [documentation-guide.md](.
 | Alt function URL | `https://4yqeeuk9.functions.insforge.app/nlide-api` |
 | Postgres migration | `migrations/20260606180626_nlide-schema.sql` — **applied** |
 | Local link | `.insforge/project.json` (gitignored) |
-| Frontend env | `frontend/.env.local` → `VITE_INSFORGE_FUNCTION_URL` set |
+| Frontend env | `frontend/.env.local` (dev) · **`frontend/.env.production`** (committed — InsForge URL baked into prod builds) |
 
 Setup commands: [insforge/README.md](../../insforge/README.md)
 
@@ -70,7 +70,7 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Canvas state (Zustand) | `frontend/src/store/canvasStore.ts` — **loads active project** via `fetchProject()` / `loadProject()`; scoped `projectId` on all API calls; tracks preview queue index and per-card commit/discard |
 | **Local projects stub** | `frontend/src/lib/localProjects.ts` — `localStorage` key `nlide.projects.v1` when InsForge URL unset **or** when `create-project` / `list-projects` actions are not deployed; seeds demo from `spec/*.md`; `localOnly` rows merged into gallery |
 | **Spec → canvas loader** | `shared/translator/specToCanvas.ts` — demo fallback + local stub seed; `buildCanvasFromSpec()` parses Flow B markdown into layered cards + edges; tasks link to Frontend/Backend via **Pillar:** |
-| API client + local stub | `frontend/src/lib/api.ts`, `translatorStub.ts` — stub uses `mapCanvasToPreview()` and emits multiple preview cards for queue testing |
+| API client + local stub | `frontend/src/lib/api.ts`, `translatorStub.ts` — **dev-only** stub when URL unset; production builds call `action:intent` on InsForge (no silent stub) |
 | Sample demo canvas | `frontend/src/data/sampleProject.ts` — **legacy reference only** (superseded by spec load) |
 | **Compound multi-card intents** | Router rule #9 + writers loop + `focusCardId` on preview; golden `gp-11`, `gp-12` |
 | **previewFocus unit tests** | `frontend/src/lib/previewFocus.test.ts` — vitest (`npm run test --prefix frontend`) |

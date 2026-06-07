@@ -183,17 +183,19 @@ insforge functions invoke nlide-api --data '{
 
 ## 7. Wire frontend
 
-`frontend/.env.local` is already configured for this project:
+**Local dev** — `frontend/.env.local` (gitignored):
 
 ```
 VITE_INSFORGE_FUNCTION_URL=https://4yqeeuk9.us-east.insforge.app/functions/nlide-api
 ```
 
+**Production builds** — `frontend/.env.production` (committed). Vite loads it automatically on `npm run build`, so Cloudflare Pages / InsForge Sites get the real translator without extra host env.
+
 ```bash
 npm run dev
 ```
 
-Without `.env.local`, the app uses a **local stub translator** (same preview behavior, no InsForge).
+Without either file in dev, the app uses a **local stub translator** (Google login demo cards). Production builds **fail chat** if the URL is missing — no silent stub.
 
 ## 8. Deploy frontend (InsForge Sites)
 

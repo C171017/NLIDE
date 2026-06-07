@@ -94,6 +94,7 @@ See also: [documentation-guide.md](./documentation-guide.md)
 | Date | Decision | Rationale | Revisable? |
 |------|----------|-----------|------------|
 | 2026-06-06 | `VITE_INSFORGE_FUNCTION_URL` env var | Standard Vite pattern | Yes |
+| 2026-06-06 | **`frontend/.env.production`** commits InsForge function URL | Prod builds call real LLM; dev-only stub when URL unset locally | Yes |
 | 2026-06-06 | **Local stub fallback** when env unset | Dev without InsForge | Yes |
 | 2026-06-06 | ~~Header badge: "InsForge" vs "Local stub"~~ Removed top header bar **[USER]** | Cleaner canvas-first chrome | Yes |
 | 2026-06-06 | Sample project data in `frontend/src/data/sampleProject.ts` | Canvas demo before DB seed | Yes |

@@ -18,6 +18,15 @@ export type { ProjectPayload, ProjectSummary }
 
 const functionUrl = import.meta.env.VITE_INSFORGE_FUNCTION_URL as string | undefined
 
+/** Local stub only when developing without InsForge URL — never in production builds. */
+function useLocalStub(): boolean {
+  return import.meta.env.DEV && !functionUrl?.trim()
+}
+
+const PROD_STUB_ERROR =
+  'Translator is misconfigured: VITE_INSFORGE_FUNCTION_URL was not set at build time. ' +
+  'Set it in frontend/.env.production (or your host build env) and redeploy.'
+
 export function isInsForgeConfigured(): boolean {
   return Boolean(functionUrl?.trim())
 }
@@ -49,7 +58,10 @@ async function post<T>(payload: Record<string, unknown>, signal?: AbortSignal): 
 }
 
 export async function checkHealth(): Promise<{ ok: boolean; mode?: string }> {
-  if (!functionUrl) return { ok: true, mode: 'local-stub' }
+  if (useLocalStub()) return { ok: true, mode: 'local-stub' }
+  if (!functionUrl?.trim()) {
+    return { ok: false, mode: import.meta.env.PROD ? 'misconfigured' : 'local-stub' }
+  }
 
   return post<{ ok: boolean; mode?: string }>({ action: 'health' })
 }
@@ -201,7 +213,7 @@ export async function submitIntent(
   projectId = DEFAULT_PROJECT_ID,
   signal?: AbortSignal,
 ): Promise<PreviewPayload> {
-  if (!functionUrl) {
+  if (useLocalStub()) {
     await new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(resolve, 400)
       signal?.addEventListener(
@@ -214,6 +226,10 @@ export async function submitIntent(
       )
     })
     return buildPreviewLocal(message, context.cards, context.edges)
+  }
+
+  if (!functionUrl?.trim()) {
+    throw new Error(PROD_STUB_ERROR)
   }
 
   const data = await post<{ preview: PreviewPayload }>(
