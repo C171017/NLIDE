@@ -3,7 +3,8 @@ import { buildPreviewLocal } from './translatorStub'
 import { DEFAULT_PROJECT_ID } from './constants'
 import {
   buildDefaultDemoProject,
-  createLocalProject,
+  enrichDemoProjectIfEmpty,
+} from './localProjects'
   getLocalProject,
   listLocalProjects,
   updateLocalProjectName,
@@ -109,7 +110,15 @@ export async function createProject(): Promise<ProjectPayload> {
     return createLocalProject()
   }
 
-  return post<ProjectPayload>({ action: 'create-project' })
+  try {
+    return await post<ProjectPayload>({ action: 'create-project' })
+  } catch (error) {
+    if (isUnknownProjectActionError(error)) {
+      console.warn('create-project not deployed yet — using local stub')
+      return createLocalProject()
+    }
+    throw error
+  }
 }
 
 export async function updateProjectName(projectId: string, name: string): Promise<void> {
@@ -118,11 +127,19 @@ export async function updateProjectName(projectId: string, name: string): Promis
     return
   }
 
-  await post<{ projectId: string; projectName: string }>({
-    action: 'update-project',
-    projectId,
-    name,
-  })
+  try {
+    await post<{ projectId: string; projectName: string }>({
+      action: 'update-project',
+      projectId,
+      name,
+    })
+  } catch (error) {
+    if (isUnknownProjectActionError(error)) {
+      updateLocalProjectName(projectId, name)
+      return
+    }
+    throw error
+  }
 }
 
 export async function submitIntent(
