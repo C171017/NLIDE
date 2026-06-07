@@ -339,6 +339,11 @@ async function updateProjectName(
   }
 }
 
+async function deleteProject(client: InsForgeClient, projectId: string): Promise<void> {
+  const { error } = await client.database.from('projects').delete().eq('id', projectId)
+  if (error) throw error
+}
+
 async function savePreview(
   client: InsForgeClient,
   projectId: string,
@@ -840,6 +845,11 @@ export default async function handler(req: Request): Promise<Response> {
         }
         const updated = await updateProjectName(client, projectId, body.name)
         return json(updated)
+      }
+
+      case 'delete-project': {
+        await deleteProject(client, projectId)
+        return json({ deleted: true, projectId })
       }
 
       case 'get-translator-spec': {

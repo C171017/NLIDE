@@ -48,16 +48,14 @@ export default function CanvasProjectLoader({ children }: { children: React.Reac
 
   useEffect(() => {
     return () => {
-      if (!isInsForgeConfigured()) {
-        const state = useCanvasStore.getState()
-        if (state.projectId) {
-          syncLocalProjectCanvas(state.projectId, {
-            projectName: state.projectName,
-            centerCardId: state.centerCardId,
-            cards: state.committedCards,
-            edges: state.committedEdges,
-          })
-        }
+      const state = useCanvasStore.getState()
+      if (state.projectId) {
+        syncLocalProjectCanvas(state.projectId, {
+          projectName: state.projectName,
+          centerCardId: state.centerCardId,
+          cards: state.committedCards,
+          edges: state.committedEdges,
+        })
       }
     }
   }, [activeProjectId])
@@ -66,8 +64,6 @@ export default function CanvasProjectLoader({ children }: { children: React.Reac
 }
 
 export function syncCanvasToLocalProjects() {
-  if (isInsForgeConfigured()) return
-
   const state = useCanvasStore.getState()
   if (!state.projectId) return
 

@@ -863,6 +863,10 @@ body.is-resizing-nwse * {
   box-shadow: 0 16px 36px rgba(28, 25, 23, 0.12);
 }
 
+.project-tile__preview-wrap {
+  position: relative;
+}
+
 .project-tile__preview-btn {
   display: block;
   width: 100%;
@@ -890,6 +894,156 @@ body.is-resizing-nwse * {
 
 .project-tile__title-input:focus {
   color: #0c0a09;
+}
+
+.project-tile__delete-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid rgba(127, 29, 29, 0.1);
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  cursor: pointer;
+  opacity: 0.38;
+  box-shadow: none;
+  transition:
+    transform 120ms ease,
+    background 120ms ease,
+    box-shadow 120ms ease,
+    opacity 120ms ease,
+    border-color 120ms ease;
+}
+
+.project-tile__delete-btn:hover {
+  transform: scale(1.05);
+  opacity: 1;
+  background: #dc2626;
+  border-color: rgba(127, 29, 29, 0.18);
+  box-shadow: 0 6px 18px rgba(185, 28, 28, 0.34);
+}
+
+.project-tile__delete-icon {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+}
+
+.project-tile__delete-error {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #b91c1c;
+}
+
+.project-delete-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.project-delete-dialog__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(28, 25, 23, 0.38);
+  cursor: pointer;
+}
+
+.project-delete-dialog__backdrop:disabled {
+  cursor: wait;
+}
+
+.project-delete-dialog__panel {
+  position: relative;
+  width: min(100%, 420px);
+  padding: 24px 24px 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(28, 25, 23, 0.08);
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(28, 25, 23, 0.18);
+  color: #1c1917;
+}
+
+.project-delete-dialog__title {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.project-delete-dialog__message {
+  margin: 0 0 22px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(28, 25, 23, 0.72);
+}
+
+.project-delete-dialog__message strong {
+  color: #1c1917;
+  font-weight: 600;
+}
+
+.project-delete-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.project-delete-dialog__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 112px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+}
+
+.project-delete-dialog__btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.project-delete-dialog__btn--cancel {
+  border: 1px solid rgba(28, 25, 23, 0.12);
+  background: #faf8f3;
+  color: #1c1917;
+}
+
+.project-delete-dialog__btn--cancel:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(28, 25, 23, 0.08);
+}
+
+.project-delete-dialog__btn--delete {
+  border: 1px solid rgba(127, 29, 29, 0.16);
+  background: #dc2626;
+  color: #faf8f3;
+  box-shadow: 0 8px 24px rgba(185, 28, 28, 0.22);
+}
+
+.project-delete-dialog__btn--delete:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #b91c1c;
+  box-shadow: 0 12px 28px rgba(185, 28, 28, 0.28);
 }
 
 .project-preview {

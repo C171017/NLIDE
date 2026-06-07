@@ -27,7 +27,7 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Component | Path / notes |
 |-----------|----------------|
 | React + Vite + TS app | `frontend/` |
-| **Project gallery (entry screen)** | `ProjectGalleryPage.tsx`, `ProjectTile.tsx`, `ProjectCanvasPreview.tsx` — Freeform-style tiles with mini canvas preview + inline title edit; **Create new** top-left; app opens here first |
+| **Project gallery (entry screen)** | `ProjectGalleryPage.tsx`, `ProjectTile.tsx`, `ProjectCanvasPreview.tsx`, `ProjectDeleteConfirmDialog.tsx` — Freeform-style tiles with mini canvas preview + inline title edit + red delete control; **Create new** top-left; app opens here first |
 | **App navigation (gallery ↔ canvas)** | `appStore.ts`, `App.tsx` — Zustand view switch; exit icon in canvas nav returns to gallery |
 | **Multi-project canvas load** | `CanvasProjectLoader.tsx`, `canvasStore.loadProject()` — hydrates from `get-project`; demo project falls back to `spec/*.md` when DB empty |
 | Intent canvas | `frontend/src/components/canvas/IntentCanvas.tsx` |
@@ -68,7 +68,7 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Canvas mapper golden | `shared/translator/canvasMapperGolden.ts` — 6 cases, ≥5/6 pass bar; includes compound mixed-type case |
 | Implementation progress store | `implementationProgressStore.ts` — per-phase agent + user checkboxes (`agent:A-001`, `user:U-001`); resets on new `planVersion` |
 | Canvas state (Zustand) | `frontend/src/store/canvasStore.ts` — **loads active project** via `fetchProject()` / `loadProject()`; scoped `projectId` on all API calls; tracks preview queue index and per-card commit/discard |
-| **Local projects stub** | `frontend/src/lib/localProjects.ts` — `localStorage` key `nlide.projects.v1` when InsForge URL unset; seeds demo from `spec/*.md` |
+| **Local projects stub** | `frontend/src/lib/localProjects.ts` — `localStorage` key `nlide.projects.v1` when InsForge URL unset **or** when `create-project` / `list-projects` actions are not deployed; seeds demo from `spec/*.md`; `localOnly` rows merged into gallery |
 | **Spec → canvas loader** | `shared/translator/specToCanvas.ts` — demo fallback + local stub seed; `buildCanvasFromSpec()` parses Flow B markdown into layered cards + edges; tasks link to Frontend/Backend via **Pillar:** |
 | API client + local stub | `frontend/src/lib/api.ts`, `translatorStub.ts` — stub uses `mapCanvasToPreview()` and emits multiple preview cards for queue testing |
 | Sample demo canvas | `frontend/src/data/sampleProject.ts` — **legacy reference only** (superseded by spec load) |
@@ -122,6 +122,7 @@ Run: `npm run dev` (from repo root)
 | `list-projects` | ✅ All projects with cards/edges for gallery previews |
 | `create-project` | ✅ Inserts blank project (`Untitled Project`, empty canvas) |
 | `update-project` | ✅ Rename project (`name` in body) |
+| `delete-project` | ✅ Deletes project row (cascade removes cards, edges, previews, plans) |
 | `plan-execution` | ✅ LLM v2 — human-gate phases + dual checklists; structural validation; orphan `relatedTaskIds` = warnings |
 | `get-execution-plan` | ✅ Returns committed + preview plan (with stored `tasksMd` when available) |
 | `commit-execution-plan` | ✅ Upserts `execution_plans`, deletes preview |

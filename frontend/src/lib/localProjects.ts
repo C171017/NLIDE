@@ -23,6 +23,8 @@ interface StoredProject {
   cards: Card[]
   edges: CanvasEdge[]
   updatedAt: string
+  /** Set when create-project API is unavailable and the row lives only in localStorage. */
+  localOnly?: boolean
 }
 
 interface StoredState {
@@ -119,7 +121,13 @@ export function getLocalProject(projectId: string): ProjectPayload | null {
   return project ? toPayload(project) : null
 }
 
-export function createLocalProject(): ProjectPayload {
+export function isLocalOnlyProject(projectId: string): boolean {
+  const state = readState()
+  const project = state.projects.find((item) => item.projectId === projectId)
+  return project?.localOnly === true
+}
+
+export function createLocalProject(options?: { localOnly?: boolean }): ProjectPayload {
   const state = readState()
   const projectId = crypto.randomUUID()
   const now = new Date().toISOString()
@@ -131,6 +139,7 @@ export function createLocalProject(): ProjectPayload {
     cards: [],
     edges: [],
     updatedAt: now,
+    localOnly: options?.localOnly,
   }
 
   state.projects.unshift(project)
@@ -149,6 +158,15 @@ export function updateLocalProjectName(projectId: string, name: string): void {
   project.projectName = trimmed
   project.updatedAt = new Date().toISOString()
   writeState(state)
+}
+
+export function deleteLocalProject(projectId: string): boolean {
+  const state = readState()
+  const nextProjects = state.projects.filter((item) => item.projectId !== projectId)
+  if (nextProjects.length === state.projects.length) return false
+
+  writeState({ projects: nextProjects })
+  return true
 }
 
 export function syncLocalProjectCanvas(

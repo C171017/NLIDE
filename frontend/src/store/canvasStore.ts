@@ -9,7 +9,6 @@ import {
   deleteEdgeRemote,
   discardPreviewCardRemote,
   discardPreviewRemote,
-  isInsForgeConfigured,
   patchCardRemote,
   submitIntent,
   type ProjectPayload,
@@ -224,7 +223,7 @@ function syncLocalIfNeeded(state: {
   committedCards: Card[]
   committedEdges: CanvasEdge[]
 }) {
-  if (!state.projectId || isInsForgeConfigured()) return
+  if (!state.projectId) return
 
   syncLocalProjectCanvas(state.projectId, {
     projectName: state.projectName,

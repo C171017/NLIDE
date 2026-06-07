@@ -35,6 +35,7 @@ See also: [documentation-guide.md](./documentation-guide.md)
 | 2026-06-06 | **Project gallery as app entry** | App opens on `ProjectGalleryPage`; canvas reached by tile click or Create new; exit icon returns to gallery | Yes |
 | 2026-06-06 | **Mini React Flow gallery previews** | Tile previews render read-only scaled card nodes from stored positions — no screenshot/thumbnail column in DB | Yes |
 | 2026-06-06 | **localStorage multi-project stub** | When `VITE_INSFORGE_FUNCTION_URL` unset, projects live in `nlide.projects.v1`; demo seeded from `spec/*.md` | Yes |
+| 2026-06-06 | **Hybrid project list when project API undeployed** | If `list-projects` / `create-project` are missing on the edge function, create falls back to `localStorage` (`localOnly` flag); gallery merges remote + local rows; canvas syncs to local on exit so new projects appear after leaving canvas | Yes |
 | 2026-06-06 | **Demo project spec fallback** | Opening seeded demo UUID with empty DB cards hydrates once from repo `spec/*.md` | Yes |
 
 ---

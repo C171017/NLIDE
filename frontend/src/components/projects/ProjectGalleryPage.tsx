@@ -55,6 +55,10 @@ export default function ProjectGalleryPage() {
     )
   }
 
+  const handleDeleted = (projectId: string) => {
+    setProjects((current) => current.filter((project) => project.projectId !== projectId))
+  }
+
   return (
     <div className="project-gallery">
       <header className="project-gallery__header">
@@ -80,6 +84,7 @@ export default function ProjectGalleryPage() {
               project={project}
               onOpen={openProject}
               onRenamed={handleRenamed}
+              onDeleted={handleDeleted}
             />
           ))}
         </div>

@@ -2,10 +2,11 @@ import type { CanvasEdge, Card, PreviewPayload } from '../types/canvas'
 import { buildPreviewLocal } from './translatorStub'
 import { DEFAULT_PROJECT_ID } from './constants'
 import {
-  buildDefaultDemoProject,
   createLocalProject,
+  deleteLocalProject,
   enrichDemoProjectIfEmpty,
   getLocalProject,
+  isLocalOnlyProject,
   listLocalProjects,
   updateLocalProjectName,
   type ProjectPayload,
@@ -72,37 +73,70 @@ function isUnknownProjectActionError(error: unknown): boolean {
   return error instanceof Error && error.message.includes('Unknown action')
 }
 
+function mergeProjectLists(remote: ProjectSummary[], local: ProjectSummary[]): ProjectSummary[] {
+  const byId = new Map<string, ProjectSummary>()
+  for (const project of remote) {
+    byId.set(project.projectId, project)
+  }
+  for (const project of local) {
+    if (!byId.has(project.projectId)) {
+      byId.set(project.projectId, project)
+    }
+  }
+  return [...byId.values()].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+}
+
 export async function fetchProjects(): Promise<ProjectSummary[]> {
+  const local = listLocalProjects()
+
   if (!functionUrl) {
-    return listLocalProjects()
+    return local
   }
 
   try {
     const data = await post<{ projects: ProjectSummary[] }>({ action: 'list-projects' })
-    if (!data.projects?.length) {
-      return [buildDefaultDemoProject()]
-    }
-    return data.projects.map(enrichDemoProjectIfEmpty)
+    const remote = (data.projects ?? []).map(enrichDemoProjectIfEmpty)
+    return mergeProjectLists(remote, local)
   } catch (error) {
     if (isUnknownProjectActionError(error)) {
-      console.warn('list-projects not deployed yet — showing default demo project')
+      console.warn('list-projects not deployed yet — using local projects')
     } else {
-      console.warn('list-projects failed — showing default demo project', error)
+      console.warn('list-projects failed — using local projects', error)
     }
-    return [buildDefaultDemoProject()]
+    return local
   }
 }
 
 export async function fetchProject(projectId: string): Promise<ProjectPayload> {
+  const local = getLocalProject(projectId)
+
   if (!functionUrl) {
-    const project = getLocalProject(projectId)
-    if (!project) {
+    if (!local) {
       throw new Error(`Project not found: ${projectId}`)
     }
-    return project
+    return local
   }
 
-  return post<ProjectPayload>({ action: 'get-project', projectId })
+  if (local && isLocalOnlyProject(projectId)) {
+    return local
+  }
+
+  try {
+    const remote = await post<ProjectPayload>({ action: 'get-project', projectId })
+    if (
+      local &&
+      remote.cards.length === 0 &&
+      remote.edges.length === 0 &&
+      remote.projectName === 'NLIDE Demo Project' &&
+      projectId !== DEFAULT_PROJECT_ID
+    ) {
+      return local
+    }
+    return remote
+  } catch (error) {
+    if (local) return local
+    throw error
+  }
 }
 
 export async function createProject(): Promise<ProjectPayload> {
@@ -115,7 +149,7 @@ export async function createProject(): Promise<ProjectPayload> {
   } catch (error) {
     if (isUnknownProjectActionError(error)) {
       console.warn('create-project not deployed yet — using local stub')
-      return createLocalProject()
+      return createLocalProject({ localOnly: true })
     }
     throw error
   }
@@ -136,6 +170,25 @@ export async function updateProjectName(projectId: string, name: string): Promis
   } catch (error) {
     if (isUnknownProjectActionError(error)) {
       updateLocalProjectName(projectId, name)
+      return
+    }
+    throw error
+  }
+}
+
+export async function deleteProject(projectId: string): Promise<void> {
+  const localOnly = isLocalOnlyProject(projectId)
+  deleteLocalProject(projectId)
+
+  if (!functionUrl || localOnly) return
+
+  try {
+    await post<{ deleted: boolean; projectId: string }>({
+      action: 'delete-project',
+      projectId,
+    })
+  } catch (error) {
+    if (isUnknownProjectActionError(error)) {
       return
     }
     throw error
