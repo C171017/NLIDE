@@ -73,6 +73,8 @@ See also: [documentation-guide.md](./documentation-guide.md)
 |------|----------|-----------|------------|
 | 2026-06-06 | **Full intent pipeline on `action:intent`** — router → writers → validator → mapper; stub removed | OpenRouter required; local frontend stub when env unset | Yes |
 | 2026-06-06 | **Canvas mapper in `shared/translator/canvasMapper.ts`** | Applies `canvas_ops[]` or derives from router plan; auto-places preview cards | No — Phase 5 shipped |
+| 2026-06-06 | **Compound multi-card turns** — one dominant `intent_type`; full `operations[]` + ordered `canvas_ops[]`; writers loop per op; preview focuses **last** `create_card` (`focusCardId`) | User asked to extract all asks from one message without schema change | Yes |
+| 2026-06-06 | Router golden pass bar **≥10/12** (added `gp-11`, `gp-12` compound cases) | Keeps ~83% pass rate with compound coverage | Yes |
 | 2026-06-06 | Stub adds open-question card + F-004 row on any chat message | Demo-friendly predictable preview | Yes |
 | 2026-06-06 | Router → writer → validator pipeline (designed, not fully implemented) | Documented architecture; stub skips LLM | Yes |
 

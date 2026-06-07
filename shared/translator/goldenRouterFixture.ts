@@ -90,6 +90,41 @@ const EXPECTED_PLANS: Record<string, RouterPlan> = {
     canvas_ops: [],
     open_questions: [],
   },
+  'gp-11-multi-feature': {
+    intent_type: 'add_feature',
+    summary: 'Add Google login for enterprise users and a dark mode toggle for the canvas.',
+    operations: [
+      { target: 'features.md', action: 'add', entity_id: 'F-007' },
+      { target: 'tasks.md', action: 'add', entity_id: 'T-010' },
+      { target: 'features.md', action: 'add', entity_id: 'F-008' },
+      { target: 'tasks.md', action: 'add', entity_id: 'T-011' },
+    ],
+    canvas_ops: [
+      { action: 'create_card', type: 'feature', id: 'F-007', link_to: 'product', edge_label: 'contains' },
+      { action: 'create_card', type: 'task', id: 'T-010', link_to: 'F-007', edge_label: 'implements' },
+      { action: 'create_card', type: 'feature', id: 'F-008', link_to: 'product', edge_label: 'contains' },
+      { action: 'create_card', type: 'task', id: 'T-011', link_to: 'F-008', edge_label: 'implements' },
+    ],
+    open_questions: [],
+  },
+  'gp-12-compound-mixed': {
+    intent_type: 'add_feature',
+    summary:
+      'Add PDF spec export, constrain v0 to desktop only, and record Claude Sonnet as the router model.',
+    operations: [
+      { target: 'features.md', action: 'add', entity_id: 'F-007' },
+      { target: 'tasks.md', action: 'add', entity_id: 'T-010' },
+      { target: 'constraints.md', action: 'add', entity_id: 'C-004' },
+      { target: 'decisions.md', action: 'add', entity_id: 'D-004' },
+    ],
+    canvas_ops: [
+      { action: 'create_card', type: 'feature', id: 'F-007', link_to: 'product', edge_label: 'contains' },
+      { action: 'create_card', type: 'task', id: 'T-010', link_to: 'F-007', edge_label: 'implements' },
+      { action: 'create_card', type: 'constraint', id: 'C-004', link_to: 'product', edge_label: 'constrains' },
+      { action: 'create_card', type: 'decision', id: 'D-004', link_to: 'backend', edge_label: 'records' },
+    ],
+    open_questions: [],
+  },
 }
 
 function buildFixture(): GoldenRouterFixtureCase[] {

@@ -32,16 +32,19 @@ export const ROUTER_PROMPT_OUTLINE: RouterPromptOutline = {
   ],
 
   intentTypesSummary:
-    'Pick the single best intent_type. add_feature = new capability; update_feature = change existing F-xxx; ' +
+    'Pick the single best (dominant) intent_type. add_feature = new capability; update_feature = change existing F-xxx; ' +
     'add_task / update_task = tasks.md; update_product / update_architecture = product or system shape; ' +
     'add_constraint = limits; add_decision = settled choices; clarify = missing info → open-questions only; ' +
-    'noop = not spec content (Cursor build, infra, UI chrome, explanations).',
+    'noop = not spec content (Cursor build, infra, UI chrome, explanations). ' +
+    'Compound messages: still one intent_type, but operations[] and canvas_ops[] cover every distinct ask.',
 
   routingRulesBlock:
     'Apply routing rules in order: (1) Canvas pan/zoom/drag/layers → update_feature F-001, not clarify. ' +
     '(2) New capability → add_feature + usually tasks.md. (3) Non-goals → add_constraint. ' +
     '(4) “We decided X” → add_decision. (5) Real ambiguity → clarify, open-questions only, do not guess. ' +
-    '(6) Intent wording not code. (7) Prefer update over add when ID exists. (8) Never open-question every message.',
+    '(6) Intent wording not code. (7) Prefer update over add when ID exists. (8) Never open-question every message. ' +
+    '(9) Multiple distinct asks in one message → do not collapse; emit all operations[] with entity_id per add; ' +
+    'emit ordered canvas_ops[] with one create_card per new card (last create_card is the focus target).',
 
   contextFormat:
     'User message is the primary input. Context JSON includes: projectName, centerCardId, cards[] (id, type, title, body, specRef, status), edges[] (source, target). ' +
@@ -57,6 +60,8 @@ export const ROUTER_PROMPT_OUTLINE: RouterPromptOutline = {
     'If intent_type is clarify, operations target only open-questions.md; do not patch features/tasks/decisions',
     'Do not invent entity IDs unless action is add',
     'Never output implementation details (file paths, React components, npm packages) as primary intent',
+    'When multiple add operations share the same target file, each must have a distinct entity_id',
+    'Prefer explicit canvas_ops[] for compound turns — do not rely on empty canvas_ops when creating 2+ cards',
   ],
 }
 

@@ -156,10 +156,43 @@ export const GOLDEN_PROMPTS: GoldenPrompt[] = [
       },
     },
   },
+  {
+    id: 'gp-11-multi-feature',
+    message: 'Add Google login for enterprise users and add a dark mode toggle for the canvas.',
+    source: 'compound intents — multiple features in one message',
+    expectation: {
+      intentType: 'add_feature',
+      operationTargets: ['features.md', 'tasks.md'],
+      entityIds: ['F-007', 'F-008', 'T-010', 'T-011'],
+      openQuestionsEmpty: true,
+      mustNot: {
+        intentTypes: ['clarify', 'noop'],
+        operationTargets: ['open-questions.md'],
+      },
+      notes: 'Two features + paired tasks; router emits explicit canvas_ops[] with four create_card ops.',
+    },
+  },
+  {
+    id: 'gp-12-compound-mixed',
+    message:
+      'Add export to PDF for the spec, no mobile support in v0, and we decided to use Claude Sonnet for the router.',
+    source: 'compound intents — cross-type feature + constraint + decision',
+    expectation: {
+      intentType: 'add_feature',
+      operationTargets: ['features.md', 'tasks.md', 'constraints.md', 'decisions.md'],
+      entityIds: ['F-007', 'T-010', 'C-004', 'D-004'],
+      openQuestionsEmpty: true,
+      mustNot: {
+        intentTypes: ['clarify', 'noop'],
+        operationTargets: ['open-questions.md'],
+      },
+      notes: 'Dominant add_feature; three card types in one canvas_ops[] sequence.',
+    },
+  },
 ]
 
-/** **[USER]** locked v0 (2026-06-06) — Phase 1 · Job 6; ≥8/10 before Phase 2 router ship. */
+/** **[USER]** locked v0 (2026-06-06) — Phase 1 · Job 6; ≥10/12 before Phase 2 router ship (includes compound cases). */
 export const GOLDEN_PASS_BAR: GoldenPassBar = {
-  minPass: 8,
-  description: '≥8/10 golden prompts pass via action:"route" + Zod validation',
+  minPass: 10,
+  description: '≥10/12 golden prompts pass via action:"route" + Zod validation',
 }

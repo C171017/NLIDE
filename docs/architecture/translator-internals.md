@@ -27,7 +27,7 @@ User chat message + full canvas/spec context
         ↓
 1. Router LLM → JSON plan (which spec files / cards to touch)
         ↓
-2. Writer LLM(s) → one call per target file/section
+2. Writer LLM(s) → one call per **operation** (loops when compound message targets same file multiple times)
         ↓
 3. Validator (code rules + optional cheap LLM)
         ↓
@@ -60,6 +60,21 @@ User Commit or Discard
 | Model Gateway (Claude Sonnet) | ✅ Wired via OpenRouter when secret set |
 
 **[USER]** Real translator must still use **preview → commit** — never auto-apply.
+
+---
+
+## Compound intents (multi-card turns) `[AI-INFERRED]`
+
+When one chat message contains **multiple distinct spec asks** (e.g. two features, or feature + constraint + decision):
+
+1. **Router** still returns one `intent_type` (dominant ask, usually `add_feature`) but emits:
+   - Multiple `operations[]` entries — duplicate targets allowed with distinct `entity_id`
+   - Ordered `canvas_ops[]` with one `create_card` per new card (preferred over empty `canvas_ops`)
+2. **Writers** loop `findAllOperations(plan, target)` — one LLM call per op; `focus_operation` in payload scopes each write
+3. **Mapper** applies all `canvas_ops` in order; sets `PreviewPayload.focusCardId` to the **last** `create_card`
+4. **Frontend** `resolvePreviewFocusCardId`: update targets win; else `focusCardId` / last new card — canvas pans once to that card
+
+Golden cases: `gp-11-multi-feature`, `gp-12-compound-mixed` in `goldenPrompts.ts` / `goldenRouterFixture.ts`. Pass bar: ≥10/12.
 
 ---
 

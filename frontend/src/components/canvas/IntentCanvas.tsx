@@ -322,29 +322,35 @@ function LayerViewportAnimator({
 
 function CardViewportAnimator({
   cardId,
+  previewCardKey,
   centerCardId,
   transitionPhase,
   onComplete,
 }: {
   cardId: string | null
+  previewCardKey: string
   centerCardId: string
   transitionPhase: LayerTransitionPhase
   onComplete: () => void
 }) {
   const reactFlow = useReactFlow()
-  const lastCardIdRef = useRef<string | null>(null)
+  const lastFocusKeyRef = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!cardId) {
-      lastCardIdRef.current = null
+    const previewIds = previewCardKey ? previewCardKey.split(',').filter(Boolean) : []
+    const focusKey =
+      previewIds.length > 0 ? `${previewCardKey}|${cardId ?? ''}` : (cardId ?? '')
+
+    if (!focusKey) {
+      lastFocusKeyRef.current = null
       return undefined
     }
 
-    if (lastCardIdRef.current === cardId) {
+    if (lastFocusKeyRef.current === focusKey) {
       return undefined
     }
 
-    lastCardIdRef.current = cardId
+    lastFocusKeyRef.current = focusKey
 
     const layerDelay =
       transitionPhase === 'leaving' || transitionPhase === 'entering'
@@ -352,19 +358,33 @@ function CardViewportAnimator({
         : 80
 
     const focusTimer = window.setTimeout(() => {
-      const node = reactFlow.getNode(cardId)
-      if (node) {
-        const center = nodeCenter(node, centerCardId)
-        void reactFlow.setCenter(center.x, center.y, {
-          zoom: 0.95,
+      if (previewIds.length > 1) {
+        void reactFlow.fitView({
+          nodes: previewIds.map((id) => ({ id })),
           duration: FIT_VIEW_DURATION_MS,
+          padding: 0.28,
         })
       } else {
-        void reactFlow.fitView({
-          nodes: [{ id: cardId }],
-          duration: FIT_VIEW_DURATION_MS,
-          padding: 0.3,
-        })
+        const targetId = cardId ?? previewIds[0]
+        if (!targetId) {
+          onComplete()
+          return
+        }
+
+        const node = reactFlow.getNode(targetId)
+        if (node) {
+          const center = nodeCenter(node, centerCardId)
+          void reactFlow.setCenter(center.x, center.y, {
+            zoom: 0.95,
+            duration: FIT_VIEW_DURATION_MS,
+          })
+        } else {
+          void reactFlow.fitView({
+            nodes: [{ id: targetId }],
+            duration: FIT_VIEW_DURATION_MS,
+            padding: 0.3,
+          })
+        }
       }
       onComplete()
     }, layerDelay)
@@ -372,7 +392,7 @@ function CardViewportAnimator({
     return () => {
       window.clearTimeout(focusTimer)
     }
-  }, [cardId, centerCardId, onComplete, reactFlow, transitionPhase])
+  }, [cardId, centerCardId, onComplete, previewCardKey, reactFlow, transitionPhase])
 
   return null
 }
@@ -548,6 +568,11 @@ export default function IntentCanvas() {
         ? diffPreview(committedCards, committedEdges, preview.cards, preview.edges)
         : { previewCardIds: new Set<string>(), previewEdgeIds: new Set<string>() },
     [committedCards, committedEdges, preview],
+  )
+
+  const previewCardKey = useMemo(
+    () => [...previewCardIds].sort().join(','),
+    [previewCardIds],
   )
 
   const baseNodes = useMemo(
@@ -762,6 +787,7 @@ export default function IntentCanvas() {
         />
         <CardViewportAnimator
           cardId={previewFocusCardId}
+          previewCardKey={previewCardKey}
           centerCardId={centerCardId}
           transitionPhase={transitionPhase}
           onComplete={clearPreviewFocus}

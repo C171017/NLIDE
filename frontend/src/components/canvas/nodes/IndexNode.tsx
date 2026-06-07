@@ -58,7 +58,7 @@ export default function IndexNode({ data }: NodeProps) {
       className={clsx(
         'canvas-node-card w-[300px] rounded-3xl border px-4 py-3 text-left shadow-lg transition-[opacity,box-shadow,border-color,filter,transform,ring-color]',
         cardTypeStyles(card.type),
-        isPreview && 'border-dashed opacity-80',
+        isPreview && 'canvas-node-card--preview',
         isSelected && !isDeleteMode && cardSelectedStyles(card.type),
         isDeleteMode && 'canvas-node-card--jiggle',
       )}
@@ -88,6 +88,11 @@ export default function IndexNode({ data }: NodeProps) {
         )}
       >
         {cardTypeLabel(card.type)}
+        {isPreview && (
+          <span className="ml-2 rounded-full bg-sky-100 px-2 py-0.5 text-[10px] normal-case tracking-normal text-sky-700">
+            preview
+          </span>
+        )}
       </div>
       <h2 className="mb-1 text-base font-semibold text-stone-900">{card.title}</h2>
       <p className="text-xs leading-relaxed text-stone-700">{card.body}</p>

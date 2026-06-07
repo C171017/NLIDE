@@ -81,6 +81,7 @@ interface PreviewPayload {
   edges: CanvasEdge[]
   mdPatches: MdPatch[]
   summary: string
+  focusCardId?: string | null
 }
 
 interface ApiRequest {

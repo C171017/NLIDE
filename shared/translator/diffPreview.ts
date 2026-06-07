@@ -1,6 +1,6 @@
 /**
  * Preview vs committed diff — Phase 5 · Job 3 implementation.
- * Ghost styling trigger: ids absent from committed snapshot.
+ * Ghost styling trigger: new ids + in-place content changes while preview is active.
  */
 
 import type { CanvasCard, CanvasEdge } from './canvasTypes.ts'
@@ -8,6 +8,16 @@ import type { CanvasCard, CanvasEdge } from './canvasTypes.ts'
 export interface PreviewDiffResult {
   previewCardIds: Set<string>
   previewEdgeIds: Set<string>
+}
+
+function cardHasPreviewDelta(committed: CanvasCard, preview: CanvasCard): boolean {
+  if (committed.title !== preview.title) return true
+  if (committed.body !== preview.body) return true
+  if (committed.status !== preview.status) return true
+  if (JSON.stringify(committed.vizPayload) !== JSON.stringify(preview.vizPayload)) {
+    return true
+  }
+  return false
 }
 
 export function diffPreview(
@@ -18,10 +28,21 @@ export function diffPreview(
 ): PreviewDiffResult {
   const committedCardIds = new Set(committedCards.map((card) => card.id))
   const committedEdgeIds = new Set(committedEdges.map((edge) => edge.id))
+  const committedById = new Map(committedCards.map((card) => [card.id, card]))
 
-  const previewCardIds = new Set(
-    previewCards.filter((card) => !committedCardIds.has(card.id)).map((card) => card.id),
-  )
+  const previewCardIds = new Set<string>()
+
+  for (const card of previewCards) {
+    if (!committedCardIds.has(card.id)) {
+      previewCardIds.add(card.id)
+      continue
+    }
+
+    const committed = committedById.get(card.id)
+    if (committed && cardHasPreviewDelta(committed, card)) {
+      previewCardIds.add(card.id)
+    }
+  }
 
   const previewEdgeIds = new Set(
     previewEdges.filter((edge) => !committedEdgeIds.has(edge.id)).map((edge) => edge.id),

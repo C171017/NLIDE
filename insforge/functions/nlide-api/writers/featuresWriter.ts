@@ -23,26 +23,34 @@ function buildFeaturesWriterSystemPrompt(): string {
     '- Match the markdown template exactly (heading, Status, Priority, Description, Acceptance criteria, Related).',
     '- On update: merge new acceptance criteria with existing unless user asks to replace; preserve feature ID.',
     '- On add: use the allocated feature ID provided in the input; default status proposed unless user approves.',
+    '- When focus_operation is set, write only that feature from a compound message — ignore other asks.',
     '- Intent wording only — no React components, file paths, or npm packages as primary content.',
     '- Write testable acceptance criteria per the quality bar.',
   ].join('\n')
 }
 
+function resolveFeaturesOperation(input: WriteFeaturesInput) {
+  return input.focusOperation ?? findFeaturesOperation(input.routerPlan)
+}
+
 function buildUserPayload(input: WriteFeaturesInput): string {
-  const featuresOp = findFeaturesOperation(input.routerPlan)
+  const featuresOp = resolveFeaturesOperation(input)
   if (!featuresOp) {
     throw new Error('No features.md operation in router plan')
   }
 
   const existingIds = input.existingFeatureIds ?? []
   const allocatedId =
-    featuresOp.action === 'add' ? allocateNextFeatureId(existingIds) : undefined
+    featuresOp.action === 'add'
+      ? featuresOp.entity_id ?? allocateNextFeatureId(existingIds)
+      : undefined
 
   return JSON.stringify(
     {
       user_message: input.userMessage,
       router_plan: input.routerPlan,
-      features_operation: featuresOp,
+      focus_operation: featuresOp,
+      compound_index: input.compoundIndex ?? null,
       existing_feature_ids: existingIds,
       allocated_feature_id: allocatedId,
       existing_section: input.existingSection ?? null,
@@ -64,7 +72,7 @@ export async function writeFeaturesSection(input: WriteFeaturesInput): Promise<W
     }
   }
 
-  const featuresOp = findFeaturesOperation(input.routerPlan)
+  const featuresOp = resolveFeaturesOperation(input)
   if (!featuresOp) {
     return {
       ok: false,
@@ -77,7 +85,9 @@ export async function writeFeaturesSection(input: WriteFeaturesInput): Promise<W
 
   const existingIds = input.existingFeatureIds ?? []
   const allocatedId =
-    featuresOp.action === 'add' ? allocateNextFeatureId(existingIds) : undefined
+    featuresOp.action === 'add'
+      ? featuresOp.entity_id ?? allocateNextFeatureId(existingIds)
+      : undefined
 
   let llm: { content: string; model: string }
   try {
@@ -102,7 +112,10 @@ export async function writeFeaturesSection(input: WriteFeaturesInput): Promise<W
   const section = stripMarkdownFences(llm.content)
   const validated = validateFeatureSection(section, {
     action: featuresOp.action,
-    expectedEntityId: featuresOp.action === 'update' ? featuresOp.entity_id : undefined,
+    expectedEntityId:
+      featuresOp.action === 'update'
+        ? featuresOp.entity_id
+        : featuresOp.entity_id ?? allocatedId,
     allocatedEntityId: allocatedId,
   })
 

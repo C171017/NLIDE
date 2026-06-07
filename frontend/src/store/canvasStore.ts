@@ -15,6 +15,7 @@ import { loadSpecCanvas, loadSpecProjectName } from '../lib/loadSpecCanvas'
 import {
   resolvePreviewFocusCardId,
   resolveViewStateForFocusCard,
+  resolveCommitSelectionCardId,
 } from '../lib/previewFocus'
 
 const initialSpecCanvas = loadSpecCanvas()
@@ -344,16 +345,6 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     const { preview, committedCards } = get()
     if (!preview) return
 
-    const committedIds = new Set(committedCards.map((card) => card.id))
-    const newEntityIds = preview.cards
-      .filter(
-        (card) =>
-          !committedIds.has(card.id) &&
-          card.layer === 0 &&
-          !['product', 'frontend', 'backend'].includes(card.id),
-      )
-      .map((card) => card.id)
-
     try {
       const result = await commitPreviewRemote(preview.previewId)
       set({
@@ -362,7 +353,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
         preview: null,
         previewFocusCardId: null,
         exportedSpecCache: result.exportedSpec ?? null,
-        selectedCardId: newEntityIds[0] ?? get().selectedCardId,
+        selectedCardId: resolveCommitSelectionCardId(preview, committedCards) ?? get().selectedCardId,
         drillFocusId: null,
       })
     } catch (error) {

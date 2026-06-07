@@ -49,6 +49,7 @@ export default function LabeledEdge({
           stroke: strokeColor,
           strokeWidth: edgeData.isSelected ? 2.5 : undefined,
           strokeDasharray: edgeData.isPreview ? '6 4' : undefined,
+          opacity: edgeData.isPreview ? 0.55 : 1,
         }}
       />
       {edgeData.label && (

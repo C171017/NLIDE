@@ -68,7 +68,7 @@ export default function CardNode({ data }: NodeProps) {
         'canvas-node-card cursor-pointer rounded-2xl border px-3 py-2.5 text-left transition-[opacity,box-shadow,border-color,filter,transform,ring-color]',
         hasInteractiveViz ? 'w-[300px]' : 'w-[260px]',
         cardTypeStyles(card.type),
-        isPreview && 'border-dashed opacity-80',
+        isPreview && 'canvas-node-card--preview',
         isSelected && !isDeleteMode && cardSelectedStyles(card.type),
         isDeleteMode && 'canvas-node-card--jiggle',
       )}

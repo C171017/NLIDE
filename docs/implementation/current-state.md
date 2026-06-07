@@ -32,7 +32,7 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Canvas nav (tilted layer stack — click Overview plate to return from detail; drill in via pillar double-click; fullscreen toggle; minimap detached but hidden) | `CanvasNavPanel.tsx`, `LayerStackIndicator.tsx` |
 | Card nodes + Product hub | `CardNode.tsx`, `IndexNode.tsx` (center pillar styling); long-press edit mode with trash drop zone; click link + Delete/Backspace to remove edge |
 | Chat input (floating on canvas) + preview actions in side panel | `ChatBar.tsx`, `ChatSubmitButton.tsx`, `PreviewActions.tsx` — circular interpret/stop control; Enter submits |
-| TipTap card editor | `CardEditor.tsx` — title/body edit + **entity stacked MD preview** (`SpecFilePanel.tsx`, `useSpecFileContent.ts`, `specFilePreview.ts`) — Current vs Proposed `###` section on update intents; **auto-opens Card editor + canvas focus** on update preview (`previewFocus.ts`, `previewFocusCardId`) |
+| TipTap card editor | `CardEditor.tsx` — title/body edit + **entity stacked MD preview** (`SpecFilePanel.tsx`, `useSpecFileContent.ts`, `specFilePreview.ts`) — Current vs Proposed `###` section on update intents; **auto-opens Card editor + canvas focus** on update preview; **compound turns focus last new card** (`previewFocus.ts`, `previewFocusCardId`, `focusCardId` on preview) |
 | Side panel | `SidePanel.tsx` — **Build plan** tab (LLM execution phases + jobs) + Card editor tab |
 | **Resizable layout** | `AppShell.tsx`, `ResizeHandle.tsx`, `CornerResizeHandle.tsx`, `useResizableSize.ts` — drag borders between canvas and side panel; preview summary height in card tab; canvas nav minimap corner resize; sizes persist in `localStorage` |
 | Translator spec (shared) | `shared/translator/` — intent types, routing rules, build phases, **golden prompts** |
@@ -60,14 +60,15 @@ Setup commands: [insforge/README.md](../../insforge/README.md)
 | Export end-to-end smoke | `shared/translator/exportEndToEndSmoke.ts` — Phase 6 · Job 3 **approved** |
 | Write spec to disk helper | `scripts/write-exported-spec.mjs` — `npm run write:spec` |
 | **Canvas mapper (Phase 5)** | `shared/translator/canvasMapper.ts` — `mapCanvasToPreview()`, placement + `canvas_ops` derivation; **temp v0:** new entity cards (`F-*`, `T-*`, etc.) placed on overview (`layer: 0`, no pillar link) via `OVERVIEW_ORPHAN_NEW_ENTITIES` |
-| **Preview diff (shared)** | `shared/translator/diffPreview.ts` — ghost card/edge id diff; used by `IntentCanvas.tsx` |
-| Canvas mapper golden | `shared/translator/canvasMapperGolden.ts` — 5 cases, ≥4/5 pass bar |
+| **Preview diff (shared)** | `shared/translator/diffPreview.ts` — ghost card/edge diff (new ids + in-place content changes); semi-transparent `canvas-node-card--preview` styling |
+| Canvas mapper golden | `shared/translator/canvasMapperGolden.ts` — 6 cases, ≥5/6 pass bar; includes compound mixed-type case |
 | Implementation progress store | `implementationProgressStore.ts` — per-phase task checkboxes; resets on new `planVersion` |
 | Canvas state (Zustand) | `frontend/src/store/canvasStore.ts` — **loads from `spec/*.md` on startup** via `loadSpecCanvas.ts` |
 | **Spec → canvas loader** | `shared/translator/specToCanvas.ts` — `buildCanvasFromSpec()` parses Flow B markdown into layered cards + edges; tasks link to Frontend/Backend via **Pillar:** |
 | API client + local stub | `frontend/src/lib/api.ts`, `translatorStub.ts` — stub uses `mapCanvasToPreview()` |
 | Sample demo canvas | `frontend/src/data/sampleProject.ts` — **legacy reference only** (superseded by spec load) |
-| **Seeded NLIDE spec** | `spec/` — F-001…F-006, T-001…T-009 (frontend pillar), D-001…D-003, architecture Frontend component inventory |
+| **Compound multi-card intents** | Router rule #9 + writers loop + `focusCardId` on preview; golden `gp-11`, `gp-12` |
+| **previewFocus unit tests** | `frontend/src/lib/previewFocus.test.ts` — vitest (`npm run test --prefix frontend`) |
 
 Run: `npm run dev` (from repo root)
 

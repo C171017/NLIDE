@@ -83,6 +83,7 @@ export const ROUTING_RULES: string[] = [
   'Intent wording, not code — route “users can pan”, not “set React Flow minZoom”.',
   'Prefer update over add when an existing card/ID already covers the topic.',
   'Never create open question on every message.',
+  'Compound message (multiple distinct asks: “and”, “also”, lists, semicolons) → extract every card; emit all operations[] with distinct entity_id per add; prefer explicit ordered canvas_ops[] (last create_card = focus target). Pick dominant intent_type (usually add_feature for multi-add). Cross-type compounds allowed under one plan.',
 ]
 
 /** **[USER]** locked v0 (2026-06-06) — Flow B nine spec files only; router rejects other targets. */

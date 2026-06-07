@@ -70,7 +70,8 @@ export interface CanvasOpsMapping {
 export const CANVAS_OPS_MAPPING: CanvasOpsMapping = {
   policy:
     'Router `canvas_ops[]` is the primary input for new preview cards and edges. When empty (v0 router ' +
-    'golden tests), the mapper derives minimal ops from `operations[]` + writer entity ids. Preview-only ' +
+    'golden tests), the mapper derives minimal ops from `operations[]` + writer entity ids. Compound turns ' +
+    'emit ordered `canvas_ops[]` with one create_card per ask; last create_card becomes `focusCardId`. Preview-only ' +
     'nodes get ghost styling; committed cards are never restyled.',
 
   allowedActions: [
@@ -140,10 +141,11 @@ export const CANVAS_OPS_MAPPING: CanvasOpsMapping = {
   ],
 
   previewCardStyling: [
-    'Card is preview when id not in committed snapshot (IntentCanvas diffPreview).',
-    'Visual: border-dashed + opacity-80 on card shell (CardNode.tsx).',
+    'Card is preview when id is new or content changed vs committed (IntentCanvas diffPreview).',
+    'Visual: canvas-node-card--preview — opacity ~55%, sky ring, solid border.',
     'Badge: sky "preview" pill next to card type label.',
     'Type colors unchanged — use existing cardTypeStyles per type.',
+    'On commit: preview clears → full opacity; on discard: preview cards removed.',
   ],
 
   previewEdgeStyling: [

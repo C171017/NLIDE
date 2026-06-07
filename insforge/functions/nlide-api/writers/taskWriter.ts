@@ -18,24 +18,33 @@ function buildTaskWriterSystemPrompt(): string {
     '- Match the markdown template exactly (heading, Feature, Status, Instructions for agent, Done when).',
     '- On update: preserve task ID; update status/instructions when user asks (e.g. mark done).',
     '- On add: use allocated task ID and link to the paired feature ID when provided.',
+    '- When focus_operation is set, write only that task from a compound message.',
     '- Numbered instructions at intent level — no file paths as primary content.',
   ].join('\n')
 }
 
+function resolveTasksOperation(input: WriteTaskInput) {
+  return input.focusOperation ?? findTasksOperation(input.routerPlan)
+}
+
 function buildUserPayload(input: WriteTaskInput): string {
-  const tasksOp = findTasksOperation(input.routerPlan)
+  const tasksOp = resolveTasksOperation(input)
   if (!tasksOp) {
     throw new Error('No tasks.md operation in router plan')
   }
 
   const existingIds = input.existingTaskIds ?? []
-  const allocatedId = tasksOp.action === 'add' ? allocateNextTaskId(existingIds) : undefined
+  const allocatedId =
+    tasksOp.action === 'add'
+      ? tasksOp.entity_id ?? allocateNextTaskId(existingIds)
+      : undefined
 
   return JSON.stringify(
     {
       user_message: input.userMessage,
       router_plan: input.routerPlan,
-      tasks_operation: tasksOp,
+      focus_operation: tasksOp,
+      compound_index: input.compoundIndex ?? null,
       existing_task_ids: existingIds,
       allocated_task_id: allocatedId,
       linked_feature_id: input.linkedFeatureId ?? null,
@@ -58,7 +67,7 @@ export async function writeTaskSection(input: WriteTaskInput): Promise<WriteTask
     }
   }
 
-  const tasksOp = findTasksOperation(input.routerPlan)
+  const tasksOp = resolveTasksOperation(input)
   if (!tasksOp) {
     return {
       ok: false,
@@ -70,7 +79,10 @@ export async function writeTaskSection(input: WriteTaskInput): Promise<WriteTask
   }
 
   const existingIds = input.existingTaskIds ?? []
-  const allocatedId = tasksOp.action === 'add' ? allocateNextTaskId(existingIds) : undefined
+  const allocatedId =
+    tasksOp.action === 'add'
+      ? tasksOp.entity_id ?? allocateNextTaskId(existingIds)
+      : undefined
 
   let llm: { content: string; model: string }
   try {
@@ -95,7 +107,10 @@ export async function writeTaskSection(input: WriteTaskInput): Promise<WriteTask
   const section = stripMarkdownFences(llm.content)
   const validated = validateTaskSection(section, {
     action: tasksOp.action,
-    expectedEntityId: tasksOp.action === 'update' ? tasksOp.entity_id : undefined,
+    expectedEntityId:
+      tasksOp.action === 'update'
+        ? tasksOp.entity_id
+        : tasksOp.entity_id ?? allocatedId,
     allocatedEntityId: allocatedId,
     linkedFeatureId: input.linkedFeatureId,
   })

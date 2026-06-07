@@ -84,4 +84,6 @@ export interface PreviewPayload {
   edges: CanvasEdge[]
   mdPatches: MdPatch[]
   summary: string
+  /** Last create_card in this preview — canvas focus for compound turns. */
+  focusCardId?: string | null
 }

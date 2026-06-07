@@ -84,6 +84,29 @@ function applyBusinessRules(plan: RouterPlan): RouterValidationIssue[] {
     }
   }
 
+  const addOpsByTarget = new Map<string, string[]>()
+  for (const [index, op] of plan.operations.entries()) {
+    if (op.action !== 'add') continue
+    const ids = addOpsByTarget.get(op.target) ?? []
+    if (op.entity_id) {
+      if (ids.includes(op.entity_id)) {
+        issues.push({
+          path: `operations[${index}].entity_id`,
+          message: `duplicate entity_id ${op.entity_id} for ${op.target} add operations`,
+        })
+      }
+      ids.push(op.entity_id)
+    }
+    addOpsByTarget.set(op.target, ids)
+  }
+
+  const createCardCount = plan.canvas_ops.filter((op) => op.action === 'create_card').length
+  if (createCardCount >= 2 && plan.operations.length === 0) {
+    console.warn(
+      '[router] compound canvas_ops with empty operations[] — writers may lack spec targets',
+    )
+  }
+
   return issues
 }
 

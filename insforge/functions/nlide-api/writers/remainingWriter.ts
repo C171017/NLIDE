@@ -48,11 +48,20 @@ function buildRemainingWriterSystemPrompt(targetFile: string): string {
     '',
     '### Example',
     brief.example,
+    '',
+    'When focus_operation is set in the input, write only that entity from a compound message.',
   ].join('\n')
 }
 
+function resolveFileOperation(input: WriteRemainingInput) {
+  return (
+    input.focusOperation ??
+    findOperation(input.routerPlan, input.targetFile)
+  )
+}
+
 function buildUserPayload(input: WriteRemainingInput): Record<string, unknown> {
-  const op = findOperation(input.routerPlan, input.targetFile)
+  const op = resolveFileOperation(input)
   if (!op) {
     throw new Error(`No ${input.targetFile} operation in router plan`)
   }
@@ -61,7 +70,9 @@ function buildUserPayload(input: WriteRemainingInput): Record<string, unknown> {
   let allocatedId: string | undefined
 
   if (op.action === 'add') {
-    if (input.targetFile === 'decisions.md') {
+    if (op.entity_id) {
+      allocatedId = op.entity_id
+    } else if (input.targetFile === 'decisions.md') {
       allocatedId = allocateNextDecisionId(existingIds)
     } else if (input.targetFile === 'open-questions.md') {
       allocatedId = allocateNextOpenQuestionId(existingIds)
@@ -72,7 +83,8 @@ function buildUserPayload(input: WriteRemainingInput): Record<string, unknown> {
     user_message: input.userMessage,
     router_plan: input.routerPlan,
     target_file: input.targetFile,
-    file_operation: op,
+    focus_operation: op,
+    compound_index: input.compoundIndex ?? null,
     existing_entity_ids: existingIds,
     allocated_entity_id: allocatedId,
     existing_content: input.existingContent ?? null,
@@ -84,11 +96,14 @@ function validateRemainingOutput(
   section: string,
   input: WriteRemainingInput,
 ): { ok: true; entityId?: string } | { ok: false; code: string; message: string; issues: string[] } {
-  const op = findOperation(input.routerPlan, input.targetFile)!
+  const op = resolveFileOperation(input)!
   const existingIds = input.existingEntityIds ?? []
 
   if (input.targetFile === 'decisions.md') {
-    const allocatedId = op.action === 'add' ? allocateNextDecisionId(existingIds) : undefined
+    const allocatedId =
+      op.action === 'add'
+        ? op.entity_id ?? allocateNextDecisionId(existingIds)
+        : undefined
     const result = validateEntitySection(section, 'decisions.md', {
       action: op.action,
       idPrefix: 'D',
@@ -102,7 +117,10 @@ function validateRemainingOutput(
   }
 
   if (input.targetFile === 'open-questions.md') {
-    const allocatedId = op.action === 'add' ? allocateNextOpenQuestionId(existingIds) : undefined
+    const allocatedId =
+      op.action === 'add'
+        ? op.entity_id ?? allocateNextOpenQuestionId(existingIds)
+        : undefined
     const result = validateEntitySection(section, 'open-questions.md', {
       action: op.action,
       idPrefix: 'OQ',
@@ -152,7 +170,7 @@ export async function writeRemainingSection(
     }
   }
 
-  const op = findOperation(input.routerPlan, input.targetFile)
+  const op = resolveFileOperation(input)
   if (!op) {
     return {
       ok: false,

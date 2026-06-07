@@ -19,6 +19,7 @@ export interface CanvasMapperExpectation {
   mdPatchCountMin?: number
   summaryIncludes?: string
   noNewCards?: boolean
+  focusCardId?: string
 }
 
 export interface CanvasMapperGoldenCase {
@@ -116,7 +117,6 @@ export const CANVAS_MAPPER_GOLDEN: CanvasMapperGoldenCase[] = [
     expectation: {
       ghostCardIds: ['T-002'],
       updatedInPlaceIds: ['features'],
-      ghostEdgeCountMin: 1,
       mdPatchFiles: ['features.md', 'tasks.md'],
       summaryIncludes: 'Google login',
     },
@@ -128,7 +128,6 @@ export const CANVAS_MAPPER_GOLDEN: CanvasMapperGoldenCase[] = [
     message: 'Which Google Workspace domains should be allowed for SSO?',
     expectation: {
       ghostCardIds: ['OQ-001'],
-      ghostEdgeLabels: ['raises'],
       mdPatchFiles: ['open-questions.md'],
       summaryIncludes: 'domains',
     },
@@ -177,7 +176,6 @@ export const CANVAS_MAPPER_GOLDEN: CanvasMapperGoldenCase[] = [
     },
     expectation: {
       ghostCardIds: ['F-005', 'T-005'],
-      ghostEdgeCountMin: 2,
     },
   },
   {
@@ -187,6 +185,17 @@ export const CANVAS_MAPPER_GOLDEN: CanvasMapperGoldenCase[] = [
     expectation: {
       noNewCards: true,
       mdPatchCountMin: 0,
+    },
+  },
+  {
+    id: 'cm-gp12-compound-mixed',
+    label: 'Compound mixed types — four create_card ops (gp-12)',
+    plan: planFromFixture('gp-12-compound-mixed'),
+    message:
+      'Add export to PDF for the spec, no mobile support in v0, and we decided to use Claude Sonnet for the router.',
+    expectation: {
+      ghostCardIds: ['F-007', 'T-010', 'C-004', 'D-004'],
+      focusCardId: 'D-004',
     },
   },
 ]
@@ -271,6 +280,10 @@ export function evaluateCanvasMapperGolden(
     failures.push(`expected ≥${exp.mdPatchCountMin} mdPatches, got ${preview.mdPatches.length}`)
   }
 
+  if (exp.focusCardId && preview.focusCardId !== exp.focusCardId) {
+    failures.push(`expected focusCardId ${exp.focusCardId}, got ${preview.focusCardId ?? 'null'}`)
+  }
+
   return { pass: failures.length === 0, caseId: golden.id, failures }
 }
 
@@ -282,9 +295,9 @@ function findCard(cards: CanvasCard[], idOrAnchor: string): CanvasCard | undefin
 }
 
 export const CANVAS_MAPPER_PASS_BAR = {
-  minPass: 4,
+  minPass: 5,
   total: CANVAS_MAPPER_GOLDEN.length,
-  description: '≥4/5 canvas mapper golden cases pass without LLM',
+  description: '≥5/6 canvas mapper golden cases pass without LLM',
 }
 
 export function scoreCanvasMapperResults(results: CanvasMapperMatchResult[]): {

@@ -71,6 +71,7 @@ export const TASK_WRITER_RULES: TaskWriterRules = {
     'Router add on tasks.md → allocate next free T-xxx; link to feature from same router turn when add_feature co-targets tasks.md.',
     'When add_feature adds F-00x, paired task should reference that F-00x ID.',
     'Default one task per new feature on add_feature; split into multiple T-xxx only when user explicitly asks.',
+    'When router emits multiple tasks.md add operations in one turn, write one task section per operation.',
     'Default status todo unless user marks in progress or done in the message.',
     'At least two numbered instructions for non-trivial features; one allowed for trivial scope.',
     'Done when must reference the linked feature acceptance criteria or restate them briefly.',

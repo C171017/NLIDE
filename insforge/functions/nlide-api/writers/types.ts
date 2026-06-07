@@ -7,6 +7,10 @@ export interface WriteFeaturesInput {
   existingFeatureIds?: string[]
   /** Current markdown section when updating an existing feature. */
   existingSection?: string
+  /** When set, write only this operation (compound turns). */
+  focusOperation?: RouterOperation
+  /** Index within same-file compound ops (for LLM context). */
+  compoundIndex?: number
 }
 
 export type WriteFeaturesErrorCode =
@@ -45,6 +49,10 @@ export function findOperation(plan: RouterPlan, target: string): RouterOperation
   return plan.operations.find((op) => op.target === target)
 }
 
+export function findAllOperations(plan: RouterPlan, target: string): RouterOperation[] {
+  return plan.operations.filter((op) => op.target === target)
+}
+
 export interface WriteTaskInput {
   userMessage: string
   routerPlan: RouterPlan
@@ -52,6 +60,9 @@ export interface WriteTaskInput {
   existingSection?: string
   /** F-xxx from paired features writer on same router turn. */
   linkedFeatureId?: string
+  /** When set, write only this operation (compound turns). */
+  focusOperation?: RouterOperation
+  compoundIndex?: number
 }
 
 export type WriteTaskErrorCode =
@@ -85,6 +96,9 @@ export interface WriteRemainingInput {
   targetFile: string
   existingContent?: string
   existingEntityIds?: string[]
+  /** When set, write only this operation (compound turns). */
+  focusOperation?: RouterOperation
+  compoundIndex?: number
 }
 
 export type WriteRemainingResult =

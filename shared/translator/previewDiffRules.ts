@@ -55,10 +55,10 @@ export const PREVIEW_DIFF_RULES: PreviewDiffRules = {
   ],
 
   ghostCardRules: [
-    'isPreview:true when card.id ∈ previewCardIds (CardNode.tsx).',
-    'Style: border-dashed, opacity-80, sky "preview" badge.',
+    'isPreview:true when card.id is new OR content changed vs committed (diffPreview).',
+    'Style: semi-transparent (opacity ~55%), solid border, sky "preview" badge — class canvas-node-card--preview.',
     'Draggable in preview — position included in commit payload.',
-    'New pillar cards are non-goals in v0 — only entity/detail cards ghost.',
+    'All preview cards visible on overview; viewport fits every preview card when batch has 2+.',
   ],
 
   ghostEdgeRules: [

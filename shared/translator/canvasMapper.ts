@@ -253,6 +253,136 @@ function hintForEntity(hints: WriterEntityHint[], entityId: string): WriterEntit
   return hints.find((hint) => hint.entityId === entityId)
 }
 
+function deriveUpdateCanvasOps(plan: RouterPlan, cards: CanvasCard[], hints: WriterEntityHint[]): CanvasOp[] {
+  const ops: CanvasOp[] = []
+
+  if (
+    plan.intent_type === 'update_feature' ||
+    plan.intent_type === 'update_task' ||
+    plan.intent_type === 'update_product' ||
+    plan.intent_type === 'update_architecture'
+  ) {
+    for (const operation of plan.operations) {
+      if (operation.action !== 'update') continue
+      const entityId = operation.entity_id ?? hintForFile(hints, operation.target)?.entityId
+      if (!entityId) continue
+      if (findCard(cards, entityId)) {
+        ops.push({ action: 'update_card', id: entityId })
+      }
+    }
+  }
+
+  return ops
+}
+
+function deriveAddCanvasOps(
+  plan: RouterPlan,
+  cards: CanvasCard[],
+  hints: WriterEntityHint[],
+): CanvasOp[] {
+  const ops: CanvasOp[] = []
+  const featureIds = [...collectEntityIds(cards, 'F')]
+  const taskIds = [...collectEntityIds(cards, 'T')]
+  const oqIds = [...collectEntityIds(cards, 'OQ')]
+  const decisionIds = [...collectEntityIds(cards, 'D')]
+  const constraintIds = [...collectEntityIds(cards, 'C')]
+  const useFeaturesTable = hasAggregateFeaturesTable(cards)
+  let lastFeatureId: string | undefined
+
+  for (const operation of plan.operations) {
+    if (operation.action !== 'add') continue
+
+    switch (operation.target) {
+      case 'features.md': {
+        const featureId =
+          operation.entity_id ??
+          hintForEntity(hints, operation.entity_id ?? '')?.entityId ??
+          allocateNextFeatureId(featureIds)
+        featureIds.push(featureId)
+        lastFeatureId = featureId
+
+        if (useFeaturesTable) break
+
+        if (!findCard(cards, featureId) && !ops.some((op) => op.action === 'create_card' && op.id === featureId)) {
+          ops.push({
+            action: 'create_card',
+            type: 'feature',
+            id: featureId,
+            link_to: 'product',
+          })
+        }
+        break
+      }
+      case 'tasks.md': {
+        const taskId =
+          operation.entity_id ??
+          hintForFile(hints, 'tasks.md')?.entityId ??
+          allocateNextTaskId(taskIds)
+        const linkedFeature =
+          lastFeatureId ??
+          hintForFile(hints, 'tasks.md')?.linkedFeatureId ??
+          (featureIds.length ? featureIds[featureIds.length - 1] : undefined)
+        ops.push({
+          action: 'create_card',
+          type: 'task',
+          id: taskId,
+          link_to: linkedFeature ?? 'frontend',
+        })
+        taskIds.push(taskId)
+        break
+      }
+      case 'open-questions.md': {
+        const oqId =
+          operation.entity_id ??
+          hintForFile(hints, 'open-questions.md')?.entityId ??
+          allocateNextOpenQuestionId(oqIds)
+        const linkTo = cards.some((card) => card.id === 'features') ? 'features' : 'product'
+        ops.push({
+          action: 'create_card',
+          type: 'open-question',
+          id: oqId,
+          link_to: linkTo,
+          edge_label: 'raises',
+        })
+        oqIds.push(oqId)
+        break
+      }
+      case 'constraints.md': {
+        const constraintId =
+          operation.entity_id ??
+          hintForFile(hints, 'constraints.md')?.entityId ??
+          allocateNextConstraintId(constraintIds)
+        ops.push({
+          action: 'create_card',
+          type: 'constraint',
+          id: constraintId,
+          link_to: 'product',
+        })
+        constraintIds.push(constraintId)
+        break
+      }
+      case 'decisions.md': {
+        const decisionId =
+          operation.entity_id ??
+          hintForFile(hints, 'decisions.md')?.entityId ??
+          allocateNextDecisionId(decisionIds)
+        ops.push({
+          action: 'create_card',
+          type: 'decision',
+          id: decisionId,
+          link_to: 'backend',
+        })
+        decisionIds.push(decisionId)
+        break
+      }
+      default:
+        break
+    }
+  }
+
+  return ops
+}
+
 function deriveCanvasOps(
   plan: RouterPlan,
   cards: CanvasCard[],
@@ -262,127 +392,12 @@ function deriveCanvasOps(
     return parseCanvasOps(plan.canvas_ops)
   }
 
-  const ops: CanvasOp[] = []
-  const featureIds = collectEntityIds(cards, 'F')
-  const taskIds = collectEntityIds(cards, 'T')
-  const oqIds = collectEntityIds(cards, 'OQ')
-  const decisionIds = collectEntityIds(cards, 'D')
-  const constraintIds = collectEntityIds(cards, 'C')
-
-  const featuresOp = plan.operations.find((op) => op.target === 'features.md')
-  const tasksOp = plan.operations.find((op) => op.target === 'tasks.md')
-  const openQuestionsOp = plan.operations.find((op) => op.target === 'open-questions.md')
-  const constraintsOp = plan.operations.find((op) => op.target === 'constraints.md')
-  const decisionsOp = plan.operations.find((op) => op.target === 'decisions.md')
-
-  switch (plan.intent_type) {
-    case 'add_feature': {
-      const featureId =
-        featuresOp?.entity_id ??
-        hintForFile(hints, 'features.md')?.entityId ??
-        allocateNextFeatureId(featureIds)
-      const featureCardExists = Boolean(findCard(cards, featureId))
-
-      if (!featureCardExists) {
-        ops.push({
-          action: 'create_card',
-          type: 'feature',
-          id: featureId,
-          link_to: 'product',
-        })
-      }
-
-      if (tasksOp) {
-        const taskId =
-          tasksOp.entity_id ??
-          hintForFile(hints, 'tasks.md')?.entityId ??
-          allocateNextTaskId(taskIds)
-        const linkedFeature =
-          hintForFile(hints, 'tasks.md')?.linkedFeatureId ??
-          (findCard(cards, featureId) ? featureId : undefined)
-        ops.push({
-          action: 'create_card',
-          type: 'task',
-          id: taskId,
-          link_to: linkedFeature ?? 'frontend',
-        })
-      }
-      break
-    }
-    case 'add_task': {
-      const taskId =
-        tasksOp?.entity_id ??
-        hintForFile(hints, 'tasks.md')?.entityId ??
-        allocateNextTaskId(taskIds)
-      const linkedFeature = hintForFile(hints, 'tasks.md')?.linkedFeatureId
-      ops.push({
-        action: 'create_card',
-        type: 'task',
-        id: taskId,
-        link_to: linkedFeature ?? (featureIds.length ? featureIds[featureIds.length - 1] : 'frontend'),
-      })
-      break
-    }
-    case 'clarify': {
-      const oqId =
-        openQuestionsOp?.entity_id ??
-        hintForFile(hints, 'open-questions.md')?.entityId ??
-        allocateNextOpenQuestionId(oqIds)
-      const linkTo = cards.some((card) => card.id === 'features') ? 'features' : 'product'
-      ops.push({
-        action: 'create_card',
-        type: 'open-question',
-        id: oqId,
-        link_to: linkTo,
-        edge_label: 'raises',
-      })
-      break
-    }
-    case 'add_constraint': {
-      const constraintId =
-        constraintsOp?.entity_id ??
-        hintForFile(hints, 'constraints.md')?.entityId ??
-        allocateNextConstraintId(constraintIds)
-      ops.push({
-        action: 'create_card',
-        type: 'constraint',
-        id: constraintId,
-        link_to: 'product',
-      })
-      break
-    }
-    case 'add_decision': {
-      const decisionId =
-        decisionsOp?.entity_id ??
-        hintForFile(hints, 'decisions.md')?.entityId ??
-        allocateNextDecisionId(decisionIds)
-      ops.push({
-        action: 'create_card',
-        type: 'decision',
-        id: decisionId,
-        link_to: 'backend',
-      })
-      break
-    }
-    case 'update_feature':
-    case 'update_task':
-    case 'update_product':
-    case 'update_architecture': {
-      for (const operation of plan.operations) {
-        if (operation.action !== 'update') continue
-        const entityId = operation.entity_id ?? hintForFile(hints, operation.target)?.entityId
-        if (!entityId) continue
-        if (findCard(cards, entityId)) {
-          ops.push({ action: 'update_card', id: entityId })
-        }
-      }
-      break
-    }
-    default:
-      break
+  const updateOps = deriveUpdateCanvasOps(plan, cards, hints)
+  if (updateOps.length > 0) {
+    return updateOps
   }
 
-  return ops
+  return deriveAddCanvasOps(plan, cards, hints)
 }
 
 function defaultTitle(type: CanvasOpCardType, id: string, hint?: WriterEntityHint): string {
@@ -674,14 +689,16 @@ export function mapCanvasToPreview(input: MapCanvasInput): PreviewPayload {
 
   const canvasOps = deriveCanvasOps(routerPlan, cards, hints)
 
-  const featuresOp = routerPlan.operations.find((op) => op.target === 'features.md' && op.action === 'add')
-  if (featuresOp && hasAggregateFeaturesTable(cards)) {
+  for (const operation of routerPlan.operations) {
+    if (operation.target !== 'features.md' || operation.action !== 'add') continue
+    if (!hasAggregateFeaturesTable(cards)) continue
+
     const featureId =
-      featuresOp.entity_id ??
+      operation.entity_id ??
       hintForFile(hints, 'features.md')?.entityId ??
       allocateFeatureIdForTable(cards)
     const title =
-      hintForFile(hints, 'features.md')?.title ??
+      hintForEntity(hints, featureId)?.title ??
       routerPlan.summary.replace(/\.$/, '') ??
       'New feature'
     if (shouldTableAddFeature(routerPlan, canvasOps, cards, featureId)) {
@@ -690,9 +707,12 @@ export function mapCanvasToPreview(input: MapCanvasInput): PreviewPayload {
     }
   }
 
+  let focusCardId: string | null = null
+
   for (const op of canvasOps) {
     if (op.action === 'create_card') {
       applyCreateCard(op, cards, edges, centerCardId, committedCardIds, routerPlan, hints, userMessage)
+      focusCardId = op.id
     } else if (op.action === 'link_to') {
       applyLinkTo(op, cards, edges, centerCardId)
     } else if (op.action === 'update_card') {
@@ -709,6 +729,7 @@ export function mapCanvasToPreview(input: MapCanvasInput): PreviewPayload {
     edges,
     mdPatches,
     summary: routerPlan.summary,
+    focusCardId,
   }
 }
 

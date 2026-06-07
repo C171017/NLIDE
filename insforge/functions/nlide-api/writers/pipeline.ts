@@ -7,14 +7,12 @@ import {
   type SpecSectionRow,
 } from '../_shared/translator/specExport.ts'
 import { assembleSpecFile } from '../_shared/translator/specFolderLayout.ts'
-import type { RouterPlan } from '../_shared/translator/types.ts'
+import type { RouterOperation, RouterPlan } from '../_shared/translator/types.ts'
 import { writeFeaturesSection } from './featuresWriter.ts'
 import { writeRemainingSection } from './remainingWriter.ts'
 import { writeTaskSection } from './taskWriter.ts'
 import {
-  findFeaturesOperation,
-  findOperation,
-  findTasksOperation,
+  findAllOperations,
   type RunWritersInput,
   type RunWritersResult,
   type WriterPatch,
@@ -60,20 +58,57 @@ function uniqueTargets(plan: RouterPlan): string[] {
   return ordered
 }
 
+function linkedFeatureForTask(
+  routerPlan: RouterPlan,
+  taskOp: RouterOperation,
+  featureIdsWritten: string[],
+): string | undefined {
+  if (taskOp.entity_id) {
+    const canvasTask = routerPlan.canvas_ops.find(
+      (op) =>
+        op.action === 'create_card' &&
+        op.type === 'task' &&
+        op.id === taskOp.entity_id,
+    )
+    const linkTo = canvasTask?.link_to
+    if (typeof linkTo === 'string' && linkTo.startsWith('F-')) {
+      return linkTo
+    }
+  }
+
+  return featureIdsWritten[featureIdsWritten.length - 1]
+}
+
+function rollingEntityIds(
+  base: string[] | undefined,
+  patches: WriterPatch[],
+  file: string,
+): string[] {
+  const ids = [...(base ?? [])]
+  for (const patch of patches) {
+    if (patch.file === file && patch.entityId && !ids.includes(patch.entityId)) {
+      ids.push(patch.entityId)
+    }
+  }
+  return ids
+}
+
 /** Run all writers for router operations — features first, then tasks, then remaining files. */
 export async function runWritersFromPlan(input: RunWritersInput): Promise<RunWritersResult> {
   const { userMessage, routerPlan } = input
   const patches: WriterPatch[] = []
   const models: string[] = []
-  let linkedFeatureId: string | undefined
+  const featureIdsWritten: string[] = []
 
-  const featuresOp = findFeaturesOperation(routerPlan)
-  if (featuresOp) {
+  const featureOps = findAllOperations(routerPlan, 'features.md')
+  for (const [index, featureOp] of featureOps.entries()) {
     const result = await writeFeaturesSection({
       userMessage,
       routerPlan,
-      existingFeatureIds: input.existingFeatureIds,
+      existingFeatureIds: rollingEntityIds(input.existingFeatureIds, patches, 'features.md'),
       existingSection: input.existingSpec?.['features.md'],
+      focusOperation: featureOp,
+      compoundIndex: index,
     })
 
     if (!result.ok) {
@@ -88,7 +123,7 @@ export async function runWritersFromPlan(input: RunWritersInput): Promise<RunWri
       }
     }
 
-    linkedFeatureId = result.entityId
+    featureIdsWritten.push(result.entityId)
     patches.push({
       file: 'features.md',
       action: result.action,
@@ -99,14 +134,16 @@ export async function runWritersFromPlan(input: RunWritersInput): Promise<RunWri
     models.push(result.model)
   }
 
-  const tasksOp = findTasksOperation(routerPlan)
-  if (tasksOp) {
+  const taskOps = findAllOperations(routerPlan, 'tasks.md')
+  for (const [index, taskOp] of taskOps.entries()) {
     const result = await writeTaskSection({
       userMessage,
       routerPlan,
-      existingTaskIds: input.existingTaskIds,
+      existingTaskIds: rollingEntityIds(input.existingTaskIds, patches, 'tasks.md'),
       existingSection: input.existingSpec?.['tasks.md'],
-      linkedFeatureId,
+      linkedFeatureId: linkedFeatureForTask(routerPlan, taskOp, featureIdsWritten),
+      focusOperation: taskOp,
+      compoundIndex: index,
     })
 
     if (!result.ok) {
@@ -132,8 +169,8 @@ export async function runWritersFromPlan(input: RunWritersInput): Promise<RunWri
   }
 
   for (const targetFile of REMAINING_FILE_ORDER) {
-    const op = findOperation(routerPlan, targetFile)
-    if (!op) continue
+    const fileOps = findAllOperations(routerPlan, targetFile)
+    if (fileOps.length === 0) continue
 
     const existingEntityIds =
       targetFile === 'decisions.md'
@@ -142,34 +179,38 @@ export async function runWritersFromPlan(input: RunWritersInput): Promise<RunWri
           ? input.existingOpenQuestionIds
           : undefined
 
-    const result = await writeRemainingSection({
-      userMessage,
-      routerPlan,
-      targetFile,
-      existingContent: input.existingSpec?.[targetFile],
-      existingEntityIds,
-    })
+    for (const [index, fileOp] of fileOps.entries()) {
+      const result = await writeRemainingSection({
+        userMessage,
+        routerPlan,
+        targetFile,
+        existingContent: input.existingSpec?.[targetFile],
+        existingEntityIds: rollingEntityIds(existingEntityIds, patches, targetFile),
+        focusOperation: fileOp,
+        compoundIndex: index,
+      })
 
-    if (!result.ok) {
-      return {
-        ok: false,
-        error: {
-          code: result.error.code,
-          message: result.error.message,
-          validationIssues: result.error.validationIssues,
-          failedWriter: targetFile,
-        },
+      if (!result.ok) {
+        return {
+          ok: false,
+          error: {
+            code: result.error.code,
+            message: result.error.message,
+            validationIssues: result.error.validationIssues,
+            failedWriter: targetFile,
+          },
+        }
       }
-    }
 
-    patches.push({
-      file: targetFile,
-      action: result.action,
-      anchor: result.entityId,
-      section: result.section,
-      entityId: result.entityId,
-    })
-    models.push(result.model)
+      patches.push({
+        file: targetFile,
+        action: result.action,
+        anchor: result.entityId,
+        section: result.section,
+        entityId: result.entityId,
+      })
+      models.push(result.model)
+    }
   }
 
   return { ok: true, patches, models }
